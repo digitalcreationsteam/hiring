@@ -30,7 +30,23 @@ export const URL_PATH = {
   verifyEmail:"/auth/verify/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MzZhNTY3Y2YxOTlkZWM3NzgxY2E4ZSIsImlhdCI6MTc2NTE4ODk2NywiZXhwIjoxNzY1NzkzNzY3fQ.OkuphrcwOBFyOuAjV3HyNMd-IaeiJa5lR_y7whS3PAc",
 
   demographics:"/user/demographics",
+  getDemographics:"/user/demographics",
+
   education:"/user/education",
+  getEducation:"/user/education",
+
+  experience:"/user/work",
+  getExperience:"/user/work",
+
+  certification:"/user/certification",
+  getCertification:"/user/certification", 
+
+  awards:"/user/awards", 
+  getAwards:"/user/awards",
+
+  projects:"/user/projects",
+  getProjects:"/user/projects", 
+
 };
 
 // 🔥 API WRAPPER

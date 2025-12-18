@@ -1,7 +1,7 @@
 // src/components/Projects.tsx
 "use client";
 
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
@@ -14,6 +14,7 @@ import {
   FeatherX,
   FeatherCheck,
 } from "@subframe/core";
+import API, { URL_PATH } from "src/common/API";
 
 type ProjectEntry = {
   id: string;
@@ -43,37 +44,19 @@ const isValidUrl = (value: string) => {
 
 export default function Projects() {
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // form state
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [summary, setSummary] = useState("");
   const [outcome, setOutcome] = useState("");
   const [link, setLink] = useState("");
-  const [selectedProject, setSelectedProject] = useState<ProjectEntry | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ProjectEntry | null>(
+    null
+  );
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
-
-  
-  //useEffect
-  useEffect(() => {
-  const fetchExperienceIndex = async () => {
-    try {
-      const res = await fetch("/api/experience-index", {
-        credentials: "include",
-      });
-
-      if (!res.ok) return;
-
-      const data = await res.json();
-      setExperienceIndex(data.experienceIndex);
-    } catch {
-      // silent fail
-    }
-  };
-
-  fetchExperienceIndex();
-}, []);
-
-
 
   // stored projects (example)
   const [projects, setProjects] = useState<ProjectEntry[]>([
@@ -83,10 +66,57 @@ export default function Projects() {
       role: "Product Manager",
       summary: "Redesigned onboarding and core flows",
       outcome: "Increased activation by 18%",
-      link: "",
+      link: undefined,
       isDemo: true,
     },
   ]);
+
+  //GET
+  const fetchProjects = async () => {
+    if (!userId) return;
+
+    try {
+      const res = await API("GET", URL_PATH.getProjects, undefined, undefined, {
+        "user-id": userId,
+      });
+
+      const apiProjects = res?.data || [];
+
+      const mappedProjects = apiProjects.map((p: any) => ({
+        id: p._id,
+        name: p.projectName,
+        role: p.role || "",
+        summary: p.summary || "",
+        outcome: p.outcome || "",
+        link: p.link || undefined,
+        isDemo: false,
+      }));
+
+      setProjects(mappedProjects.length ? mappedProjects : []);
+    } catch (error) {
+      console.error("Failed to fetch projects", error);
+    }
+  };
+
+  //USE EFFECT
+
+  useEffect(() => {
+    const fetchExperienceIndex = async () => {
+      try {
+        const res = await fetch("/api/experience-index", {
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setExperienceIndex(data.experienceIndex);
+      } catch {}
+    };
+
+    fetchExperienceIndex();
+    fetchProjects();
+  }, []);
 
   // SC2 small textfield classes
   const scTextFieldClass =
@@ -107,10 +137,8 @@ export default function Projects() {
   };
 
   const handleAddProject = () => {
-    if (!name.trim() || !role.trim() || !summary.trim() || !outcome.trim()) {
-      alert(
-        "Please fill required fields: Project name, role, summary and outcome."
-      );
+    if (!name.trim() || !summary.trim()) {
+      alert("Project name and summary are required.");
       return;
     }
 
@@ -120,10 +148,7 @@ export default function Projects() {
     }
 
     const duplicate = projects.some(
-      (p) =>
-        !p.isDemo &&
-        p.name === toTitleCase(name.trim()) &&
-        p.role === toTitleCase(role.trim())
+      (p) => !p.isDemo && p.name === toTitleCase(name.trim())
     );
 
     if (duplicate) {
@@ -157,19 +182,54 @@ export default function Projects() {
     }
   };
 
+  //PAYLOAD
+  const buildProjectsPayload = (list: ProjectEntry[]) => {
+    if (!userId) {
+      alert("Session expired. Please login again.");
+      navigate("/login");
+      return null;
+    }
+
+    return {
+      projects: list.map((p) => ({
+        projectName: p.name.trim(),
+        role: p.role?.trim() || null,
+        summary: p.summary.trim(),
+        outcome: p.outcome?.trim() || null,
+        link: p.link?.trim() || null,
+      })),
+    };
+  };
+
   const hasRealProject = projects.some((p) => !p.isDemo);
   const canContinue = hasRealProject;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (isSubmitting) return;
+
     if (!hasRealProject) {
       alert("Please add at least one project to continue.");
       return;
     }
 
     const realProjects = projects.filter((p) => !p.isDemo);
-    console.log("Projects submitted:", realProjects);
+    const payload = buildProjectsPayload(realProjects);
 
-    navigate("/next-page");
+    if (!payload) return;
+
+    try {
+      setIsSubmitting(true);
+
+      await API("POST", URL_PATH.projects, payload, undefined, {
+        "user-id": userId,
+      });
+
+      navigate("/next-page");
+    } catch (err: any) {
+      alert(err.message || "Failed to save projects");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -402,11 +462,18 @@ export default function Projects() {
 
           <footer>
             <Button
-              className="w-full h-10 rounded-full bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
               onClick={handleContinue}
-              disabled={!canContinue}
+              disabled={!canContinue || isSubmitting}
+              className={`
+    w-full h-10 rounded-full transition-all
+    ${
+      !canContinue || isSubmitting
+        ? "bg-violet-300 text-white cursor-not-allowed"
+        : "bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
+    }
+  `}
             >
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </Button>
           </footer>
         </main>
@@ -417,10 +484,9 @@ export default function Projects() {
             <h3 className="text-lg text-neutral-900">Your Experience Index</h3>
 
             <div className="flex items-center justify-center py-6">
-             <span className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300">
-  {experienceIndex ?? "0"}
-</span>
-
+              <span className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300">
+                {experienceIndex ?? "0"}
+              </span>
             </div>
 
             {/* Top form horizontal line */}

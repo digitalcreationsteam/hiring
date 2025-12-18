@@ -15,11 +15,12 @@ import {
   FeatherX,
   FeatherCheck,
 } from "@subframe/core";
+import API, { URL_PATH } from "src/common/API";
 
 type AwardEntry = {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   year: string;
   isDemo?: boolean;
 };
@@ -30,17 +31,45 @@ const toTitleCase = (value: string) =>
 const toSentenceCase = (v: string) =>
   v ? v.charAt(0).toUpperCase() + v.slice(1) : v;
 
-
 const normalizeSpaces = (v: string) => v.replace(/\s+/g, " ").trim();
 
 export default function Awards() {
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [year, setYear] = useState("");
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
 
+  //GET
+  const fetchAwards = async () => {
+    if (!userId) return;
+
+    try {
+      const res = await API("GET", URL_PATH.getAwards, undefined, undefined, {
+        "user-id": userId,
+      });
+
+      const apiAwards = res?.data || [];
+
+      const mappedAwards = apiAwards.map((a: any) => ({
+        id: a._id,
+        name: a.awardName,
+        description: a.description || null,
+        year: String(a.year),
+        isDemo: false,
+      }));
+
+      setAwards(mappedAwards.length ? mappedAwards : []);
+    } catch (error) {
+      console.error("Failed to fetch awards", error);
+    }
+  };
+
+  //USE EFFECT
   useEffect(() => {
     const fetchExperienceIndex = async () => {
       try {
@@ -52,12 +81,11 @@ export default function Awards() {
 
         const data = await res.json();
         setExperienceIndex(data.experienceIndex);
-      } catch {
-        // silent fail
-      }
+      } catch {}
     };
 
     fetchExperienceIndex();
+    fetchAwards();
   }, []);
 
   // stored awards (example)
@@ -77,7 +105,6 @@ export default function Awards() {
   const scInputClass =
     "rounded-full h-9 px-3 text-[12px] placeholder:text-[12px] bg-white !border-none focus:ring-0 w-full";
 
-
   const resetForm = () => {
     setName("");
     setDescription("");
@@ -85,23 +112,36 @@ export default function Awards() {
   };
 
   const handleAddAward = () => {
-    if (!name.trim() || !description.trim() || !year.trim()) {
-    alert("Please complete all required fields before adding.");
-    return;
-  }
+    if (!name.trim() || !year.trim()) {
+      alert("Please complete all required fields before adding.");
+      return;
+    }
 
     const yearNum = Number(year);
     const currentYear = new Date().getFullYear();
+    if (!/^\d{4}$/.test(year)) {
+      alert("Year must be a 4-digit number.");
+      return;
+    }
 
     if (yearNum < 2000 || yearNum > currentYear) {
       alert(`Year must be between 2000 and ${currentYear}.`);
       return;
     }
 
+    const duplicate = awards.some(
+      (a) => !a.isDemo && a.name === toTitleCase(name.trim())
+    );
+
+    if (duplicate) {
+      alert("This award already exists.");
+      return;
+    }
+
     const newAward: AwardEntry = {
       id: String(Date.now()),
-      name: normalizeSpaces(name),
-      description: normalizeSpaces(description),
+      name: toTitleCase(normalizeSpaces(name)),
+      description: description.trim() ? normalizeSpaces(description) : null,
       year: year.trim(),
     };
 
@@ -117,19 +157,51 @@ export default function Awards() {
     setAwards((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const buildAwardsPayload = (list: AwardEntry[]) => {
+    if (!userId) {
+      alert("Session expired. Please login again.");
+      navigate("/login");
+      return null;
+    }
+
+    return {
+      awards: list.map((a) => ({
+        awardName: a.name.trim(),
+        description: a.description?.trim() || null,
+        year: Number(a.year),
+      })),
+    };
+  };
+
   const hasRealAward = awards.some((a) => !a.isDemo);
   const canContinue = hasRealAward;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (isSubmitting) return;
+
     if (!hasRealAward) {
       alert("Please add at least one award to continue.");
       return;
     }
 
     const realAwards = awards.filter((a) => !a.isDemo);
-    console.log("Awards submitted:", realAwards);
+    const payload = buildAwardsPayload(realAwards);
 
-    navigate("/projects");
+    if (!payload) return;
+
+    try {
+      setIsSubmitting(true);
+
+      await API("POST", URL_PATH.awards, payload, undefined, {
+        "user-id": userId,
+      });
+
+      navigate("/projects");
+    } catch (err: any) {
+      alert(err.message || "Failed to save awards");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -185,10 +257,14 @@ export default function Awards() {
                   <span className="text-sm font-semibold text-neutral-900 leading-tight">
                     {a.name}
                   </span>
-                  <span className="text-xs text-neutral-500">
-                    {a.description}
-                  </span>
+
+                  {a.description && (
+                    <span className="text-xs text-neutral-500">
+                      {a.description}
+                    </span>
+                  )}
                 </div>
+
                 <div className="flex flex-col items-end gap-2">
                   <IconButton
                     size="small"
@@ -273,11 +349,18 @@ export default function Awards() {
 
           <footer>
             <Button
-              className="w-full h-10 rounded-full bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
               onClick={handleContinue}
-              disabled={!canContinue}
+              disabled={!canContinue || isSubmitting}
+              className={`
+    w-full h-10 rounded-full transition-all
+    ${
+      !canContinue || isSubmitting
+        ? "bg-violet-300 text-white cursor-not-allowed"
+        : "bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
+    }
+  `}
             >
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </Button>
           </footer>
         </main>
@@ -290,7 +373,10 @@ export default function Awards() {
             </h3>
 
             <div className="flex items-center justify-center py-6">
-              <span aria-live="polite" className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300">
+              <span
+                aria-live="polite"
+                className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300"
+              >
                 {experienceIndex ?? 0}
               </span>
             </div>

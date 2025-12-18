@@ -19,6 +19,7 @@ import {
   FeatherX,
   FeatherCheck,
 } from "@subframe/core";
+import API, { URL_PATH } from "src/common/API";
 
 type ExperienceEntry = {
   id: string;
@@ -50,6 +51,8 @@ const isEndAfterStart = (start: string, end: string) => {
 
 export default function Experience() {
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   // form state
   const [roleTitle, setRoleTitle] = useState("");
@@ -217,74 +220,137 @@ export default function Experience() {
     setExperiences((prev) => prev.filter((e) => e.id !== id));
   };
 
+
+ // GET
+
+const fetchExperiences = async () => {
+  if (!userId) return;
+
+  try {
+    const res = await API(
+      "GET",
+      URL_PATH.getExperience,
+      undefined,
+      undefined,
+      { "user-id": userId }
+    );
+
+    const apiExperiences = res?.data || [];
+
+    const mappedExperiences: ExperienceEntry[] = apiExperiences.map(
+      (e: any) => ({
+        id: e._id,
+        roleTitle: e.jobTitle,
+        company: e.companyName,
+        startDate: `01/${e.startYear}`,
+        endDate: e.currentlyWorking
+          ? undefined
+          : e.endYear
+          ? `01/${e.endYear}`
+          : undefined,
+        currentlyWorking: e.currentlyWorking,
+        description: e.description || undefined,
+      })
+    );
+
+    setExperiences(mappedExperiences.length ? mappedExperiences : []);
+  } catch (error) {
+    console.error("Failed to fetch experience", error);
+  }
+};
+
+
+  //  PAYLOAD
+
+  const buildPayload = (list: ExperienceEntry[]) => {
+    if (!userId) {
+      alert("Session expired. Please login again.");
+      navigate("/login");
+      return null;
+    }
+
+    const currentYear = new Date().getFullYear();
+
+    return {
+      workExperiences: list.map((exp) => {
+        const startYear = Number(exp.startDate.split("/")[1]);
+        const resolvedEndYear = exp.currentlyWorking
+          ? currentYear
+          : exp.endDate
+          ? Number(exp.endDate.split("/")[1])
+          : currentYear;
+
+        return {
+          jobTitle: exp.roleTitle,
+          companyName: exp.company,
+          startYear,
+          endYear: exp.currentlyWorking ? null : resolvedEndYear,
+          currentlyWorking: exp.currentlyWorking,
+          duration: Math.max(0, resolvedEndYear - startYear),
+          description: exp.description || "",
+        };
+      }),
+    };
+  };
+
   const hasRealExperience = experiences.some((e) => e.id !== "example-1");
   const canContinue = hasRealExperience;
 
   const handleContinue = async () => {
     if (isSubmitting) return;
 
-    if (!hasRealExperience) {
-      alert("Please add your experience to continue.");
+    const realExperiences = experiences.filter(
+      (e) => e.id !== "example-1" && e.roleTitle && e.company
+    );
+
+    if (realExperiences.length === 0) {
+      alert("Please add at least one experience.");
       return;
     }
 
-    setIsSubmitting(true);
-
-    const realExperiences = experiences.filter((e) => e.id !== "example-1");
+    const payload = buildPayload(realExperiences);
+    if (!payload) return;
 
     try {
-      const res = await fetch("/api/experience", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ experiences: realExperiences }),
+      setIsSubmitting(true);
+
+      await API("POST", URL_PATH.experience, payload, undefined, {
+        "user-id": userId,
       });
 
-      if (!res.ok) {
-        let message = "Failed to save experience";
-        try {
-          const err = await res.json();
-          message = err.message || message;
-        } catch {}
-        alert(message);
-
-        return;
-      }
-
       navigate("/certifications");
-    } catch (error) {
-      alert("Network error. Please try again.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save experience");
     } finally {
-      setIsSubmitting(false); // 🔓 unlock submit
+      setIsSubmitting(false);
     }
   };
 
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchExperienceIndex = async () => {
-      try {
-        const res = await fetch("/api/experience-index", {
-          credentials: "include",
-        });
+ useEffect(() => {
+  const fetchExperienceIndex = async () => {
+    try {
+      const res = await fetch("/api/experience-index", {
+        credentials: "include",
+      });
 
-        if (!res.ok) return;
+      if (!res.ok) return;
 
-        const data = await res.json();
-        setExperienceIndex(data.experienceIndex);
-      } catch (err) {
-        console.error("Failed to fetch experience index");
-      }
-    };
+      const data = await res.json();
+      setExperienceIndex(data.experienceIndex);
+    } catch {}
+  };
 
-    fetchExperienceIndex();
-  }, []);
+  fetchExperienceIndex();
+  fetchExperiences(); 
+}, []);
+
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-6 py-20">
       <div className="w-full max-w-[800px] flex gap-8">
         {/* Left card */}
-
         <main className="w-full max-w-[480px] bg-white rounded-3xl border px-8 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
           {/* top row - back + progress */}
           <div className="flex items-center gap-4">

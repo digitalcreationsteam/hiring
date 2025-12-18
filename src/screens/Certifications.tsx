@@ -19,6 +19,7 @@ import {
   FeatherX,
   FeatherCheck,
 } from "@subframe/core";
+import API, { URL_PATH } from "src/common/API";
 
 type CertEntry = {
   id: string;
@@ -77,11 +78,60 @@ export default function Certifications() {
   const [file, setFile] = useState<File | null>(null);
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
 
+  //GET
+  const fetchCertifications = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    try {
+      const res = await API(
+        "GET",
+        URL_PATH.getCertification,
+        undefined,
+        undefined,
+        { "user-id": userId }
+      );
+
+      const apiCerts = res?.data || [];
+
+      setCerts(
+        apiCerts.map((c: any) => ({
+          id: c._id,
+          name: c.certificationName,
+          issuer: c.issuer,
+          issueDate: c.issueDate,
+          credentialLink: c.credentialLink,
+          file: undefined, // files not reloaded
+        }))
+      );
+    } catch {
+      console.error("Failed to fetch certifications");
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/experience-index", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setExperienceIndex(d.experienceIndex))
-      .catch(() => {});
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    fetchCertifications();
+
+    const fetchExperienceIndex = async () => {
+      try {
+        const res = await API(
+          "GET",
+          "/api/experience-index",
+          undefined,
+          undefined,
+          { "user-id": userId }
+        );
+
+        setExperienceIndex(res?.data?.experienceIndex ?? 0);
+      } catch {
+        console.error("Failed to fetch experience index");
+      }
+    };
+
+    fetchExperienceIndex();
   }, []);
 
   // stored certs
@@ -248,8 +298,9 @@ export default function Certifications() {
   };
 
   const hasRealCertification = certs.some(
-    (c) => c.id !== "example-1" && c.file
-  );
+  (c) => c.id !== "example-1"
+);
+
 
   const canContinue = hasRealCertification;
 
@@ -268,7 +319,7 @@ export default function Certifications() {
     const formData = new FormData();
 
     realCerts.forEach((cert, index) => {
-      formData.append(`certifications[${index}][name]`, cert.name);
+      formData.append(`certifications[${index}][certificationName]`, cert.name);
       formData.append(`certifications[${index}][issuer]`, cert.issuer);
       formData.append(`certifications[${index}][issueDate]`, cert.issueDate);
 
@@ -285,12 +336,13 @@ export default function Certifications() {
     });
 
     try {
-      const res = await fetch("/api/certifications", {
-        method: "POST",
-        credentials: "include",
-        body: formData, // ✅ multipart/form-data
-      });
-
+      const res = await API(
+        "POST",
+        URL_PATH.certification,
+        formData,
+        undefined,
+        { "user-id": localStorage.getItem("userId") }
+      );
       if (!res.ok) {
         let msg = "Failed to save certifications";
         try {

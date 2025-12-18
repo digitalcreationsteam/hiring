@@ -32,7 +32,6 @@ type EducationEntry = {
   endYear?: string;
   currentlyStudying: boolean;
   gpa?: string;
-  isDemo?: boolean;
 };
 
 const normalize = (v: string) => v.replace(/\s+/g, " ").trim();
@@ -53,8 +52,14 @@ const toTitleCase = (v: string) =>
     .toLowerCase()
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
+const notify = (msg: string) => {
+  console.error(msg); // replace later with toast
+};
+
 export default function Education() {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const userId = localStorage.getItem("userId");
   // local form state
   const [degree, setDegree] = useState("");
@@ -66,78 +71,29 @@ export default function Education() {
   const [gpa, setGpa] = useState("");
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    const fetchExperienceIndex = async () => {
-      try {
-        const res = await fetch("/api/experience-index", {
-          credentials: "include",
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        setExperienceIndex(data.experienceIndex);
-      } catch {}
-    };
-
-    fetchExperienceIndex();
-  }, [userId]);
-
   // stored entries
-  const [educations, setEducations] = useState<EducationEntry[]>([
-    // default example entry to match UI preview, remove if undesired
-    {
-      id: "example-1",
-      degree: "Bachelor of Science in Computer Science",
-      fieldOfStudy: "Computer Science",
-      schoolName: "Stanford University",
-      startYear: "2018",
-      endYear: "2022",
-      currentlyStudying: false,
-      gpa: "",
-      isDemo: true,
-    },
-  ]);
+  const [educations, setEducations] = useState<EducationEntry[]>([]);
 
   // helpers
-  const isAddable = () => {
-    if (
-      !degree.trim() ||
-      !fieldOfStudy.trim() ||
-      !schoolName.trim() ||
-      !startYear.trim()
-    ) {
-      return false;
-    }
+  const validateEducation = (): string | null => {
+    if (!degree.trim()) return "Degree is required";
+    if (!fieldOfStudy.trim()) return "Field of study is required";
+    if (!schoolName.trim()) return "School name is required";
+    if (!startYear.trim()) return "Start year is required";
 
-    if (!isValidYear(startYear)) {
-      alert("Start year must be a valid year.");
-      return false;
-    }
+    if (!isValidYear(startYear)) return "Start year must be a valid year";
 
     if (!currentlyStudying) {
-      if (!endYear.trim()) {
-        alert("End year is required.");
-        return false;
-      }
-
-      if (!isValidYear(endYear)) {
-        alert("End year must be a valid year.");
-        return false;
-      }
-
-      if (!isEndAfterStart(startYear, endYear)) {
-        alert("End year must be after start year.");
-        return false;
-      }
+      if (!endYear.trim()) return "End year is required";
+      if (!isValidYear(endYear)) return "End year must be a valid year";
+      if (!isEndAfterStart(startYear, endYear))
+        return "End year must be after start year";
     }
 
-    if (gpa && !/^(?:10(?:\.0{1,2})?|[0-9](?:\.\d{1,2})?)$/.test(gpa)) {
-      alert("GPA must be between 0 and 10");
-      return false;
-    }
+    if (gpa && !/^(10(\.0{1,2})?|[0-9](\.\d{1,2})?)$/.test(gpa))
+      return "GPA must be between 0 and 10";
 
-    return true;
+    return null;
   };
 
   const resetForm = () => {
@@ -151,13 +107,14 @@ export default function Education() {
   };
 
   const handleAddEducation = () => {
-    if (!isAddable()) {
-      alert("Please complete all required fields before adding.");
+    const error = validateEducation();
+    if (error) {
+      notify(error);
       return;
     }
 
     const newEntry: EducationEntry = {
-      id: String(Date.now()),
+      id: crypto.randomUUID(),
       degree: toTitleCase(degree),
       fieldOfStudy: toTitleCase(fieldOfStudy),
       schoolName: toTitleCase(schoolName),
@@ -169,7 +126,6 @@ export default function Education() {
 
     const duplicate = educations.some(
       (e) =>
-        !e.isDemo &&
         normalize(e.degree) === normalize(degree) &&
         normalize(e.fieldOfStudy) === normalize(fieldOfStudy) &&
         normalize(e.schoolName) === normalize(schoolName) &&
@@ -177,14 +133,11 @@ export default function Education() {
     );
 
     if (duplicate) {
-      alert("This education already exists.");
+      notify("This education already exists.");
       return;
     }
 
-    setEducations((prev) => {
-      const withoutDemo = prev.filter((e) => !e.isDemo);
-      return [newEntry, ...withoutDemo];
-    });
+    setEducations((prev) => [newEntry, ...prev]);
 
     resetForm();
   };
@@ -193,13 +146,71 @@ export default function Education() {
     setEducations((prev) => prev.filter((e) => e.id !== id));
   };
 
-  const hasRealEducation = educations.some((edu) => !edu.isDemo);
-  const canContinue = hasRealEducation;
+  const hasEducation = educations.length > 0;
+  const canContinue = hasEducation;
+
+  // -------------------- GET EDUCATION --------------------
+  const fetchEducations = async () => {
+    if (!userId) return;
+
+    try {
+      const res = await API(
+        "GET",
+        URL_PATH.getEducation,
+        undefined,
+        undefined,
+        { "user-id": userId }
+      );
+
+      const apiEducations = res?.data || [];
+
+      const mappedEducations: EducationEntry[] = apiEducations.map(
+        (e: any) => ({
+          id: e._id,
+          degree: e.degree || "",
+          fieldOfStudy: e.fieldOfStudy || "",
+          schoolName: e.schoolName || "",
+          startYear: String(e.startYear),
+          endYear: e.currentlyStudying ? undefined : String(e.endYear),
+          currentlyStudying: e.currentlyStudying,
+          gpa: e.gpa ? String(e.gpa) : undefined,
+        })
+      );
+
+      setEducations(mappedEducations.length ? mappedEducations : []);
+    } catch (error) {
+      console.error("Failed to fetch education", error);
+    }
+  };
+
+  //use Effect
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchExperienceIndex = async () => {
+      try {
+        const res = await API(
+          "GET",
+          "/api/experience-index",
+          undefined,
+          undefined,
+          { "user-id": userId }
+        );
+
+        setExperienceIndex(res?.data?.experienceIndex ?? 0);
+      } catch (err) {
+        console.error("Failed to fetch experience index", err);
+      }
+    };
+
+    fetchExperienceIndex();
+    fetchEducations();
+  }, [userId]);
 
   /* -------------------- BUILD PAYLOAD -------------------- */
-  const buildPayload = (list: EducationEntry[]) => {
+  const buildEducationPayload = (list: EducationEntry[]) => {
     if (!userId) {
-      alert("Session expired. Please login again.");
+      notify("Session expired. Please login again.");
       navigate("/login");
       return null;
     }
@@ -212,9 +223,9 @@ export default function Education() {
         const end = edu.currentlyStudying ? currentYear : Number(edu.endYear);
 
         return {
-          degree: edu.degree,
-          fieldOfStudy: edu.fieldOfStudy,
-          schoolName: edu.schoolName,
+          degree: edu.degree.trim(),
+          fieldOfStudy: edu.fieldOfStudy.trim(),
+          schoolName: edu.schoolName.trim(),
           startYear: start,
           endYear: edu.currentlyStudying ? null : end,
           duration: Math.max(0, end - start),
@@ -226,29 +237,28 @@ export default function Education() {
   };
 
   const handleContinue = async () => {
-    if (!hasRealEducation) {
-      alert("Please add your education to continue.");
+    if (isSubmitting) return;
+
+    if (!educations.length) {
+      notify("Please add at least one education to continue.");
       return;
     }
 
-    const cleanEducations = educations.filter((e) => !e.isDemo);
-
-    if (cleanEducations.length === 0) {
-      alert("Please add at least one education.");
-      return;
-    }
-
-    const payload = buildPayload(cleanEducations);
+    const payload = buildEducationPayload(educations);
     if (!payload) return;
 
     try {
+      setIsSubmitting(true);
+
       await API("POST", URL_PATH.education, payload, undefined, {
         "user-id": userId,
       });
 
       navigate("/experience");
     } catch (err: any) {
-      alert(err.message || "Failed to save education");
+      notify(err.message || "Failed to save education");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -481,7 +491,7 @@ export default function Education() {
                 placeholder="e.g., 7.8 (out of 10)"
                 value={gpa}
                 onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
-                  setGpa(ev.target.value)
+                  setGpa(ev.target.value.replace(/[^0-9.]/g, ""))
                 }
               />
             </TextField>
@@ -504,18 +514,17 @@ export default function Education() {
           <footer>
             <Button
               onClick={handleContinue}
-              disabled={!canContinue}
+              disabled={!canContinue || isSubmitting}
               className={`
-    w-full h-10 rounded-full
-    transition-all
+    w-full h-10 rounded-full transition-all
     ${
-      canContinue
-        ? "bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
-        : "bg-violet-300 text-white cursor-not-allowed"
+      !canContinue || isSubmitting
+        ? "bg-violet-300 text-white cursor-not-allowed"
+        : "bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
     }
   `}
             >
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </Button>
           </footer>
         </main>

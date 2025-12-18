@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "../ui/components/Button";
@@ -18,6 +18,10 @@ import {
   FeatherPackage,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
+
+const notify = (msg: string) => {
+  console.error(msg); // replace with toast later
+};
 
 export default function Demographics() {
   const navigate = useNavigate();
@@ -85,49 +89,102 @@ export default function Demographics() {
   /* -------------------- EXPERIENCE INDEX -------------------- */
   const [experienceIndex, setExperienceIndex] = useState<number>(0);
 
+  // GET
+  const fetchDemographics = React.useCallback(async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    try {
+      const res = await API(
+        "GET",
+        URL_PATH.getDemographics,
+        undefined,
+        undefined,
+        { "user-id": userId }
+      );
+
+      const data = res?.data;
+      if (!data) return;
+
+      setForm({
+        fullName: data.fullName || "",
+        email: data.email || "",
+        phoneNumber: data.phoneNumber || "",
+        city: data.city || "",
+        state: data.state || "",
+        country: data.country || "",
+      });
+
+      setShowPhone(!!data.phoneVisibleToRecruiters);
+    } catch {
+      notify("Failed to fetch demographics");
+    }
+  }, []);
+
+  //USE EFFECT
+ useEffect(() => {
+  const userId = localStorage.getItem("userId");
+  if (!userId) return;
+
+  fetchDemographics();
+
+  const fetchExperienceIndex = async () => {
+    try {
+      const res = await API(
+        "GET",
+        "/api/experience-index",
+        undefined,
+        undefined,
+        { "user-id": userId }
+      );
+
+      setExperienceIndex(res?.data?.experienceIndex ?? 0);
+    } catch {
+      notify("Failed to fetch experience index");
+    }
+  };
+
+  fetchExperienceIndex();
+}, [fetchDemographics]);
+
+
   /* -------------------- CONTINUE -------------------- */
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
- const handleContinue = async () => {
-  const error = isFormValid();
-  if (error) {
-    alert(error);
-    return;
-  }
+  const handleContinue = async () => {
+    const error = isFormValid();
+    if (error) {
+      notify(error);
+      return;
+    }
 
-  const userId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userId");
 
-  if (!userId) {
-    alert("Session expired. Please login again.");
-    navigate("/login");
-    return;
-  }
+    if (!userId) {
+      notify("Session expired. Please login again.");
+      navigate("/login");
+      return;
+    }
 
-  const payload = {
-    userId, // ✅ valid ObjectId string
-    ...form,
-    phoneVisibleToRecruiters,
+    const payload = {
+      ...form,
+      phoneVisibleToRecruiters,
+    };
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await API("POST", URL_PATH.demographics, payload);
+
+      console.log("Demographics submitted:", response);
+      navigate("/education");
+    } catch (err: any) {
+      notify(err.message || "Failed to submit demographics. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  try {
-    setIsSubmitting(true);
-
-    const response = await API(
-      "POST",
-      URL_PATH.demographics,
-      payload
-    );
-
-    console.log("Demographics submitted:", response);
-    navigate("/education");
-  } catch (err: any) {
-    alert(err.message || "Failed to submit demographics. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-6 py-24">
@@ -225,7 +282,7 @@ export default function Demographics() {
               />
 
               <span className="text-sm text-neutral-700">
-                Make phoneNumber number visible to recruiters
+                Make phone number visible to recruiters
               </span>
             </div>
 
