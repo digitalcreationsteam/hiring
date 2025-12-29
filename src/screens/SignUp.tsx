@@ -153,7 +153,7 @@ function SignUp() {
 
             <div className="flex flex-col gap-2">
               <OAuthSocialButton
-                className="w-full h-9 border rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
+                className="w-full h-9 border border-gray-300 rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
                 logo="https://res.cloudinary.com/subframe/image/upload/v1711417516/shared/z0i3zyjjqkobzuaecgno.svg"
                 onClick={() => handleOAuth("google")}
                 aria-label="Sign up with Google"
@@ -162,7 +162,7 @@ function SignUp() {
               </OAuthSocialButton>
 
               <OAuthSocialButton
-                className="w-full h-9 mt-2 border rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
+                className="w-full h-9 mt-2 border border-gray-300 rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
                 logo="https://res.cloudinary.com/subframe/image/upload/v1763187518/uploads/27890/y6jwljmmuzopthb00ld5.png"
                 onClick={() => handleOAuth("linkedin")}
                 aria-label="Sign up with LinkedIn"
@@ -198,7 +198,7 @@ function SignUp() {
                   placeholder="hello@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-8 w-full rounded-full border border-gray-200 px-3 outline-none focus:border-black"
+                  className="h-8 w-full rounded-full border border-gray-300 px-3 outline-none focus:border-black"
                   aria-required="true"
                 />
               </div>

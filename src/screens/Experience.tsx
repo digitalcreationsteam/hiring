@@ -61,6 +61,8 @@ export default function Experience() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
   // form state
   const [roleTitle, setRoleTitle] = useState("");
   const [typeOfRole, setTypeOfRole] = useState("");
@@ -212,9 +214,11 @@ export default function Experience() {
     try {
       setIsSubmitting(true);
 
-      const res = await API("POST", URL_PATH.experience, payload, undefined, {
+      const res = await API("POST", URL_PATH.experience, payload, {
         "user-id": userId,
       });
+
+      const created = res.data[0];
 
       setExperiences((prev) => [
         {
@@ -241,11 +245,8 @@ export default function Experience() {
   };
 
   // DELETE EXPERIENCE
-  const handleRemove = async (id: string) => {
-    if (id === "example-1") {
-      setExperiences((prev) => prev.filter((e) => e.id !== id));
-      return;
-    }
+  const handleRemove = async () => {
+    if (!deleteId) return;
 
     if (!userId) {
       alert("Session expired. Please login again.");
@@ -253,28 +254,23 @@ export default function Experience() {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this experience?"
-    );
-    if (!confirmDelete) return;
-
     try {
+      setIsSubmitting(true);
+
       await API(
         "DELETE",
-        `${URL_PATH.deleteExperience}/${id}`,
-        undefined,
+        `${URL_PATH.deleteExperience}/${deleteId}`,
         undefined,
         { "user-id": userId }
       );
 
-      // remove from UI
-      setExperiences((prev) => prev.filter((e) => e.id !== id));
-
-      // refresh experience index
+      setExperiences((prev) => prev.filter((e) => e.id !== deleteId));
       await fetchExperienceIndex();
+      setDeleteId(null);
     } catch (err: any) {
-      console.error("Delete failed", err);
       alert(err?.message || "Failed to delete experience");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -287,7 +283,6 @@ export default function Experience() {
       const res = await API(
         "GET",
         URL_PATH.getExperience,
-        undefined,
         undefined,
         { "user-id": userId }
       );
@@ -333,7 +328,6 @@ export default function Experience() {
         "GET",
         URL_PATH.calculateExperienceIndex,
         undefined,
-        undefined,
         { "user-id": userId }
       );
 
@@ -365,7 +359,7 @@ export default function Experience() {
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-4 sm:px-6 py-20 sm:py-32">
-      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8">
+      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center">
         {/* Left card */}
         <main className="w-full md:max-w-[480px] bg-white rounded-3xl border px-4 sm:px-6 md:px-8 py-6 ...">
           {/* top row - back + progress */}
@@ -388,7 +382,7 @@ export default function Experience() {
                   <div
                     key={`n-${i}`}
                     style={{ height: 6 }}
-                    className="flex-1 rounded-full bg-neutral-200"
+                    className="flex-1 rounded-full bg-neutral-300"
                   />
                 ))}
               </div>
@@ -444,7 +438,7 @@ export default function Experience() {
                     <IconButton
                       size="small"
                       icon={<FeatherX />}
-                      onClick={() => handleRemove(exp.id)}
+                      onClick={() => setDeleteId(exp.id)}
                       className="!bg-transparent !text-neutral-500"
                     />
 
@@ -692,9 +686,12 @@ export default function Experience() {
               Your Experience Index
             </h3>
 
-            <div className="flex items-center justify-center py-6">
-              <span className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] ...">
-                {displayedIndex !== null ? displayedIndex : "0"}
+           <div className="flex items-center justify-center py-6">
+              <span
+                aria-live="polite"
+                className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
+              >
+                {displayedIndex ?? 0}
               </span>
             </div>
 
@@ -779,6 +776,46 @@ export default function Experience() {
           </div>
         </aside>
       </div>
+      {deleteId && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-neutral-900">
+          Are you sure?
+        </h3>
+        <button
+          onClick={() => setDeleteId(null)}
+          className="text-neutral-400 hover:text-neutral-600"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p className="text-sm text-neutral-600 mb-6">
+        Do you really want to delete this experience? 
+      </p>
+
+      <div className="flex gap-3">
+        <Button
+          variant="neutral-secondary"
+          className="flex-1"
+          onClick={() => setDeleteId(null)}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          className="flex-1 rounded-3xl bg-violet-600 text-white hover:bg-violet-700"
+          onClick={handleRemove}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Deleting..." : "Yes"}
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

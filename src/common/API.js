@@ -3,7 +3,7 @@ import axios from "axios";
 /* =========================================
    🌐 BASE URL
 ========================================= */
-export const BASE_URL = "http://localhost:5000/api";
+export const BASE_URL = "http://localhost:5001/api";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -37,6 +37,8 @@ export const URL_PATH = {
   /* ---------- AUTH ---------- */
   signup: "/auth/signup",
   login: "/auth/login",
+  loginGoogle:"/api/auth/google",
+
   logout: "/auth/logout",
   verifyEmail:
     "/auth/verify/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MzZhNTY3Y2YxOTlkZWM3NzgxY2E4ZSIsImlhdCI6MTc2NTE4ODk2NywiZXhwIjoxNzY1NzkzNzY3fQ.OkuphrcwOBFyOuAjV3HyNMd-IaeiJa5lR_y7whS3PAc",
@@ -86,21 +88,19 @@ export default async function API(
   method,
   url,
   data = {},
-  token = null,
   headers = {}
 ) {
   try {
+    const token = localStorage.getItem("token");
+
     const config = {
       method: method.toLowerCase(),
       url,
       headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
         ...headers,
       },
     };
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
 
     if (config.method === "get") {
       config.params = data;

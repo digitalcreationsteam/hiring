@@ -12,7 +12,6 @@ import API, { URL_PATH } from "src/common/API";
 
 function Login() {
   const navigate = useNavigate();
-  
 
   // form state
   const [email, setEmail] = useState("");
@@ -43,49 +42,50 @@ function Login() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (loading) return;
-  if (!validate()) return;
+    e.preventDefault();
+    if (loading) return;
+    if (!validate()) return;
 
-  setLoading(true);
-  setError("");
+    setLoading(true);
+    setError("");
 
-  const formData = { email, password };
+    const formData = { email, password };
 
-  try {
-    const response = await API("POST", URL_PATH.login, formData);
+    try {
+      const response = await API("POST", URL_PATH.login, formData);
 
-    if (response?.success) {
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("userId", response.user._id);
-      localStorage.setItem("user", JSON.stringify(response.user));
+      if (response?.success) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("userId", response.user._id);
+        localStorage.setItem("user", JSON.stringify(response.user));
 
-      navigate("/demographics"); 
-    } else {
-      setError("Invalid credentials. Please try again.");
+        navigate("/demographics");
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err: any) {
-    setError(err?.message || "Invalid credentials. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleOAuth = (provider: "google" | "linkedin") => {
-    setLoading(true);
-    setTimeout(() => {  
-      setLoading(false);
-      navigate("/experience-index");
-    }, 800);
+    if (provider === "google") {
+      window.location.href = `http://localhost:5001/api/auth/google`;
+    }
+    if (provider === "linkedin") {
+      // future implementation
+      alert("LinkedIn login coming soon");
+    }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-neutral-50 px-4">
-      <div className="w-full max-w-[870px] rounded-xl border border-neutral-border bg-white shadow-md overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-neutral-50 px-4 sm:px-6">
+      <div className="w-full max-w-[870px] rounded-none sm:rounded-xl border border-neutral-border bg-white shadow-sm sm:shadow-md overflow-hidden">
         <div className="flex flex-col lg:flex-row w-full relative">
           {/* LEFT */}
-          <div className="lg:w-[64%] bg-neutral-50 px-6 py-8 flex flex-col justify-between hidden lg:flex">
+          <div className="w-full lg:w-[64%] bg-neutral-50 px-4 sm:px-6 py-6 sm:py-8 flex flex-col justify-between">
             <div className="flex flex-col gap-4">
               <img
                 className="h-6 w-fit"
@@ -145,7 +145,7 @@ function Login() {
           <div className="hidden lg:block w-[1px] bg-gray-200" />
 
           {/* RIGHT */}
-          <div className="w-full lg:w-1/2 px-6 py-8 flex flex-col gap-4 bg-white min-h-[620px]">
+          <div className="w-full lg:w-1/2 px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-4 bg-white min-h-0">
             <div>
               <h2 className="text-lg font-semibold">Sign in to your account</h2>
               <p className="text-xs text-subtext-color">
@@ -158,7 +158,7 @@ function Login() {
 
             <div className="flex flex-col gap-2">
               <OAuthSocialButton
-                className="w-full h-9 border rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
+                className="w-full h-10 sm:h-9 border border-gray-300 rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
                 logo="https://res.cloudinary.com/subframe/image/upload/v1711417516/shared/z0i3zyjjqkobzuaecgno.svg"
                 onClick={() => handleOAuth("google")}
                 aria-label="Log in with Google"
@@ -167,7 +167,7 @@ function Login() {
               </OAuthSocialButton>
 
               <OAuthSocialButton
-                className="w-full h-9 border rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
+                className="w-full h-10 sm:h-9 border border-gray-300 rounded-full flex items-center justify-center gap-2 hover:bg-gray-100"
                 logo="https://res.cloudinary.com/subframe/image/upload/v1763187518/uploads/27890/y6jwljmmuzopthb00ld5.png"
                 onClick={() => handleOAuth("linkedin")}
                 aria-label="Log in with LinkedIn"
@@ -195,11 +195,13 @@ function Login() {
               </label>
               <input
                 id="email"
+                inputMode="email"
+                autoComplete="email"
                 type="email"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-9 w-full rounded-full border border-gray-200 px-3 outline-none focus:border-black"
+                className="h-9 w-full rounded-full border border-gray-300 px-3 outline-none focus:border-black"
                 aria-required="true"
                 aria-invalid={!!error}
               />
@@ -210,6 +212,7 @@ function Login() {
               <input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -250,7 +253,7 @@ function Login() {
 
             <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
 
-            <div className="flex justify-center gap-1 text-xs">
+            <div className="flex flex-wrap justify-center gap-1 text-xs text-center">
               <span className="text-subtext-color">Don't have an account?</span>
               <Link
                 to="/signup"

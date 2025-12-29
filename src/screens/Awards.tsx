@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Avatar } from "../ui/components/Avatar";
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
 import { IconWithBackground } from "../ui/components/IconWithBackground";
@@ -43,6 +44,8 @@ export default function Awards() {
   const [description, setDescription] = useState("");
   const [year, setYear] = useState("");
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
   type ExperiencePoints = {
     demographics?: number;
     education?: number;
@@ -66,13 +69,13 @@ export default function Awards() {
     if (!userId) return;
 
     try {
-      const res = await API("GET", URL_PATH.getAwards, undefined, undefined, {
+      const res = await API("GET", URL_PATH.getAwards, undefined, {
         "user-id": userId,
       });
 
-      const apiAwards = res?.data || [];
+      const apiAwards = Array.isArray(res?.data) ? res.data : [];
 
-      const mappedAwards = apiAwards.map((a: any) => ({
+      const mappedAwards: AwardEntry[] = apiAwards.map((a: any) => ({
         id: a._id,
         name: a.awardName,
         description: a.description || null,
@@ -83,6 +86,7 @@ export default function Awards() {
       setAwards(mappedAwards);
     } catch (error) {
       console.error("Failed to fetch awards", error);
+      setAwards([]);
     }
   };
 
@@ -94,7 +98,6 @@ export default function Awards() {
       const res = await API(
         "GET",
         URL_PATH.calculateExperienceIndex,
-        undefined,
         undefined,
         { "user-id": userId }
       );
@@ -108,13 +111,13 @@ export default function Awards() {
   }, [userId]);
 
   //USE EFFECT
+  const [awards, setAwards] = useState<AwardEntry[]>([]);
+
   useEffect(() => {
+    if (!userId) return;
     fetchAwards();
     fetchExperienceIndex();
-  }, []);
-
-  // stored awards (example)
-  const [awards, setAwards] = useState<AwardEntry[]>([]);
+  }, [userId]);
 
   // SC2 small textfield classes
   const scTextFieldClass =
@@ -170,7 +173,7 @@ export default function Awards() {
             },
           ],
         },
-        undefined,
+      
         { "user-id": userId }
       );
 
@@ -186,12 +189,8 @@ export default function Awards() {
   };
 
   // -------------------- DELETE AWARD --------------------
-  const handleRemove = async (id: string) => {
-    // demo item → remove locally only
-    if (id === "example-1") {
-      setAwards((prev) => prev.filter((a) => a.id !== id));
-      return;
-    }
+  const handleRemove = async () => {
+    if (!deleteId || isSubmitting) return;
 
     if (!userId) {
       alert("Session expired. Please login again.");
@@ -199,27 +198,20 @@ export default function Awards() {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this award?"
-    );
-    if (!confirmDelete) return;
-
     try {
       setIsSubmitting(true);
 
       await API(
         "DELETE",
-        `${URL_PATH.deleteAward}/${id}`, // ✅ IMPORTANT
+        `${URL_PATH.deleteAward}/${deleteId}`,
         undefined,
-        undefined,
-        { "user-id": userId }
+        { "user-id": userId } 
       );
 
-      // update UI
-      setAwards((prev) => prev.filter((a) => a.id !== id));
-
-      // refresh experience index
+      setAwards((prev) => prev.filter((a) => a.id !== deleteId));
       await fetchExperienceIndex();
+
+      setDeleteId(null);
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to delete award");
     } finally {
@@ -255,10 +247,10 @@ export default function Awards() {
   };
 
   return (
-    <div className="min-h-800px flex justify-center bg-neutral-50 px-20 py-20">
-      <div className="w-full max-w-[800px] flex gap-8">
+    <div className="min-h-screen flex justify-center bg-neutral-50 px-4 sm:px-6 py-20 sm:py-32">
+      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center">
         {/* Left card */}
-        <main className="w-full max-w-[448px] flex flex-col gap-6 rounded-[28px] border border-solid border-neutral-border bg-white px-8 py-8 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
+        <main className="w-full md:max-w-[448px] flex flex-col gap-6 rounded-[28px] border bg-white px-4 sm:px-6 md:px-8 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
           {/* top row - back + progress */}
           <div className="flex items-center gap-4">
             <IconButton
@@ -266,7 +258,7 @@ export default function Awards() {
               icon={<FeatherArrowLeft />}
               onClick={() => navigate(-1)}
             />
-            <div className="flex-1 max-w-[420px]">
+            <div className="flex-1 w-full max-w-full md:max-w-[420px]">
               <div className="flex items-center gap-3">
                 {[...Array(5)].map((_, i) => (
                   <div
@@ -279,7 +271,7 @@ export default function Awards() {
                   <div
                     key={`n-${i}`}
                     style={{ height: 6 }}
-                    className="flex-1 rounded-full bg-neutral-200"
+                    className="flex-1 rounded-full bg-neutral-300"
                   />
                 ))}
               </div>
@@ -296,46 +288,62 @@ export default function Awards() {
             </p>
           </header>
 
-          {/* Selected awards preview */}
-          <section className="flex flex-col gap-3 w-full">
-            {awards.map((a) => (
-              <div
-                key={a.id}
-                className="rounded-2xl border border-neutral-300 bg-neutral-50 px-4 py-3 flex items-center justify-between"
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-neutral-900 leading-tight">
-                    {a.name}
-                  </span>
+         {/* Selected awards preview */}
+{/* Selected awards preview list */}
+<section className="flex w-full flex-col gap-3">
+  {awards.map((a) => (
+    <div
+      key={a.id}
+      className="
+        rounded-2xl
+        border border-neutral-300
+        bg-gray-50
+        px-4 py-3
+        flex items-center justify-between
+      "
+    >
+      {/* Left: icon + text */}
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar
+          size="large"
+          square
+          className="!rounded-2xl bg-violet-100 text-violet-700 font-semibold"
+        >
+          {a.name
+            .split(" ")
+            .slice(0, 2)
+            .map((s) => s[0])
+            .join("")}
+        </Avatar>
 
-                  {a.description && (
-                    <span className="text-xs text-neutral-500">
-                      {a.description}
-                    </span>
-                  )}
-                </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm font-semibold text-neutral-900 leading-tight truncate">
+            {a.name}
+          </span>
 
-                <div className="flex flex-col items-end gap-2">
-                  <IconButton
-                    size="small"
-                    icon={<FeatherX />}
-                    tabIndex={0}
-                    aria-label={`Delete award ${a.name}`}
-                    onClick={() => handleRemove(a.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleRemove(a.id);
-                      }
-                    }}
-                    className="!bg-transparent !text-neutral-500"
-                  />
+          {a.description && (
+            <span className="text-xs text-neutral-500 line-clamp-1">
+              {a.description}
+            </span>
+          )}
+        </div>
+      </div>
 
-                  <span className="text-xs text-neutral-500">{a.year}</span>
-                </div>
-              </div>
-            ))}
-          </section>
+      {/* Right: delete + year */}
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <IconButton
+          size="small"
+          icon={<FeatherX />}
+          onClick={() => setDeleteId(a.id)}
+          className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+        />
+        <span className="text-xs text-neutral-500">{a.year}</span>
+      </div>
+    </div>
+  ))}
+</section>
+
+
 
           {/* Form */}
           <form
@@ -382,7 +390,7 @@ export default function Awards() {
               />
             </TextField>
 
-            <div className="flex gap-3 mt-2">
+            <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <Button
                 type="button"
                 variant="neutral-secondary"
@@ -419,8 +427,8 @@ export default function Awards() {
         </main>
 
         {/* Right panel */}
-        <aside className="w-72 shrink-0">
-          <div className="sticky top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-200">
+        <aside className="w-full md:w-72 shrink-0 mt-6 md:mt-0">
+          <div className="md:sticky md:top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-200">
             <h3 className="text-lg font-semibold text-neutral-900">
               Your Experience Index
             </h3>
@@ -428,7 +436,7 @@ export default function Awards() {
             <div className="flex items-center justify-center py-6">
               <span
                 aria-live="polite"
-                className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300"
+                className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
               >
                 {displayedIndex ?? 0}
               </span>
@@ -513,6 +521,46 @@ export default function Awards() {
           </div>
         </aside>
       </div>
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Are you sure?
+              </h3>
+              <button
+                onClick={() => setDeleteId(null)}
+                className="text-neutral-400 hover:text-neutral-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-neutral-600 mb-6">
+              Do you really want to delete this award? This action cannot be
+              undone.
+            </p>
+
+            <div className="flex gap-3">
+              <Button
+                variant="neutral-secondary"
+                className="flex-1"
+                onClick={() => setDeleteId(null)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                className="flex-1 rounded-3xl bg-violet-600 text-white hover:bg-violet-700"
+                onClick={handleRemove}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Deleting..." : "Yes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -27,11 +27,15 @@ import Demographics from "./screens/Demographics";
 import SkillIndexIntro from "./screens/SkillIndexIntro";
 import './App.css';
 import Dashboard from "./screens/Dashboard";
+import LoginSuccess from "./screens/LoginSuccess";
 
 const router = createBrowserRouter([
   { path: "/", element: <LogIn /> },
   { path: "/signup", element: <SignUp /> },
   { path: "/login", element: <LogIn /> },
+  {path:"/login-success", element: <LoginSuccess/>},
+
+  
   { path: "/verify-email", element: <EmailVerification /> },
   { path: "/paywall", element: <Paywall /> },
   { path: "/talent-ranking", element: <TalentRankingPlatform /> },

@@ -66,10 +66,7 @@ export default function Education() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this education?"
-  );
-
+ 
   const userId = localStorage.getItem("userId");
   // local form state
   const [degree, setDegree] = useState("");
@@ -155,39 +152,55 @@ export default function Education() {
       return;
     }
 
+    const currentYear = new Date().getFullYear();
+
+const duration =
+  currentlyStudying
+    ? currentYear - Number(startYear)
+    : Number(endYear) - Number(startYear);
+
     // ✅ API payload
-    const payload = {
+   const payload = {
+  educations: [
+    {
       degree: toTitleCase(degree),
       fieldOfStudy: toTitleCase(fieldOfStudy),
       schoolName: toTitleCase(schoolName),
       startYear: Number(startYear),
       endYear: currentlyStudying ? null : Number(endYear),
       currentlyStudying,
+      duration,
       gpa: gpa ? Number(gpa) : null,
-    };
+    },
+  ],
+};
+
+
 
     try {
       setIsSubmitting(true);
 
-      const res = await API("POST", URL_PATH.education, payload, undefined, {
+      const res = await API("POST", URL_PATH.education, payload, {
         "user-id": userId,
       });
 
-      setEducations((prev) => [
-        {
-          id: res.data._id,
-          degree: res.data.degree,
-          fieldOfStudy: res.data.fieldOfStudy,
-          schoolName: res.data.schoolName,
-          startYear: String(res.data.startYear),
-          endYear: res.data.currentlyStudying
-            ? undefined
-            : String(res.data.endYear),
-          currentlyStudying: res.data.currentlyStudying,
-          gpa: res.data.gpa ? String(res.data.gpa) : undefined,
-        },
-        ...prev,
-      ]);
+const created = res.data[0];
+
+setEducations((prev) => [
+  {
+    id: created._id,
+    degree: created.degree,
+    fieldOfStudy: created.fieldOfStudy,
+    schoolName: created.schoolName,
+    startYear: String(created.startYear),
+    endYear: created.currentlyStudying
+      ? undefined
+      : String(created.endYear),
+    currentlyStudying: created.currentlyStudying,
+    gpa: created.gpa ? String(created.gpa) : undefined,
+  },
+  ...prev,
+]);
 
       await fetchExperienceIndex();
       resetForm();
@@ -215,7 +228,6 @@ export default function Education() {
         "DELETE",
         `${URL_PATH.deleteEducation}/${deleteId}`,
         undefined,
-        undefined,
         { "user-id": userId }
       );
 
@@ -240,7 +252,6 @@ export default function Education() {
       const res = await API(
         "GET",
         URL_PATH.getEducation,
-        undefined,
         undefined,
         { "user-id": userId }
       );
@@ -275,7 +286,6 @@ export default function Education() {
         "GET",
         URL_PATH.calculateExperienceIndex,
         undefined,
-        undefined,
         { "user-id": userId }
       );
 
@@ -308,7 +318,7 @@ export default function Education() {
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-4 sm:px-6 py-20 sm:py-32">
-      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8">
+      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center">
         {/* Left card */}
         <main className="w-full md:max-w-[480px] bg-white rounded-3xl border px-4 sm:px-6 md:px-8 py-6 ...">
           {/* Top: back + progress */}
@@ -332,7 +342,7 @@ export default function Education() {
                   <div
                     key={`n-${i}`}
                     style={{ height: 6 }}
-                    className="flex-1 rounded-full bg-neutral-200"
+                    className="flex-1 rounded-full bg-neutral-300"
                   />
                 ))}
               </div>
@@ -581,17 +591,15 @@ export default function Education() {
               Your Experience Index
             </h3>
 
-            <div className="flex items-center justify-center py-6">
-              {isExpIndexLoading ? (
-                <span className="text-[28px] text-neutral-300">
-                  Calculating…
-                </span>
-              ) : (
-                <span className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300">
-                  {displayedIndex ?? 0}
-                </span>
-              )}
+             <div className="flex items-center justify-center py-6">
+              <span
+                aria-live="polite"
+                className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
+              >
+                {displayedIndex ?? 0}
+              </span>
             </div>
+
 
             {/* Top form horizontal line */}
             <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
@@ -690,6 +698,48 @@ export default function Education() {
           </div>
         </aside>
       </div>
-    </div>
-  );
+       {/* ✅ DELETE CONFIRMATION MODAL — ADD HERE */}
+    {deleteId && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-neutral-900">
+              Are you sure?
+            </h3>
+            <button
+              onClick={() => setDeleteId(null)}
+              className="text-neutral-400 hover:text-neutral-600"
+            >
+              ✕
+            </button>
+          </div>
+
+          <p className="text-sm text-neutral-600 mb-6">
+            Do you really want to delete this education?
+          </p>
+
+          <div className="flex gap-3">
+            <Button
+              variant="neutral-secondary"
+              className="flex-1"
+              onClick={() => setDeleteId(null)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              className="flex-1 rounded-3xl bg-violet-600 text-white hover:bg-violet-700"
+              onClick={handleRemove}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Deleting..." : "Yes"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+
+  </div>
+);
+  
 }

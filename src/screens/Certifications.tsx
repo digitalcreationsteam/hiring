@@ -82,6 +82,7 @@ export default function Certifications() {
   const [credentialLink, setCredentialLink] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [experiencePoints, setExperiencePoints] = useState<any>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const displayedIndex =
     (experiencePoints?.demographics ?? 0) +
@@ -91,34 +92,51 @@ export default function Certifications() {
 
   //GET
   const fetchCertifications = async () => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return;
+  if (!userId) return;
 
-    try {
-      const res = await API(
-        "GET",
-        URL_PATH.getCertification,
-        undefined,
-        undefined,
-        { "user-id": userId }
-      );
+  try {
+    const res = await API(
+  "GET",
+  `${URL_PATH.getCertification}?_=${Date.now()}`,
+  undefined,
+  { "user-id": userId }
+);
 
-      const apiCerts = res?.data || [];
+    console.log("FULL API RESPONSE:", res);
 
-      setCerts(
-        apiCerts.map((c: any) => ({
+    const apiCerts = Array.isArray(res?.data)
+  ? res.data
+  : [];
+
+
+    console.log("CERT ARRAY:", apiCerts);
+
+    setCerts(
+      apiCerts.map((c: any) => {
+        let formattedDate = "";
+
+        if (c.issueDate) {
+          const d = new Date(c.issueDate);
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const yyyy = d.getFullYear();
+          formattedDate = `${mm}/${yyyy}`;
+        }
+
+        return {
           id: c._id,
           name: c.certificationName,
           issuer: c.issuer,
-          issueDate: c.issueDate,
+          issueDate: formattedDate,
           credentialLink: c.credentialLink,
-          file: undefined, // files not reloaded
-        }))
-      );
-    } catch {
-      console.error("Failed to fetch certifications");
-    }
-  };
+        };
+      })
+    );
+  } catch (e) {
+    console.error("FETCH ERROR", e);
+    setCerts([]);
+  }
+};
+
 
   const fetchExperienceIndex = async () => {
     if (!userId) return;
@@ -127,7 +145,6 @@ export default function Certifications() {
       const res = await API(
         "GET",
         URL_PATH.calculateExperienceIndex,
-        undefined,
         undefined,
         { "user-id": userId }
       );
@@ -139,9 +156,10 @@ export default function Certifications() {
   };
 
   useEffect(() => {
+    if (!userId) return;
     fetchCertifications();
     fetchExperienceIndex();
-  }, []);
+  }, [userId]);
 
   // stored certs
   const [certs, setCerts] = useState<CertEntry[]>([]);
@@ -156,42 +174,42 @@ export default function Certifications() {
 
   const isAddable = () => {
     if (!name.trim()) {
-      alert("Certification name is required.");
+      notify("Certification name is required.");
       return false;
     }
 
     if (!isValidText(name)) {
-      alert("Certification name contains invalid characters.");
+      notify("Certification name contains invalid characters.");
       return false;
     }
 
     if (!issuer.trim()) {
-      alert("Issuer is required.");
+      notify("Issuer is required.");
       return false;
     }
 
     if (!isValidText(issuer)) {
-      alert("Issuer name contains invalid characters.");
+      notify("Issuer name contains invalid characters.");
       return false;
     }
 
     if (!isValidMonthYear(issueDate)) {
-      alert("Issue date must be in MM/YYYY format.");
+      notify("Issue date must be in MM/YYYY format.");
       return false;
     }
 
     if (!isValidPastOrCurrentDate(issueDate)) {
-      alert("Issue date cannot be in the future.");
+      notify("Issue date cannot be in the future.");
       return false;
     }
 
     if (credentialLink.trim() && !isValidUrl(credentialLink)) {
-      alert("Credential link must be a valid URL (https://...)");
+      notify("Credential link must be a valid URL (https://...)");
       return false;
     }
 
     if (!file) {
-      alert("Please upload the certification PDF.");
+      notify("Please upload the certification PDF.");
       return false;
     }
 
@@ -224,8 +242,18 @@ export default function Certifications() {
     if (!isAddable()) return;
 
     if (!userId) {
-      alert("Session expired. Please login again.");
+      notify("Session expired. Please login again.");
       navigate("/login");
+      return;
+    }
+    const isDuplicate = certs.some(
+      (c) =>
+        c.name.toLowerCase() === name.toLowerCase().trim() &&
+        c.issuer.toLowerCase() === issuer.toLowerCase().trim()
+    );
+
+    if (isDuplicate) {
+      notify("This certification already exists.");
       return;
     }
 
@@ -249,7 +277,7 @@ export default function Certifications() {
     }
 
     try {
-      await API("POST", URL_PATH.certification, formData, undefined, {
+      await API("POST", URL_PATH.certification, formData, {
         "user-id": userId,
       });
 
@@ -259,45 +287,36 @@ export default function Certifications() {
 
       resetForm();
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Error creating certifications");
+      notify(err?.response?.data?.message || "Error creating certifications");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // -------------------- DELETE CERTIFICATION --------------------
-  const handleRemove = async (id: string) => {
+  const handleRemove = async () => {
+    if (!deleteId) return;
+
     if (!userId) {
       notify("Session expired. Please login again.");
       navigate("/login");
       return;
     }
 
-    // demo item → local delete only
-    if (id === "example-1") {
-      setCerts((prev) => prev.filter((c) => c.id !== id));
-      return;
-    }
-
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this certification?"
-    );
-    if (!confirmDelete) return;
-
     try {
       setIsSubmitting(true);
 
       await API(
         "DELETE",
-        `${URL_PATH.deleteCertification}/${id}`,
-        undefined,
+        `${URL_PATH.deleteCertification}/${deleteId}`,
         undefined,
         { "user-id": userId }
       );
 
-      setCerts((prev) => prev.filter((c) => c.id !== id));
-
+      setCerts((prev) => prev.filter((c) => c.id !== deleteId));
       await fetchExperienceIndex();
+
+      setDeleteId(null);
     } catch (err: any) {
       notify(err?.response?.data?.message || "Failed to delete certification");
     } finally {
@@ -312,11 +331,11 @@ export default function Certifications() {
     if (!e.target.files || e.target.files.length === 0) return;
     const uploaded = e.target.files[0];
     if (uploaded.type !== "application/pdf") {
-      alert("Only PDF files are allowed.");
+      notify("Only PDF files are allowed.");
       return;
     }
     if (uploaded.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB.");
+      notify("File size must be less than 5MB.");
       return;
     }
     setFile(uploaded);
@@ -327,11 +346,11 @@ export default function Certifications() {
     if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
     const uploaded = e.dataTransfer.files[0];
     if (uploaded.type !== "application/pdf") {
-      alert("Only PDF files are allowed.");
+      notify("Only PDF files are allowed.");
       return;
     }
     if (uploaded.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB.");
+      notify("File size must be less than 5MB.");
       return;
     }
     setFile(uploaded);
@@ -350,7 +369,7 @@ export default function Certifications() {
 
   const handleContinue = () => {
     if (!canContinue) {
-      alert("Please add at least one certification.");
+      notify("Please add at least one certification.");
       return;
     }
 
@@ -371,7 +390,7 @@ export default function Certifications() {
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-4 sm:px-6 py-20 sm:py-32">
-      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8">
+      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center">
         {/* Left card */}
         <main className="w-full md:max-w-[448px] flex flex-col gap-6 rounded-3xl border px-4 sm:px-6 md:px-8 py-6 sm:py-8">
           {/* top - back + progress */}
@@ -394,7 +413,7 @@ export default function Certifications() {
                   <div
                     key={`n-${i}`}
                     style={{ height: 6 }}
-                    className="flex-1 rounded-full bg-neutral-200"
+                    className="flex-1 rounded-full bg-neutral-300"
                   />
                 ))}
               </div>
@@ -444,7 +463,7 @@ export default function Certifications() {
                   <IconButton
                     size="small"
                     icon={<FeatherX />}
-                    onClick={() => handleRemove(c.id)}
+                    onClick={() => setDeleteId(c.id)}
                     className="!bg-transparent !text-neutral-500"
                   />
                   <span className="text-xs text-neutral-500">
@@ -514,13 +533,13 @@ export default function Certifications() {
                   if (!issueDate) return;
 
                   if (!isValidMonthYear(issueDate)) {
-                    alert("Invalid date format. Use MM/YYYY");
+                    notify("Invalid date format. Use MM/YYYY");
                     setIssueDate("");
                     return;
                   }
 
                   if (!isValidPastOrCurrentDate(issueDate)) {
-                    alert("Issue date cannot be in the future.");
+                    notify("Issue date cannot be in the future.");
                     setIssueDate("");
                   }
                 }}
@@ -660,7 +679,7 @@ export default function Certifications() {
             <div className="flex items-center justify-center py-6">
               <span
                 aria-live="polite"
-                className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] ..."
+                className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
               >
                 {displayedIndex ?? 0}
               </span>
@@ -747,6 +766,45 @@ export default function Certifications() {
           </div>
         </aside>
       </div>
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Are you sure?
+              </h3>
+              <button
+                onClick={() => setDeleteId(null)}
+                className="text-neutral-400 hover:text-neutral-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-neutral-600 mb-6">
+              Do you really want to delete this certification?{" "}
+            </p>
+
+            <div className="flex gap-3">
+              <Button
+                variant="neutral-secondary"
+                className="flex-1"
+                onClick={() => setDeleteId(null)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                className="flex-1 rounded-3xl bg-violet-600 text-white hover:bg-violet-700"
+                onClick={handleRemove}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Deleting..." : "Yes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

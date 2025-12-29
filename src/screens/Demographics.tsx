@@ -61,12 +61,11 @@ export default function Demographics() {
     }
 
     if (
-  form.phoneNumber.trim() &&
-  !phoneNumberRegex.test(form.phoneNumber.replace(/\s/g, ""))
-) {
-  return "Please enter a valid phone number (10–15 digits).";
-}
-
+      form.phoneNumber.trim() &&
+      !phoneNumberRegex.test(form.phoneNumber.replace(/\s/g, ""))
+    ) {
+      return "Please enter a valid phone number (10–15 digits).";
+    }
 
     if (!textRegex.test(form.city.trim())) {
       return "Please enter a valid city Name.";
@@ -106,7 +105,7 @@ export default function Demographics() {
 
   /* -------------------- EXPERIENCE INDEX -------------------- */
 
-const displayedIndex = experiencePoints?.total ?? 0;
+  const displayedIndex = experiencePoints?.demographics ?? 0;
 
   // -------------------- GET EXPERIENCE INDEX --------------------
   const fetchExperienceIndex = React.useCallback(async () => {
@@ -117,8 +116,7 @@ const displayedIndex = experiencePoints?.total ?? 0;
         "GET",
         URL_PATH.calculateExperienceIndex,
         undefined,
-        undefined,
-        { "user-id": userId }
+       { "user-id": userId }
       );
 
       setExperiencePoints(res?.points ?? null);
@@ -137,7 +135,6 @@ const displayedIndex = experiencePoints?.total ?? 0;
       const res = await API(
         "GET",
         URL_PATH.getDemographics,
-        undefined,
         undefined,
         { "user-id": userId }
       );
@@ -204,7 +201,7 @@ const displayedIndex = experiencePoints?.total ?? 0;
     try {
       setIsSubmitting(true);
 
-      await API("POST", URL_PATH.demographics, payload, undefined, {
+      await API("POST", URL_PATH.demographics, payload, {
         "user-id": userId,
       });
 
@@ -233,7 +230,7 @@ const displayedIndex = experiencePoints?.total ?? 0;
     try {
       setIsSubmitting(true);
 
-      await API("DELETE", URL_PATH.deleteDemographics, undefined, undefined, {
+      await API("DELETE", URL_PATH.deleteDemographics, undefined, {
         "user-id": userId,
       });
 
@@ -259,7 +256,7 @@ const displayedIndex = experiencePoints?.total ?? 0;
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-4 sm:px-6 py-20 sm:py-32">
-      <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8">
+<div className="w-full max-w-[1000px] mx-auto flex flex-col md:flex-row gap-6 md:gap-8 justify-center">
         {/* LEFT CARD */}
         <main className="w-full md:max-w-[480px] bg-white rounded-3xl border border-solid px-4 sm:px-6 md:px-8 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
           <div className="flex items-center gap-4">
@@ -275,7 +272,7 @@ const displayedIndex = experiencePoints?.total ?? 0;
                 {[...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className="flex-1 h-[5px] rounded-full bg-neutral-200"
+                    className="flex-1 h-[5px] rounded-full bg-neutral-300"
                   />
                 ))}
               </div>
@@ -402,7 +399,14 @@ const displayedIndex = experiencePoints?.total ?? 0;
             <Button
               onClick={handleContinue}
               disabled={isSubmitting || isLoading}
-              className="flex-1 h-9 rounded-full bg-violet-700 text-white"
+              className={`
+    w-full h-10 rounded-full transition-all
+    ${
+      isSubmitting || isLoading
+        ? "bg-violet-300 text-white cursor-not-allowed"
+        : "bg-violet-700 text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
+    }
+  `}
             >
               {isLoading
                 ? "Loading..."

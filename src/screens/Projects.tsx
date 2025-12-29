@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/components/Button";
+import { Avatar } from "../ui/components/Avatar";
 import { IconButton } from "../ui/components/IconButton";
 import { IconWithBackground } from "../ui/components/IconWithBackground";
 import { TextField } from "../ui/components/TextField";
@@ -58,6 +59,8 @@ export default function Projects() {
   );
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+
   type ExperiencePoints = {
     demographics?: number;
     education?: number;
@@ -91,7 +94,7 @@ export default function Projects() {
     if (!userId) return;
 
     try {
-      const res = await API("GET", URL_PATH.getProjects, undefined, undefined, {
+      const res = await API("GET", URL_PATH.getProjects, undefined, {
         "user-id": userId,
       });
 
@@ -121,7 +124,6 @@ export default function Projects() {
       const res = await API(
         "GET",
         URL_PATH.calculateExperienceIndex,
-        undefined,
         undefined,
         { "user-id": userId }
       );
@@ -191,26 +193,25 @@ export default function Projects() {
       setIsSubmitting(true);
 
       await API(
-  "POST",
-  URL_PATH.projects,
-  {
-    projects: [
-      {
-        projectName: toTitleCase(normalizeSpaces(name)),
-        role: role ? toTitleCase(normalizeSpaces(role)) : null,
+        "POST",
+        URL_PATH.projects,
+        {
+          projects: [
+            {
+              projectName: toTitleCase(normalizeSpaces(name)),
+              role: role ? toTitleCase(normalizeSpaces(role)) : null,
 
-        summary: toSentenceCase(normalizeSpaces(summary.trim())),
-        outcome: outcome
-          ? toSentenceCase(normalizeSpaces(outcome.trim()))
-          : null,
+              summary: toSentenceCase(normalizeSpaces(summary.trim())),
+              outcome: outcome
+                ? toSentenceCase(normalizeSpaces(outcome.trim()))
+                : null,
 
-        link: link ? normalizeSpaces(link) : null,
-      },
-    ],
-  },
-  undefined,
-  { "user-id": userId }
-);
+              link: link ? normalizeSpaces(link) : null,
+            },
+          ],
+        },
+        { "user-id": userId }
+      );
 
       await fetchProjects();
       await fetchExperienceIndex();
@@ -224,10 +225,13 @@ export default function Projects() {
   };
 
   // -------------------- DELETE PROJECT --------------------
-  const handleRemove = async (id: string) => {
-    // demo item → local delete only
-    if (id === "example-1") {
-      setProjects((prev) => prev.filter((p) => p.id !== id));
+  const handleRemove = async () => {
+    if (!deleteProjectId || isSubmitting) return;
+
+    // demo project → local delete
+    if (deleteProjectId === "example-1") {
+      setProjects((prev) => prev.filter((p) => p.id !== deleteProjectId));
+      setDeleteProjectId(null);
       return;
     }
 
@@ -237,32 +241,24 @@ export default function Projects() {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this project?"
-    );
-    if (!confirmDelete) return;
-
     try {
       setIsSubmitting(true);
 
       await API(
         "DELETE",
-        `${URL_PATH.deleteProject}/${id}`,
-        undefined,
+        `${URL_PATH.deleteProject}/${deleteProjectId}`,
         undefined,
         { "user-id": userId }
       );
 
-      // update UI
-      setProjects((prev) => prev.filter((p) => p.id !== id));
+      setProjects((prev) => prev.filter((p) => p.id !== deleteProjectId));
 
-      // clear selected project if deleted
-      if (selectedProject?.id === id) {
+      if (selectedProject?.id === deleteProjectId) {
         setSelectedProject(null);
       }
 
-      // refresh Experience Index
       await fetchExperienceIndex();
+      setDeleteProjectId(null);
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to delete project");
     } finally {
@@ -283,9 +279,21 @@ export default function Projects() {
 
   return (
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-6 py-20">
-      <div className="w-full max-w-[800px] flex gap-8">
+      <div className="w-full max-w-[1100px] flex flex-col lg:flex-row gap-6 lg:gap-8 justify-center">
         {/* Left card */}
-        <main className="w-full max-w-[448px] flex flex-col gap-6 rounded-[28px] border border-solid border-neutral-border bg-white px-8 py-8 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
+        <main
+          className="
+    w-full
+    lg:max-w-[480px]
+    flex flex-col gap-6
+    rounded-[28px]
+    border border-neutral-300
+    bg-white
+    px-4 sm:px-6 lg:px-8
+    py-6
+    shadow-[0_10px_30px_rgba(40,0,60,0.06)]
+  "
+        >
           {/* top row - back + progress */}
           <div className="flex items-center gap-4">
             <IconButton
@@ -293,7 +301,7 @@ export default function Projects() {
               icon={<FeatherArrowLeft />}
               onClick={() => navigate(-1)}
             />
-            <div className="flex-1 max-w-[420px]">
+            <div className="flex-1 w-full max-w-full lg:max-w-[420px]">
               <div className="flex items-center gap-3">
                 {[...Array(6)].map((_, i) => (
                   <div
@@ -319,51 +327,84 @@ export default function Projects() {
             <p className="text-xs text-neutral-500">Share your best work</p>
           </header>
 
-          {/* Selected projects preview */}
-          <section className="flex flex-col gap-3 w-full">
-            {projects.map((p) => (
-              <div
-                key={p.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setSelectedProject(p)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setSelectedProject(p);
-                  }
-                }}
-                className="rounded-2xl border border-neutral-300 bg-neutral-50 px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-neutral-100 transition"
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-neutral-900 leading-tight">
-                    {p.name}
-                  </span>
-                  <span className="text-xs text-neutral-500">{p.role}</span>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <IconButton
-                    size="small"
-                    icon={<FeatherX />}
-                    tabIndex={0}
-                    aria-label={`Delete project ${p.name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemove(p.id);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleRemove(p.id);
-                      }
-                    }}
-                    className="!bg-transparent !text-neutral-500"
-                  />
-                </div>
-              </div>
-            ))}
-          </section>
+        {/* Selected projects preview list */}
+<section className="flex w-full flex-col gap-3">
+  {projects.map((p) => (
+    <div
+      key={p.id}
+      role="button"
+      tabIndex={0}
+      onClick={() => setSelectedProject(p)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setSelectedProject(p);
+        }
+      }}
+      className="
+        rounded-2xl
+        border border-neutral-300
+        bg-gray-50
+        px-4 py-3
+        flex items-center justify-between
+        cursor-pointer
+        hover:bg-neutral-100
+        transition
+        focus:outline-none
+        focus:ring-2
+        focus:ring-violet-500
+      "
+    >
+      {/* Left: avatar + text */}
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar
+          size="large"
+          square
+          className="!rounded-2xl bg-violet-100 text-violet-700 font-semibold"
+        >
+          {p.name
+            .split(" ")
+            .slice(0, 2)
+            .map((s) => s[0])
+            .join("")}
+        </Avatar>
+
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm font-semibold text-neutral-900 leading-tight truncate">
+            {p.name}
+          </span>
+
+          {p.role && (
+            <span className="text-xs text-neutral-500 line-clamp-1">
+              {p.role}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Right: delete button */}
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <IconButton
+          size="small"
+          icon={<FeatherX />}
+          aria-label={`Delete project ${p.name}`}
+          onClick={(e) => {
+            e.stopPropagation(); // 🚫 prevent opening details
+            setDeleteProjectId(p.id);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              setDeleteProjectId(p.id);
+            }
+          }}
+          className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+        />
+      </div>
+    </div>
+  ))}
+</section>
 
           {selectedProject && (
             <div className="rounded-3xl border border-neutral-300 bg-white px-6 py-5">
@@ -531,13 +572,16 @@ export default function Projects() {
         </main>
 
         {/* Right panel */}
-        <aside className="w-72 shrink-0">
-          <div className="sticky top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-200">
+        <aside className="w-full lg:w-72 shrink-0 mt-6 lg:mt-0">
+          <div className="lg:sticky lg:top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-300">
             <h3 className="text-lg text-neutral-900">Your Experience Index</h3>
 
             <div className="flex items-center justify-center py-6">
-              <span className="font-['Afacad_Flux'] text-[48px] font-[500] leading-[56px] text-neutral-300">
-                {displayedIndex ?? "0"}
+              <span
+                aria-live="polite"
+                className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
+              >
+                {displayedIndex ?? 0}
               </span>
             </div>
 
@@ -617,6 +661,45 @@ export default function Projects() {
           </div>
         </aside>
       </div>
+      {deleteProjectId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900">
+                Are you sure?
+              </h3>
+              <button
+                onClick={() => setDeleteProjectId(null)}
+                className="text-neutral-400 hover:text-neutral-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-neutral-600 mb-6">
+              Do you really want to delete this project?
+            </p>
+
+            <div className="flex gap-3">
+              <Button
+                variant="neutral-secondary"
+                className="flex-1"
+                onClick={() => setDeleteProjectId(null)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                className="flex-1 rounded-3xl bg-violet-600 text-white hover:bg-violet-700"
+                onClick={handleRemove}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Deleting..." : "Yes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
