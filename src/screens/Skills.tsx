@@ -82,11 +82,23 @@ export default function Skills() {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
 
+    // ✅ READ IDs saved earlier
+    const domainId = localStorage.getItem("domainId");
+    const subDomainId = localStorage.getItem("subDomainId");
+
+    if (!domainId || !subDomainId) {
+      alert("Domain selection missing. Please select domain again.");
+      navigate("/job-domain");
+      return;
+    }
+
     await API(
       "POST",
-      URL_PATH.jobDomain || "/user/userDomainSkill",
+      URL_PATH.updateUserDomainSkills,
       {
         userId,
+        domainId,
+        subDomainId,
         skills,
       },
       {
@@ -106,9 +118,10 @@ export default function Skills() {
   }
 };
 
+
   return (
     <div className="min-h-screen flex justify-center items-center bg-neutral-50 px-6 py-10">
-      <main className="w-full max-w-[720px] bg-white rounded-3xl shadow-[0_10px_30px_rgba(40,0,60,0.06)] border border-neutral-200 px-10 py-8">
+      <main className="w-full max-w-[720px] bg-white rounded-3xl shadow-[0_10px_30px_rgba(40,0,60,0.06)] border border-neutral-300 px-10 py-8">
         {/* top row - back + progress */}
         <div className="flex items-center gap-4">
           <IconButton

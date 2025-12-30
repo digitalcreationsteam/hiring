@@ -63,6 +63,11 @@ function JobDomain() {
         }
       );
 
+      
+      localStorage.setItem("domainId", domain.id);
+      localStorage.setItem("subDomainId", subDomain.id);
+
+
       localStorage.setItem("jobDomain", domain.name);
       localStorage.setItem("subDomain", subDomain.name);
 
@@ -81,15 +86,27 @@ function JobDomain() {
       if (!userId) return;
 
       try {
-        const res = await API("GET", URL_PATH.jobDomain, undefined, {
+        const res = await API("GET", URL_PATH.getUserDomainSkils, undefined, {
           "user-id": userId,
         });
 
-        if (res?.domainId && res?.domainName) {
-          setDomain({
-            id: res.domainId,
-            name: res.domainName,
-          });
+        // API returns array
+        if (Array.isArray(res) && res.length > 0) {
+          const item = res[0];
+
+          if (item.domainId) {
+            setDomain({
+              id: item.domainId._id,
+              name: item.domainId.name,
+            });
+          }
+
+          if (item.subDomainId) {
+            setSubDomain({
+              id: item.subDomainId._id,
+              name: item.subDomainId.name,
+            });
+          }
         }
       } catch (err) {
         console.error("Failed to fetch job domain", err);
@@ -128,25 +145,24 @@ function JobDomain() {
       return;
     }
 
-const fetchSubDomains = async () => {
-  try {
-    const res = await API(
-      "GET",
-      `${URL_PATH.getSubDomain}?domainId=${domain.id}`
-    );
+    const fetchSubDomains = async () => {
+      try {
+        const res = await API(
+          "GET",
+          `${URL_PATH.getSubDomain}?domainId=${domain.id}`
+        );
 
-    setSubDomains(
-      res.data.map((item: any) => ({
-        _id: item._id,
-        name: item.name,
-      }))
-    );
-  } catch (err) {
-    console.error("Failed to fetch sub domains", err);
-    notify("Unable to load sub domains");
-  }
-};
-
+        setSubDomains(
+          res.data.map((item: any) => ({
+            _id: item._id,
+            name: item.name,
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to fetch sub domains", err);
+        notify("Unable to load sub domains");
+      }
+    };
 
     fetchSubDomains();
   }, [domain]);
@@ -155,7 +171,7 @@ const fetchSubDomains = async () => {
   return (
     <div className="min-h-screen bg-neutral-50 px-8 py-10 flex items-center justify-center">
       <div className="flex max-w-[660px] w-full mx-auto">
-        <div className="flex w-full flex-col gap-8 rounded-3xl border bg-white px-10 py-8 shadow-lg">
+        <div className="flex w-full flex-col gap-8 rounded-3xl border border-neutral-300 bg-white px-10 py-8 shadow-lg">
           {/* Header */}
           <div className="flex items-center gap-4">
             <IconButton
@@ -177,7 +193,7 @@ const fetchSubDomains = async () => {
 
           {/* Title */}
           <div>
-            <h2 className="text-[24px] text-neutral-900">
+            <h2 className="text-[22 px] text-neutral-900">
               Choose your job domain
             </h2>
             <p className="text-xs text-neutral-500">
@@ -193,7 +209,7 @@ const fetchSubDomains = async () => {
 
             <SubframeCore.DropdownMenu.Root>
               <SubframeCore.DropdownMenu.Trigger asChild>
-                <div className="flex h-10 items-center justify-between rounded-3xl border px-4 bg-neutral-50 cursor-pointer">
+                <div className="flex h-10 items-center justify-between rounded-3xl border border-neutral-300 px-4 bg-neutral-50 cursor-pointer">
                   <span
                     className={domain ? "text-neutral-900" : "text-neutral-400"}
                   >
@@ -239,7 +255,7 @@ const fetchSubDomains = async () => {
             <SubframeCore.DropdownMenu.Root>
               <SubframeCore.DropdownMenu.Trigger asChild>
                 <div
-                  className={`flex h-10 items-center justify-between rounded-3xl border px-4 cursor-pointer ${
+                  className={`flex h-10 items-center justify-between rounded-3xl border border-neutral-300 px-4 cursor-pointer ${
                     !domain
                       ? "bg-neutral-100 cursor-not-allowed"
                       : "bg-neutral-50"

@@ -88,9 +88,11 @@ export const URL_PATH = {
 
 
   /*========Skill Indes==========*/
-  jobDomain:"/user/userDomainSkill",
+  jobDomain:"/user/addUserDomainSubDomain",
+  updateUserDomainSkills:"/user/updateUserDomainSkills",
   getJobDomain:"/user/domain",
   getSubDomain:"/user/by-domain/694e588f2af883559ebe9540",
+  getUserDomainSkils:"/user/getUserDomainSkills",
 
 };
 
