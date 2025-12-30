@@ -3,7 +3,7 @@ import axios from "axios";
 /* =========================================
    🌐 BASE URL
 ========================================= */
-export const BASE_URL = "http://localhost:5001/api";
+export const BASE_URL = "http://localhost:5000/api";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -37,7 +37,7 @@ export const URL_PATH = {
   /* ---------- AUTH ---------- */
   signup: "/auth/signup",
   login: "/auth/login",
-  loginGoogle:"/api/auth/google",
+  loginGoogle:"/auth/google",
 
   logout: "/auth/logout",
   verifyEmail:
@@ -46,6 +46,10 @@ export const URL_PATH = {
   /* ---------- USER ---------- */
   getUser: "/user",
   updateUser: "/user",
+
+
+  /*-----------UPLOAD RESUME-----------*/
+  uploadResume:"user/resume",
 
   /* ---------- EXPERIENCE INDEX ---------- */
   calculateExperienceIndex: "/user/experience_index",
@@ -79,6 +83,13 @@ export const URL_PATH = {
   projects: "/user/projects",
   getProjects: "/user/projects",
   deleteProject: "/user/projects",
+
+
+
+
+  /*========Skill Indes==========*/
+  jobDomain:"/user/domain",
+
 };
 
 /* =========================================

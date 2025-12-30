@@ -1,16 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
 import { FeatherArrowLeft, FeatherChevronDown } from "@subframe/core";
 import { useNavigate } from "react-router-dom";
 import * as SubframeCore from "@subframe/core";
-import { DropdownMenu } from "../ui/components/DropdownMenu";
+import API, { URL_PATH } from "src/common/API";
+
+
+
+const notify = (msg: string) => {
+  console.warn(msg);
+};
 
 function JobDomain() {
+
+
   const navigate = useNavigate();
+
+  const userId = React.useMemo(() => localStorage.getItem("userId"), []);
+
   const [domain, setDomain] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+
   const domains = [
     "Product Management",
     "Design",
@@ -39,6 +54,59 @@ function JobDomain() {
     "Hospitality",
     "Other",
   ];
+
+  ///POST API ////
+  const handleContinue = async () => {
+  if (!domain) {
+    notify("Please select a job domain.");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    notify("Session expired. Please login again.");
+    navigate("/login");
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    await API(
+      "POST",
+      URL_PATH.jobDomain,
+      { name:domain }, 
+      {
+        Authorization: `Bearer ${token}`, 
+      }
+    );
+    localStorage.setItem("jobDomain", domain);
+
+
+    navigate("/skills");
+  } catch (err: any) {
+    console.error(err);
+    notify(
+      err?.response?.data?.message ||
+      "Failed to save job domain"
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+useEffect(() => {
+  const saved = localStorage.getItem("jobDomain");
+
+  if (saved) {
+    setDomain(saved);
+  }
+
+  setIsLoading(false);
+}, []);
+
+  
 
   return (
     <div className="min-h-screen bg-neutral-50 px-8 py-10 flex items-center justify-center">
@@ -83,9 +151,7 @@ function JobDomain() {
 
               <SubframeCore.DropdownMenu.Root>
                 <SubframeCore.DropdownMenu.Trigger asChild>
-                  <div
-                    className=" flex w-full h-10 items-center justify-between rounded-3xl border border-neutral-200 bg-neutral-50 px-4 cursor-pointer shadow-sm hover:shadow-md transitio "
-                  >
+                  <div className=" flex w-full h-10 items-center justify-between rounded-3xl border border-neutral-200 bg-neutral-50 px-4 cursor-pointer shadow-sm hover:shadow-md transitio ">
                     <span
                       className={`text-sm truncate ${
                         domain ? "text-neutral-900" : "text-neutral-400"
@@ -139,11 +205,16 @@ function JobDomain() {
           {/* Footer */}
           <div className="flex w-full border-t border-neutral-200 pt-6">
             <Button
-              className="h-9 w-full rounded-2xl bg-violet-600 text-sm font-medium text-white hover:bg-violet-700 transition"
-              onClick={() => navigate("/skills")}
-              disabled={!domain}
+              className={`h-9 w-full rounded-2xl text-sm font-medium text-white transition
+    ${
+      isSubmitting
+        ? "bg-violet-300 cursor-not-allowed"
+        : "bg-violet-600 hover:bg-violet-700"
+    }`}
+              onClick={handleContinue}
+              disabled={!domain || isSubmitting}
             >
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </Button>
           </div>
         </div>

@@ -20,7 +20,6 @@ import Skills from "./screens/Skills";
 import AssessmentIntro from "./screens/AssesmentIntro";
 import AssessmentPage from "./screens/AssesmentPage";
 import AssessmentResult from "./screens/AssesmentResult";
-import Login from "./screens/Login";
 import SkillAssessmentCard from "./screens/SkillsAssesment";
 import TalentRankingPlatform from "./screens/TalentRankingPlatform";
 import Demographics from "./screens/Demographics";
