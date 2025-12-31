@@ -33,6 +33,8 @@ import { FeatherUsers } from "@subframe/core";
 import { FeatherZap } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+
 
 type DashboardResponse = {
   user: {
@@ -61,10 +63,164 @@ type DashboardResponse = {
   };
 };
 
-function Dashboard() {
+export default function Dashboard() {
   const navigate = useNavigate();
+
+    /* -------------------- NAVIGATION (UPDATED) -------------------- */
   const handleNavigate = (path: string) => {
+    // if (path === "/assessment") {
+    //   const res = await fetch("/api/assessment/status");
+    //   const data = await res.json();
+
+    //   if (data.status === "IN_PROGRESS") {
+    //     navigate(`/assessment/continue/${data.attemptId}`);
+    //     return;
+    //   }
+    // }
     navigate(path);
+  };
+
+
+  /* -------------------- AVATAR -------------------- */
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [avatar, setAvatar] = useState(
+    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400"
+  );
+
+  const [user, setuser] = useState({
+    name: "",
+    domain: "",
+    location: "",
+  });
+
+  const [profile, setProfile] = useState({
+    
+    workExperience: [],
+    education: [],
+    skills: [],
+    certifications: [],
+    projects: [],
+  });
+
+  
+  /* -------------------- GLOBAL RANK STATE -------------------- */
+  const [globalRank, setGlobalRank] = useState({
+    rank: 0,
+    percentile: 0,
+    betterThan: 0,
+  });
+
+    const [locationRank, setLocationRank] = useState({
+    state: { rank: 0, percentile: 0, betterThan: 0 },
+    city: { rank: 0, percentile: 0, betterThan: 0 },
+    university: { rank: 0, percentile: 0, betterThan: 0 },
+  });
+
+    const [hireability, setHireability] = useState({
+    totalScore: 0,
+    weeklyChange: 0,
+    nextRankPoints: 0,
+    skill: {
+      score: 0,
+      max: 400,
+    },
+    experience: {
+      score: 0,
+      max: 5000,
+    },
+  });
+
+   /* -------------------- RECRUITER VISIBILITY -------------------- */
+  const [recruiterVisibility, setRecruiterVisibility] = useState(0);
+
+  /* -------------------- FETCH DATA -------------------- */
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then((res) => res.json())
+      .then((data) => {
+        setuser({
+          name: data.name,
+          domain: data.domain,
+          location: data.location,
+        });
+        setAvatar(data.avatar);
+      });
+
+        /* -------------------- GlobalRank DATA -------------------- */
+
+    fetch("/api/user/profile-details")
+      .then((res) => res.json())
+      .then((data) => setProfile(data));
+      fetch("/api/user/global-rank")
+      .then((res) => res.json())
+      .then((data) => {
+        setGlobalRank({
+          rank: data?.rank ?? 0,
+          percentile: data?.percentile ?? 0,
+          betterThan: data?.betterThan ?? 0,
+        });
+      })
+      .catch(() => { }); // new user → defaults remain 0
+
+              /* -------------------- State Rank DATA -------------------- */
+      fetch("/api/user/location-rank")
+      .then((res) => res.json())
+      .then((data) => {
+        setLocationRank({
+          state: {
+            rank: data?.state?.rank ?? 0,
+            percentile: data?.state?.percentile ?? 0,
+            betterThan: data?.state?.betterThan ?? 0,
+          },
+          city: {
+            rank: data?.city?.rank ?? 0,
+            percentile: data?.city?.percentile ?? 0,
+            betterThan: data?.city?.betterThan ?? 0,
+          },
+          university: {
+            rank: data?.university?.rank ?? 0,
+            percentile: data?.university?.percentile ?? 0,
+            betterThan: data?.university?.betterThan ?? 0,
+          },
+        });
+      })
+      .catch(() => {});
+
+                    /* -------------------- Hireability DATA -------------------- */
+      fetch("/api/user/hireability-index")
+      .then((res) => res.json())
+      .then((data) => {
+        setHireability({
+          totalScore: data?.totalScore ?? 0,
+          weeklyChange: data?.weeklyChange ?? 0,
+          nextRankPoints: data?.nextRankPoints ?? 0,
+          skill: {
+            score: data?.skill?.score ?? 0,
+            max: data?.skill?.max ?? 400,
+          },
+          experience: {
+            score: data?.experience?.score ?? 0,
+            max: data?.experience?.max ?? 5000,
+          },
+        });
+      })
+      .catch(() => {}); // new user → keep defaults (0)
+
+
+         /* -------------------- RECRUITER VISIBILITY -------------------- */
+        fetch("/api/user/recruiter-visibility")
+      .then((res) => res.json())
+      .then((data) => {
+        setRecruiterVisibility(data?.probability ?? 0);
+      })
+      .catch(() => {});
+
+  }, []);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatar(URL.createObjectURL(file));
   };
 
   type BadgeVariant = "brand" | "neutral" | "warning" | "error" | "success";
@@ -86,6 +242,8 @@ function Dashboard() {
     badge: "brand",
   };
 
+  
+
   return (
     <DefaultPageLayout>
       <div className="min-h-screen w-full bg-yellow-50 overflow-y-auto px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
@@ -95,26 +253,41 @@ function Dashboard() {
             <div className="flex w-full flex-col gap-6 lg:w-[320px] xl:w-[340px] lg:flex-none">
               <div className="flex w-full flex-col items-center gap-3 rounded-3xl bg-white px-6 py-6 border border-neutral-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
                 <div className="flex w-full flex-col items-center gap-3">
-                  <Avatar
-                    size="x-large"
-                    image="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400"
+                  {/* AVATAR */}
+                  <div
+                    className="relative cursor-pointer group"
+                    onClick={() => fileRef.current?.click()}
                   >
-                    PP
-                  </Avatar>
+                    <Avatar size="x-large" image={avatar}>
+                      PP
+                    </Avatar>
+
+                    <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                      <span className="text-white text-xs">Change</span>
+                    </div>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleAvatarChange}
+                    />
+                  </div>
+
                   <div className="flex w-full flex-col items-center justify-center gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-heading-2 font-heading-2 text-default-font">
-                        Preetam Patil
+                        {user.name}
                       </span>
                       <FeatherCheckCircle className="text-body font-body text-green-600" />
                     </div>
                     <span className="text-body text-[16px] text-gray-600 text-center">
-                      Senior Product Manager
+                      {user.domain}
                     </span>
                     <div className="flex items-center gap-1">
                       <FeatherMapPin className="text-caption font-caption text-subtext-color" />
                       <span className="text-caption text-[14px] text-gray-600">
-                        San Francisco, CA
+                        {user.location}
                       </span>
                     </div>
                     <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-gray-300" />
@@ -221,199 +394,192 @@ function Dashboard() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex w-full flex-col items-start gap-2">
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[16px] font-body-bold text-default-font">
-                              Senior Product Manager
-                            </span>
-                            <span className="text-[14px] text-neutral-600">
-                              Google · Full-time
-                            </span>
-                            <span className="text-[14px] text-neutral-400">
-                              Jan 2022 - Present · 2 yrs 11 mos
-                            </span>
-                            <span className="text-[14px] text-neutral-400">
-                              San Francisco, CA
+
+                      {profile.workExperience.map((exp: any, i: number) => (
+                        <div key={i}>
+                          <div className="flex w-full flex-col items-start gap-2">
+                            <div className="flex w-full items-start justify-between">
+                              <div className="flex flex-col items-start gap-1">
+                                <span className="text-[16px] font-body-bold text-default-font">
+                                  {exp.jobTitle}
+                                </span>
+                                <span className="text-[14px] text-neutral-600">
+                                  {exp.companyName}
+                                </span>
+                                <span className="text-[14px] text-neutral-400">
+                                  {exp.startYear} –{" "}
+                                  {exp.currentlyWorking
+                                    ? "Present"
+                                    : exp.endYear}
+                                  {" · "}
+                                  {exp.duration}
+                                </span>
+                                <span className="text-[16px] font-body-bold text-default-font">
+                                  {exp.description}
+                                </span>
+                                <span className="text-[14px] text-neutral-400">
+                                  {exp.location}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* EDUCATION */}
+                      <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-200" />
+                      <div className="flex w-full flex-col items-start gap-3">
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100">
+                              <FeatherAward className="text-yellow-600 text-[14px]" />
+                            </div>
+
+                            <span className="text-body-bold font-body-bold text-default-font">
+                              Education
                             </span>
                           </div>
                         </div>
+
+                      {profile.education.map((edu: any, i: number) => (
+                       <div key={i}>
+
+                        <div className="flex w-full flex-col items-start gap-2">
+                          <div className="flex w-full items-start justify-between">
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="text-[14px] text-neutral-800">
+                                 {edu.schoolName}
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                                  {edu.degree}
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                              {edu.startYear} – {edu.endYear}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* <div className="flex w-full items-start justify-between">
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="text-[14px] text-neutral-800">
+                                University of California, Berkeley
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                                Bachelor of Science, Computer Science
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                                2014 - 2018
+                              </span>
+                            </div>
+                          </div> */}
+
+                        </div>
                       </div>
+
+                     ))}
                     </div>
 
-                    <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-200" />
-                    <div className="flex w-full flex-col items-start gap-3">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100">
-                            <FeatherAward className="text-yellow-600 text-[14px]" />
-                          </div>
+                      <div className="h-px w-full bg-neutral-200/60" />
 
-                          <span className="text-body-bold font-body-bold text-default-font">
-                            Education
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex w-full flex-col items-start gap-2">
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[14px] text-neutral-800">
-                              Stanford University
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Master of Business Administration (MBA)
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              2018 - 2020
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[14px] text-neutral-800">
-                              University of California, Berkeley
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Bachelor of Science, Computer Science
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              2014 - 2018
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="h-px w-full bg-neutral-200/60" />
-
-                    <div className="flex w-full flex-col items-start gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100">
-                          <FeatherTool className="text-violet-600 text-[14px]" />
-                        </div>
-                        <span className="text-[16px] font-medium text-gray-700">
-                          Skills
-                        </span>
-                      </div>
-
-                      <div className="flex w-full flex-wrap gap-2">
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Product Strategy
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Product Roadmapping
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Agile Methodologies
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          User Research
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Data Analysis
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          A/B Testing
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          SQL
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Figma
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Jira
-                        </Badge>
-                        <Badge className="px-2 py-0.5 text-[11px] text-gray-600 bg-gray-100 rounded-full">
-                          Stakeholder Management
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-200" />
-                    <div className="flex w-full flex-col items-start gap-3">
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
-                            <FeatherCheckCircle className="text-green-600 text-[14px]" />
-                          </div>
-
-                          <span className="text-body-bold font-body-bold text-default-font">
-                            Certifications
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex w-full flex-col items-start gap-2">
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[14px] text-neutral-800">
-                              Certified Scrum Product Owner (CSPO)
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Scrum Alliance
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Issued Oct 2021
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[14px] text-neutral-800">
-                              Product Management Certificate
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Product School
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Issued Mar 2020
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-100" />
-                    <div className="flex w-full flex-col items-start gap-3">
-                      <div className="flex w-full items-center justify-between">
+                      <div className="flex w-full flex-col items-start gap-3">
                         <div className="flex items-center gap-2">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100">
-                            <FeatherFolderOpen className="text-violet-600 text-[14px]" />
+                            <FeatherTool className="text-violet-600 text-[14px]" />
                           </div>
-
-                          <span className="text-body-bold font-body-bold text-default-font">
-                            Featured Projects
+                          <span className="text-[16px] font-medium text-gray-700">
+                            Skills
                           </span>
                         </div>
+
+                        <div className="flex w-full flex-wrap gap-2">
+                          {profile.skills.length > 0 ? (
+                            profile.skills.map((skill: any, i: number) => (
+                            <Badge key={i}>
+                             {typeof skill === "string" ? skill : skill.name}
+                            </Badge>
+                          ))
+                       ) : (
+                              <span className="text-sm text-gray-400">
+                                 No skills added yet
+                              </span>
+                         )}
+                          </div>
                       </div>
-                      <div className="flex w-full flex-col items-start gap-2">
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[14px] text-neutral-800">
-                              Search Experience Redesign
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Led product strategy for core search improvements
-                              increasing user engagement by 35%
+
+                      <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-200" />
+                      <div className="flex w-full flex-col items-start gap-3">
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                              <FeatherCheckCircle className="text-green-600 text-[14px]" />
+                            </div>
+
+                            <span className="text-body-bold font-body-bold text-default-font">
+                              Certifications
                             </span>
                           </div>
                         </div>
-                        <div className="flex w-full items-start justify-between">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-[14px] text-neutral-800">
-                              AI-Powered Recommendations Platform
-                            </span>
-                            <span className="text-[12px] text-neutral-400">
-                              Launched ML-based recommendation system serving
-                              10M+ users daily
+
+                      {profile.certifications.map((cert: any, i: number) => (
+                       <div key={i}>
+                        <div className="flex w-full flex-col items-start gap-2">
+                          <div className="flex w-full items-start justify-between">
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="text-[14px] text-neutral-800">
+                                 {cert.certificationName}
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                                 {cert.issuer}
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                          Issued {cert.issueDate}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        </div>
+                        ))}
+                      </div>
+
+                     {/* FEATURED PROJECTS */}
+                      <div className="flex h-px w-full flex-none flex-col items-center gap-2 bg-neutral-100" />
+                      <div className="flex w-full flex-col items-start gap-3">
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100">
+                              <FeatherFolderOpen className="text-violet-600 text-[14px]" />
+                            </div>
+
+                            <span className="text-body-bold font-body-bold text-default-font">
+                              Featured Projects
                             </span>
                           </div>
                         </div>
-                      </div>
-                    </div>
+
+                      {profile.projects.map((project: any, i: number) => (
+                       <div key={i}>
+                        <div className="flex w-full flex-col items-start gap-2">
+                          <div className="flex w-full items-start justify-between">
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="text-[14px] text-neutral-800">
+                                {project.projectName}
+                              </span>
+                              <span className="text-[12px] text-neutral-400">
+                               {project.summary}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                       </div>
+                      ))}
+                     </div>
+
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+          
 
             {/* CENTER */}
             <div className="flex w-full flex-col items-start gap-6 lg:w-[800px] lg:flex-none">
@@ -421,7 +587,7 @@ function Dashboard() {
                 <div className="flex flex-col items-start gap-1">
                   <div className="flex items-center gap-3">
                     <span className="text-[24px] sm:text-[28px] lg:text-[36px] font-semibold leading-tight text-gray-900">
-                      Welcome back, Preetam 👋
+                      Welcome back, {user.name} 👋
                     </span>
                   </div>
 
@@ -450,18 +616,18 @@ function Dashboard() {
 
                     <span className="text-[12px] text-neutral-600">Global</span>
                     <span className={`text-[32px] ${GLOBAL_THEME.valueColor}`}>
-                      383,635
+                      {globalRank.rank}
                     </span>
 
                     <Badge
                       className="flex items-center gap-1 bg-violet-100 text-violet-600 text-xs font-medium px-3 py-1 rounded-full"
                       variant={GLOBAL_THEME.badge}
                     >
-                      Top 15%
+                   Top {globalRank.percentile}%
                     </Badge>
 
                     <span className="text-[12px] text-green-500">
-                      Better than 1.2M candidates
+                    Better than {globalRank.betterThan} candidates
                     </span>
                   </div>
 
@@ -475,18 +641,18 @@ function Dashboard() {
                       California
                     </span>
                     <span className="text-[28px] font-semibold text-gray-900">
-                      2,456
+                      {locationRank.state.rank}
                     </span>
 
                     <Badge
                       className="flex items-center gap-1 bg-gray-100 text-gray-700 text-xs font-medium px-3 border-none py-1 rounded-full"
                       variant="neutral"
                     >
-                      Top 12%
+                    Top {locationRank.state.percentile}%
                     </Badge>
 
                     <span className="text-[12px] text-neutral-500 text-center">
-                      Better than 18K candidates
+                    Better than {locationRank.state.betterThan} candidates
                     </span>
                   </div>
 
@@ -500,18 +666,18 @@ function Dashboard() {
                       San Francisco
                     </span>
                     <span className="text-[28px] font-semibold text-gray-900">
-                      234
+                      {locationRank.city.rank}
                     </span>
 
                     <Badge
                       className="flex items-center gap-1 bg-gray-100 text-gray-700 text-xs font-medium px-3 border-none py-1 rounded-full"
                       variant="neutral"
                     >
-                      Top 8%
+                     Top {locationRank.city.percentile}%
                     </Badge>
 
                     <span className="text-[12px] text-neutral-500 text-center">
-                      Better than 2.8K candidates
+                       Better than {locationRank.city.betterThan} candidates
                     </span>
                   </div>
 
@@ -525,15 +691,15 @@ function Dashboard() {
                       Stanford
                     </span>
                     <span className="text-[28px] font-semibold text-yellow-600">
-                      23
+                     {locationRank.university.rank}
                     </span>
 
                     <Badge className="flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-medium px-3 border-none py-1 rounded-full">
-                      Top 5%
+                       Top {locationRank.university.percentile}%
                     </Badge>
 
                     <span className="text-[12px] text-green-600 text-center">
-                      Better than 450 peers
+                         Better than {locationRank.university.betterThan} peers
                     </span>
                   </div>
                 </div>
@@ -553,7 +719,7 @@ function Dashboard() {
 
                   <div className="flex items-center gap-1 text-sm font-medium text-green-600">
                     <FeatherArrowUp className="h-4 w-4" />
-                    +12 this week
+                     {hireability.weeklyChange} this week
                   </div>
                 </div>
 
@@ -572,7 +738,7 @@ function Dashboard() {
 
                       {/* value */}
                       <span className="relative z-10 text-[40px] font-semibold leading-none text-violet-600">
-                        350
+                         {hireability.totalScore}
                       </span>
                     </div>
 
@@ -581,7 +747,7 @@ function Dashboard() {
                       className="flex items-center rounded-full gap-1 bg-violet-100 text-violet-700 text-xs"
                       icon={<FeatherTarget className="h-3 w-3" />}
                     >
-                      Just 10 points to next rank
+                   Just {hireability.nextRankPoints} points to next rank
                     </Badge>
 
                     <button className="text-sm font-medium text-violet-600 hover:underline">
@@ -598,11 +764,18 @@ function Dashboard() {
                           <FeatherTarget className="h-4 w-4 text-violet-600" />
                           <span className="font-medium">Skill Index</span>
                         </div>
-                        <span className="text-violet-600">240 / 400</span>
+                        <span className="text-violet-600">
+                          {hireability.skill.score} / {hireability.skill.max}
+                        </span>
                       </div>
 
                       <div className="h-2 w-full rounded-full bg-neutral-200">
-                        <div className="h-2 w-[60%] rounded-full bg-violet-500" />
+                        <div className ="h-2 rounded-full bg-violet-500"
+                             style={{
+                                width: `${
+                                (hireability.skill.score / hireability.skill.max) * 100
+                             }%`,
+                         }} />
                       </div>
                     </div>
 
@@ -613,11 +786,19 @@ function Dashboard() {
                           <FeatherBriefcase className="h-4 w-4 text-green-600" />
                           <span className="font-medium">Experience Index</span>
                         </div>
-                        <span className="text-green-600">540 / 5000</span>
+                        <span className="text-green-600">                
+                          {hireability.experience.score} / {hireability.experience.max}
+                        </span>
                       </div>
 
                       <div className="h-2 w-full rounded-full bg-neutral-200">
-                        <div className="h-2 w-[54%] rounded-full bg-green-500" />
+                        <div className="h-2 rounded-full bg-green-500"
+                         style={{
+                          width: `${
+                          (hireability.experience.score /
+                           hireability.experience.max) * 100
+                                     }%`,
+                        }} />
                       </div>
                     </div>
                   </div>
@@ -634,8 +815,9 @@ function Dashboard() {
                       <span className="text-body font-body text-yellow-600">
                         4 actions available
                       </span>
-                    </div>
+                   </div>
                   </div>
+
                   <span className="text-body font-body text-gray-600">
                     Once you&#39;re out of retries, you can still take case
                     studies or participate in hackathons to increase your
@@ -719,10 +901,8 @@ function Dashboard() {
                         className="h-10 w-full sm:w-auto flex-none rounded-3xl bg-violet-700 hover:bg-violet-800"
                         variant="brand-primary"
                         icon={<FeatherArrowRight />}
-                        onClick={(
-                          event: React.MouseEvent<HTMLButtonElement>
-                        ) => {}}
-                      >
+                        onClick={() => handleNavigate("/assessment")}
+                        >
                         Start Now
                       </Button>
                     </div>
@@ -805,9 +985,7 @@ function Dashboard() {
                         className="h-10 w-full sm:w-auto flex-none rounded-3xl bg-violet-700 hover:bg-violet-800"
                         variant="brand-primary"
                         icon={<FeatherArrowRight />}
-                        onClick={(
-                          event: React.MouseEvent<HTMLButtonElement>
-                        ) => {}}
+                         onClick={() => handleNavigate("")} //insert the link of the case study page
                       >
                         Start Now
                       </Button>
@@ -869,7 +1047,8 @@ function Dashboard() {
                   Top Product Managers at Your University
                 </span>
 
-                <div className="mt-4 flex flex-col gap-3">
+                <div className="mt-4 max-h-[260px] overflow-y-auto pr-1 scrollbar-hide ">
+                <div className="mt-4 flex flex-col gap-3 ">
                   {/* Rank 1 */}
                   <div className="flex items-center gap-3 rounded-3xl border border-yellow-200 bg-yellow-50 px-4 py-3">
                     <Badge
@@ -935,14 +1114,25 @@ function Dashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
 
                 <Button
                   className="mt-4 h-8 text-[14px] rounded-full w-full"
                   variant="neutral-secondary"
                   size="small"
+                  onClick={() => handleNavigate("/leaderboard")}
+
                 >
                   View Full Leaderboard
                 </Button>
+                 {/* Hidden Avatar Input */}
+                  <input
+                  ref={fileRef}
+                   type="file"
+                   hidden
+                   accept="image/*"
+                    onChange={handleAvatarChange}
+                />
               </div>
 
               {/* Recruiter Visibility */}
@@ -952,7 +1142,9 @@ function Dashboard() {
                 </span>
 
                 <div className="mt-2 text-center">
-                  <span className="text-[28px] text-yellow-600">60%</span>
+                  <span className="text-[28px] text-yellow-600">            
+                    {recruiterVisibility}%
+                  </span>
                 </div>
 
                 <div className="mt-3 rounded-3xl border border-yellow-200 bg-yellow-50 px-4 py-2">
@@ -1182,4 +1374,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+// export default Dashboard;
