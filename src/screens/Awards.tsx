@@ -1,7 +1,7 @@
 // src/components/Awards.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "../ui/components/Avatar";
 import { Button } from "../ui/components/Button";
@@ -34,6 +34,84 @@ const toSentenceCase = (v: string) =>
 
 const normalizeSpaces = (v: string) => v.replace(/\s+/g, " ").trim();
 
+function EndYearPicker({
+  value,
+  onChange,
+  disabled = false,
+  minYear = 1950,
+  maxYear = new Date().getFullYear(),
+}: {
+  value: string;
+  onChange: (year: string) => void;
+  disabled?: boolean;
+  minYear?: number;
+  maxYear?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const years = Array.from(
+    { length: maxYear - minYear + 1 },
+    (_, i) => maxYear - i
+  );
+
+  return (
+    <div className="relative" ref={ref}>
+      {/* INPUT */}
+      <input
+        readOnly
+        disabled={disabled}
+        value={value}
+        placeholder="End Year"
+        onClick={() => !disabled && setOpen((v) => !v)}
+        className={`w-full h-10 px-4 rounded-full cursor-pointer border border-neutral-300 focus:outline-none ${
+          disabled ? "bg-neutral-100 text-neutral-400" : "bg-white"
+        }`}
+      />
+
+      {/* PICKER */}
+      {open && (
+        <div className="absolute z-50 mt-2 w-64 rounded-2xl border border-neutral-300 bg-white shadow-lg p-3 max-h-60 overflow-auto">
+          <div className="grid grid-cols-4 gap-2 text-sm">
+            {years.map((year) => (
+              <button
+                key={year}
+                type="button"
+                onClick={() => {
+                  onChange(String(year));
+                  setOpen(false);
+                }}
+                className={`
+                  py-2 rounded-lg transition
+                  ${
+                    value === String(year)
+                      ? "bg-violet-600 text-white"
+                      : "hover:bg-neutral-100"
+                  }
+                `}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function Awards() {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
@@ -43,6 +121,8 @@ export default function Awards() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [year, setYear] = useState("");
+   const [startYear, setStartYear] = useState("");
+  const [endYear, setEndYear] = useState("");
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
   const [selectedAward, setSelectedAward] = useState<any | null>(null);
   const [deleteAwardId, setDeleteAwardId] = useState<string | null>(null);
@@ -450,16 +530,19 @@ const handleRemove = async () => {
               />
             </TextField>
 
-            <TextField label={<span className="text-[12px]">Year * </span>}
-             helpText="" className={scTextFieldClass}>
-              <TextField.Input
-                placeholder="YYYY"
-                value={year}
-                onChange={(e) => setYear(e.target.value.replace(/[^\d]/g, ""))}
-                maxLength={4}
-                className={scInputClass}
-              />
-            </TextField>
+            {/* End Year */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[12px] font-medium">
+             Year  <span className="text-red-500">*</span>
+          </label>
+          <EndYearPicker
+            value={endYear}
+            onChange={setEndYear}
+            minYear={Number(startYear) || 1950}
+            maxYear={new Date().getFullYear()}
+          />
+        </div>
+
 
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <Button

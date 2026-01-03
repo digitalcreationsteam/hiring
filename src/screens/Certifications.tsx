@@ -70,6 +70,126 @@ const notify = (msg: string) => {
   alert(msg); // replace with toast later
 };
 
+
+// -----------------Month And Year Picker----------
+
+function MonthYearPicker({
+  value,
+  onChange,
+  disabled = false,
+  maxDate = new Date(),
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  disabled?: boolean;
+  maxDate?: Date;
+}) {
+  const today = new Date();
+  const initialYear = value ? Number(value.split("/")[1]) : today.getFullYear();
+
+  const [open, setOpen] = useState(false);
+  const [year, setYear] = useState(initialYear);
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const isFutureMonth = (monthIndex: number) => {
+    return (
+      year > maxDate.getFullYear() ||
+      (year === maxDate.getFullYear() && monthIndex > maxDate.getMonth())
+    );
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      {/* INPUT */}
+      <input
+        readOnly
+        disabled={disabled}
+        value={value}
+        placeholder="MM/YYYY"
+        onClick={() => !disabled && setOpen((o) => !o)}
+        className={`w-full h-10 px-4 rounded-full border border-neutral-300 cursor-pointer focus:outline-none ${
+          disabled ? "bg-neutral-100 text-neutral-400" : "bg-white"
+        }`}
+      />
+
+      {/* PICKER */}
+      {open && (
+        <div className="absolute z-50 mt-2 w-64 rounded-2xl border border-neutral-300 bg-white shadow-lg p-3">
+          {/* HEADER */}
+          <div className="flex items-center justify-between mb-3">
+            <button type="button" onClick={() => setYear((y) => y - 1)}>
+              «
+            </button>
+            <span className="text-sm font-medium">{year}</span>
+            <button type="button" onClick={() => setYear((y) => y + 1)}>
+              »
+            </button>
+          </div>
+
+          {/* MONTH GRID */}
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            {months.map((m, idx) => {
+              const disabledMonth = isFutureMonth(idx);
+              const formatted = `${String(idx + 1).padStart(2, "0")}/${year}`;
+
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  disabled={disabledMonth}
+                  onClick={() => {
+                    onChange(formatted);
+                    setOpen(false);
+                  }}
+                  className={`
+                    py-2 rounded-lg transition
+                    ${
+                      value === formatted
+                        ? "bg-violet-600 text-white"
+                        : "hover:bg-neutral-100"
+                    }
+                    ${disabledMonth ? "text-neutral-400" : ""}
+                  `}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function Certifications() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,6 +199,8 @@ export default function Certifications() {
   const [name, setName] = useState("");
   const [issuer, setIssuer] = useState("");
   const [issueDate, setIssueDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [credentialLink, setCredentialLink] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [experiencePoints, setExperiencePoints] = useState<any>(null);
@@ -603,43 +725,35 @@ export default function Certifications() {
                 className={scInputClass}
               />
             </TextField>
+{/* ------------Date------------------ */}
 
-            <TextField
-              label={<span className="text-[12px]">Issue Date * </span>}
-              helpText=""
-              className={scTextFieldClass}
-            >
-              <TextField.Input
-                placeholder="MM/YYYY"
-                value={issueDate}
-                onChange={(e) => {
-                  let value = e.target.value.replace(/[^\d]/g, "");
+ {/* // date------------------------- */}
+            <div className="flex flex-col gap-6 max-w-lg">
+              {/* Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="startdate"
+                    className="text-[12px] font-medium text-neutral-700"
+                  >
+                    Start Date
+                  </label>
+                  <MonthYearPicker value={startDate} onChange={setStartDate} />
+                </div>
 
-                  if (value.length >= 2) {
-                    const month = value.slice(0, 2);
-                    const year = value.slice(2, 6);
-                    value = month + (year ? "/" + year : "");
-                  }
+                <div>
+                  <label
+                    htmlFor="startdate"
+                    className="text-[12px] font-medium text-neutral-700"
+                  >
+                    End Date
+                  </label>
+                  <MonthYearPicker value={endDate} onChange={setEndDate} />
+                </div>
+              </div>
+            </div>
 
-                  setIssueDate(value.slice(0, 7));
-                }}
-                onBlur={() => {
-                  if (!issueDate) return;
-
-                  if (!isValidMonthYear(issueDate)) {
-                    notify("Invalid date format. Use MM/YYYY");
-                    setIssueDate("");
-                    return;
-                  }
-
-                  if (!isValidPastOrCurrentDate(issueDate)) {
-                    notify("Issue date cannot be in the future.");
-                    setIssueDate("");
-                  }
-                }}
-                className={scInputClass}
-              />
-            </TextField>
+  {/* ---------------End Date-------------- */}
 
             <TextField
               label={<span className="text-[12px]">Credential Link" </span>}

@@ -590,7 +590,7 @@ useEffect(() => {
          /* --------------------    USER PROFILE API -------------------- */
 
 
-  
+   console.log("education", education)
 
   return (
     <DefaultPageLayout>
