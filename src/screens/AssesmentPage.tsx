@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Button } from "../ui/components/Button";
 import { CheckboxCard } from "../ui/components/CheckboxCard";
-import { Progress } from "../ui/components/Progress";
 import { FeatherAlertCircle } from "@subframe/core";
 import { FeatherArrowRight } from "@subframe/core";
 import { FeatherClock } from "@subframe/core";
@@ -47,6 +46,10 @@ function AssessmentPage() {
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+const saveTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+const [expiresAt, setExpiresAt] = useState<number | null>(null);
+
+
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
@@ -62,9 +65,10 @@ function AssessmentPage() {
 
       setRemainingSeconds(diff);
 
-      if (diff === 0) {
-        handleSubmit();
-      }
+     if (diff === 0 && !submitLockRef.current) {
+  handleSubmit();
+}
+
     };
 
     tick();
@@ -113,7 +117,9 @@ function AssessmentPage() {
     () => answers.filter((a) => a !== null).length,
     [answers]
   );
-  const progressPercent = Math.round((answeredCount / questions.length) * 100);
+  const progressPercent = questions.length
+    ? Math.round((answeredCount / questions.length) * 100)
+    : 0;
 
   // --- HANDLERS ---
   const selectOption = (key: OptionKey) => {
@@ -130,11 +136,16 @@ function AssessmentPage() {
   };
 
   const clearAnswer = (index: number) => {
+    const question = questions[index];
+    if (!question) return;
+
     setAnswers((prev) => {
       const copy = [...prev];
       copy[index] = null;
       return copy;
     });
+
+    saveAnswerToServer(question.id, null);
   };
 
   const goToQuestion = (index: number) => {
@@ -143,7 +154,6 @@ function AssessmentPage() {
   };
 
   const skipQuestion = () => {
-    // leave current question unanswered and move forward
     const next = Math.min(currentIndex + 1, questions.length - 1);
     setCurrentIndex(next);
   };
@@ -152,7 +162,6 @@ function AssessmentPage() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((i: number) => i + 1);
     } else {
-      // last question -> submit
       handleSubmit();
     }
   };
@@ -164,6 +173,7 @@ function AssessmentPage() {
       return;
     }
     if (attemptId) return;
+    
     const startAssessment = async () => {
       const res = await API(
         "POST",
@@ -209,8 +219,9 @@ function AssessmentPage() {
       }));
 
       setQuestions(mapped);
-      setAnswers(Array(mapped.length).fill(null));
-      setRemainingSeconds(res.durationMinutes * 60);
+      setAnswers((prev) =>
+        prev.length ? prev : Array(mapped.length).fill(null)
+      );
       setLoading(false);
     };
 
@@ -218,12 +229,17 @@ function AssessmentPage() {
   }, [attemptId, userId]);
 
   //=============== POST API FOR SAVE Q OPTION ==============//
-  const saveAnswerToServer = async (
-    questionId: string,
-    selectedOption: OptionKey
-  ) => {
-    if (!attemptId || !userId) return;
+  const saveAnswerToServer = (
+  questionId: string,
+  selectedOption: OptionKey | null
+) => {
+  if (!attemptId || !userId) return;
 
+  if (saveTimeoutRef.current[questionId]) {
+    clearTimeout(saveTimeoutRef.current[questionId]);
+  }
+
+  saveTimeoutRef.current[questionId] = setTimeout(async () => {
     const version = (saveVersionRef.current[questionId] || 0) + 1;
     saveVersionRef.current[questionId] = version;
 
@@ -234,33 +250,35 @@ function AssessmentPage() {
         { attemptId, questionId, selectedOption, version },
         { "user-id": userId }
       );
+
+      if (saveVersionRef.current[questionId] !== version) return;
     } catch (err) {
       console.warn("Save answer failed", err);
     }
-  };
+  }, 400); 
+};
 
   //=============== GET API FOR SUBMIT ASSESSMENT============//
   const handleSubmit = async () => {
-  if (!attemptId || submitLockRef.current) return;
+    if (!attemptId || submitLockRef.current) return;
 
-  submitLockRef.current = true; 
-  setSaving(true);
+    submitLockRef.current = true;
+    setSaving(true);
 
-  try {
-    await API(
-      "POST",
-      URL_PATH.submitAssessment,
-      { attemptId }, 
-      { "user-id": userId }
-    );
+    try {
+      await API(
+        "POST",
+        URL_PATH.submitAssessment,
+        { attemptId },
+        { "user-id": userId }
+      );
 
-    navigate("/assessment-results", { state: { attemptId } });
-  } catch (err) {
-    submitLockRef.current = false; 
-    console.error("Submit failed", err);
-  }
-};
-
+      navigate("/assessment-results", { state: { attemptId } });
+    } catch (err) {
+      submitLockRef.current = false;
+      console.error("Submit failed", err);
+    }
+  };
 
   // --- RENDER NAVIGATOR NUMBERS (keeps UI markup/style) ---
   const renderNavigatorItem = (qIndex: number) => {
@@ -271,7 +289,9 @@ function AssessmentPage() {
       return (
         <div
           key={qIndex}
-          onClick={() => goToQuestion(qIndex)}
+          onClick={() => {
+            if (!saving) goToQuestion(qIndex);
+          }}
           className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl border-2 border-solid border-violet-600 bg-violet-100 cursor-pointer"
         >
           <span className="text-body-bold font-body-bold text-brand-600">
@@ -285,7 +305,9 @@ function AssessmentPage() {
       return (
         <div
           key={qIndex}
-          onClick={() => goToQuestion(qIndex)}
+          onClick={() => {
+            if (!saving) goToQuestion(qIndex);
+          }}
           className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-green-100 cursor-pointer"
         >
           <span className="text-body-bold font-body-bold text-success-700">
@@ -299,7 +321,9 @@ function AssessmentPage() {
     return (
       <div
         key={qIndex}
-        onClick={() => goToQuestion(qIndex)}
+        onClick={() => {
+          if (!saving) goToQuestion(qIndex);
+        }}
         className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl border-2 border-solid border-neutral-border bg-default-background cursor-pointer"
       >
         <span className="text-body-bold font-body-bold text-subtext-color">
@@ -316,9 +340,6 @@ function AssessmentPage() {
   // Current question to show
   const currentQuestion = questions[currentIndex];
 
-  //Sidebar
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   if (loading) return <div>Loading assessment...</div>;
 
   return (
@@ -334,10 +355,7 @@ function AssessmentPage() {
                 {answeredCount} of {questions.length} answered
               </span>
             </div>
-            <FeatherSidebar
-              className="mt-2 text-body font-body text-subtext-color cursor-pointer"
-              onClick={() => setSidebarOpen((prev) => !prev)}
-            />
+            <FeatherSidebar className="mt-2 text-body font-body text-subtext-color cursor-pointer" />
           </div>
           <div className="flex items-center gap-2 flex-wrap mt-3">
             {questions.map((_, idx) => renderNavigatorItem(idx))}
