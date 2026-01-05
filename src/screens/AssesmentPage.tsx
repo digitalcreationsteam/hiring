@@ -37,47 +37,57 @@ function AssessmentPage() {
   const location = useLocation();
   const userId = useMemo(() => localStorage.getItem("userId"), []);
 
-  const [attemptId, setAttemptId] = useState<string | null>(
-    location.state?.attemptId ?? null
-  );
+  const [attemptId, setAttemptId] = useState<string | null>(() => {
+    return (
+      location.state?.attemptId ||
+      sessionStorage.getItem("activeAttemptId") ||
+      null
+    );
+  });
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<(OptionKey | null)[]>([]);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-const saveTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-const [expiresAt, setExpiresAt] = useState<number | null>(null);
-
-
-
+  const saveTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {}
+  );
+  const [expiryReady, setExpiryReady] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  // --- TIMER EFFECT FOR BACKEND ---
-  useEffect(() => {
-    if (!location.state?.expiresAt) return;
+  //   // --- TIMER EFFECT FOR BACKEND ---
+  //   useEffect(() => {
+  //     if (!location.state?.expiresAt) return;
 
-    const expiresAt = new Date(location.state.expiresAt).getTime();
+  //     const expiresAt = new Date(location.state.expiresAt).getTime();
 
-    const tick = () => {
-      const now = Date.now();
-      const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
+  //     const tick = () => {
+  //       const now = Date.now();
+  //       const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
 
-      setRemainingSeconds(diff);
+  //       setRemainingSeconds(diff);
 
-     if (diff === 0 && !submitLockRef.current) {
-  handleSubmit();
-}
+  //      if (diff === 0 && !submitLockRef.current) {
+  //   handleSubmit();
+  // }
 
-    };
+  //     };
 
-    tick();
-    const id = setInterval(tick, 1000);
+  //     tick();
+  //     const id = setInterval(tick, 1000);
 
-    return () => clearInterval(id);
-  }, [location.state?.expiresAt]);
+  //     return () => clearInterval(id);
+  //   }, [location.state?.expiresAt]);
 
   //============ SAVE ANSWERS ON REFRESH / CRASH =================//
+
+  useEffect(() => {
+    if (!attemptId) return;
+
+    sessionStorage.setItem("activeAttemptId", attemptId);
+  }, [attemptId]);
+
   useEffect(() => {
     if (!attemptId) return;
 
@@ -103,6 +113,8 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
 
   //====== USE EFFECT TO PREVENT ACCIDENTAL REFRESH / TAB CLOSE ====//
   useEffect(() => {
+    if (saving) return;
+
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = "";
@@ -110,7 +122,7 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
 
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, []);
+  }, [saving]);
 
   // --- COMPUTED VALUES ---
   const answeredCount = useMemo(
@@ -173,7 +185,7 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
       return;
     }
     if (attemptId) return;
-    
+
     const startAssessment = async () => {
       const res = await API(
         "POST",
@@ -196,7 +208,67 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
     startAssessment();
   }, [attemptId, userId, navigate]);
 
+  // TIMER=============>>>>>>>>
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startTimer = (expiryTime: number) => {
+    if (timerRef.current) return;
+
+    const tick = () => {
+      const diff = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+
+      setRemainingSeconds(diff);
+
+      if (diff === 0 && !submitLockRef.current) {
+        submitLockRef.current = true;
+        handleSubmit();
+      }
+    };
+
+    tick();
+    timerRef.current = setInterval(tick, 1000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
+
   //=============== GET API FOR TO FETCH QUESTIONS============//
+
+  useEffect(() => {
+    if (!attemptId) return;
+
+    const existing = sessionStorage.getItem(`expiresAt-${attemptId}`);
+    if (existing) {
+      setExpiryReady(true);
+      return;
+    }
+
+    if (location.state?.expiresAt) {
+      sessionStorage.setItem(
+        `expiresAt-${attemptId}`,
+        new Date(location.state.expiresAt).getTime().toString()
+      );
+    }
+
+    setExpiryReady(true);
+  }, [attemptId]);
+
+  useEffect(() => {
+    if (!attemptId || !expiryReady) return;
+
+    const saved = sessionStorage.getItem(`expiresAt-${attemptId}`);
+    if (!saved) return;
+
+    const expiry = Number(saved);
+    return startTimer(expiry);
+  }, [attemptId, expiryReady]);
+
   useEffect(() => {
     if (!attemptId || !userId) return;
 
@@ -207,6 +279,15 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
         undefined,
         { "user-id": userId }
       );
+
+      if (res.status === "completed" || res.status === "expired") {
+        sessionStorage.removeItem("activeAttemptId");
+        sessionStorage.removeItem(`attempt-${attemptId}`);
+        sessionStorage.removeItem(`expiresAt-${attemptId}`);
+
+        navigate("/assessment-results", { state: { attemptId } });
+        return;
+      }
 
       const mapped: Question[] = res.questions.map((q: any) => ({
         id: q._id,
@@ -219,9 +300,11 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
       }));
 
       setQuestions(mapped);
-      setAnswers((prev) =>
-        prev.length ? prev : Array(mapped.length).fill(null)
-      );
+      setAnswers((prev) => {
+        if (prev.length) return prev;
+        return Array(mapped.length).fill(null);
+      });
+
       setLoading(false);
     };
 
@@ -230,33 +313,33 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
 
   //=============== POST API FOR SAVE Q OPTION ==============//
   const saveAnswerToServer = (
-  questionId: string,
-  selectedOption: OptionKey | null
-) => {
-  if (!attemptId || !userId) return;
+    questionId: string,
+    selectedOption: OptionKey | null
+  ) => {
+    if (!attemptId || !userId) return;
 
-  if (saveTimeoutRef.current[questionId]) {
-    clearTimeout(saveTimeoutRef.current[questionId]);
-  }
-
-  saveTimeoutRef.current[questionId] = setTimeout(async () => {
-    const version = (saveVersionRef.current[questionId] || 0) + 1;
-    saveVersionRef.current[questionId] = version;
-
-    try {
-      await API(
-        "POST",
-        URL_PATH.saveAnswer,
-        { attemptId, questionId, selectedOption, version },
-        { "user-id": userId }
-      );
-
-      if (saveVersionRef.current[questionId] !== version) return;
-    } catch (err) {
-      console.warn("Save answer failed", err);
+    if (saveTimeoutRef.current[questionId]) {
+      clearTimeout(saveTimeoutRef.current[questionId]);
     }
-  }, 400); 
-};
+
+    saveTimeoutRef.current[questionId] = setTimeout(async () => {
+      const version = (saveVersionRef.current[questionId] || 0) + 1;
+      saveVersionRef.current[questionId] = version;
+
+      try {
+        await API(
+          "POST",
+          URL_PATH.saveAnswer,
+          { attemptId, questionId, selectedOption, version },
+          { "user-id": userId }
+        );
+
+        if (saveVersionRef.current[questionId] !== version) return;
+      } catch (err) {
+        console.warn("Save answer failed", err);
+      }
+    }, 400);
+  };
 
   //=============== GET API FOR SUBMIT ASSESSMENT============//
   const handleSubmit = async () => {
@@ -272,6 +355,10 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
         { attemptId },
         { "user-id": userId }
       );
+
+      sessionStorage.removeItem("activeAttemptId");
+      sessionStorage.removeItem(`attempt-${attemptId}`);
+      sessionStorage.removeItem(`expiresAt-${attemptId}`);
 
       navigate("/assessment-results", { state: { attemptId } });
     } catch (err) {
@@ -336,9 +423,13 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
   // For display: mm:ss
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;
+  const isLastFiveMinutes = remainingSeconds <= 300;
 
   // Current question to show
   const currentQuestion = questions[currentIndex];
+  if (!currentQuestion) {
+    return <div>Loading question...</div>;
+  }
 
   if (loading) return <div>Loading assessment...</div>;
 
@@ -403,12 +494,28 @@ const [expiresAt, setExpiresAt] = useState<number | null>(null);
                 Question {currentIndex + 1} of {questions.length}
               </span>
               <div className="flex items-center gap-2">
-                <FeatherClock className="text-body font-body text-default-font" />
+                <FeatherClock
+                  className={`text-body font-body ${
+                    isLastFiveMinutes ? "text-red-600" : "text-default-font"
+                  }`}
+                />
+
                 <div className="flex items-center gap-1">
-                  <span className="text-sm font-body-bold text-default-font">
+                  <span
+                    className={`text-sm font-body-bold ${
+                      isLastFiveMinutes ? "text-red-600" : "text-default-font"
+                    }`}
+                  >
                     {pad2(minutes)}:{pad2(seconds)}
                   </span>
-                  <span className="text-sm text-default-font">remaining</span>
+
+                  <span
+                    className={`text-sm ${
+                      isLastFiveMinutes ? "text-red-600" : "text-default-font"
+                    }`}
+                  >
+                    remaining
+                  </span>
                 </div>
               </div>
             </div>
