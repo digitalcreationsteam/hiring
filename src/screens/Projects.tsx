@@ -329,83 +329,129 @@ export default function Projects() {
 
         {/* Selected projects preview list */}
 <section className="flex w-full flex-col gap-3">
-  {projects.map((p) => (
-    <div
-      key={p.id}
-      role="button"
-      tabIndex={0}
-      onClick={() => setSelectedProject(p)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setSelectedProject(p);
+  {projects.map((p) => {
+    const isSelected = selectedProject?.id === p.id;
+
+    return (
+      <div
+        key={p.id}
+        role="button"
+        tabIndex={0}
+        onClick={() =>
+          setSelectedProject(isSelected ? null : p)
         }
-      }}
-      className="
-        rounded-2xl
-        border border-neutral-300
-        bg-gray-50
-        px-4 py-3
-        flex items-center justify-between
-        cursor-pointer
-        hover:bg-neutral-100
-        transition
-        focus:outline-none
-        focus:ring-2
-        focus:ring-violet-500
-      "
-    >
-      {/* Left: avatar + text */}
-      <div className="flex items-center gap-3 min-w-0">
-        <Avatar
-          size="large"
-          square
-          className="!rounded-2xl bg-violet-200 text-violet-700 font-semibold"
-        >
-          {p.name
-            .split(" ")
-            .slice(0, 2)
-            .map((s) => s[0])
-            .join("")}
-        </Avatar>
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedProject(isSelected ? null : p);
+          }
+        }}
+        className="
+          rounded-3xl
+          border border-neutral-300
+          bg-white
+          px-4 py-3
+          cursor-pointer
+          transition
+          hover:bg-neutral-50
+          focus:outline-none
+          focus:ring-2
+          focus:ring-violet-500
+        "
+      >
+        {/* 🔹 TOP ROW */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar
+              size="large"
+              square
+              className="!rounded-2xl bg-violet-200 text-violet-700 font-semibold"
+            >
+              {p.name
+                .split(" ")
+                .slice(0, 2)
+                .map((s) => s[0])
+                .join("")}
+            </Avatar>
 
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold text-neutral-900 leading-tight truncate">
-            {p.name}
-          </span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-neutral-900 truncate">
+                {p.name}
+              </span>
 
-          {p.role && (
-            <span className="text-xs text-neutral-500 line-clamp-1">
-              {p.role}
-            </span>
-          )}
-        </div>
-      </div>
+              {p.role && (
+                <span className="text-xs text-neutral-500 truncate">
+                  {p.role}
+                </span>
+              )}
+            </div>
+          </div>
 
-      {/* Right: delete button */}
-      <div className="flex flex-col items-end gap-2 shrink-0">
-        <IconButton
-          size="small"
-          icon={<FeatherX />}
-          aria-label={`Delete project ${p.name}`}
-          onClick={(e) => {
-            e.stopPropagation(); // 🚫 prevent opening details
-            setDeleteProjectId(p.id);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
+          <IconButton
+            size="small"
+            icon={<FeatherX />}
+            aria-label={`Delete project ${p.name}`}
+            onClick={(e) => {
               e.stopPropagation();
               setDeleteProjectId(p.id);
-            }
-          }}
-          className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-        />
+            }}
+            className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+          />
+        </div>
+
+        {/* 🔹 EXPANDED DETAILS */}
+        {isSelected && (
+          <>
+            <div className="my-4 border-t border-neutral-200" />
+
+            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+              <div>
+                <span className="font-medium">Project name:</span>{" "}
+                {p.name}
+              </div>
+              <div>
+                <span className="font-medium">Your Role:</span>{" "}
+                {p.name}
+              </div>
+              {p.summary && (
+                <div>
+                  <span className="font-medium">Summary:</span>{" "}
+                  {p.summary}
+                </div>
+              )}
+
+              {p.outcome && (
+                <div>
+                  <span className="font-medium">Outcome:</span>{" "}
+                  {p.outcome}
+                </div>
+                
+              )}
+
+              {p.link && (
+        <div>
+          <span className="font-medium">Project link:</span>{" "}
+          <a
+            href={p.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-violet-700 underline break-all"
+            onClick={(e) => e.stopPropagation()} // 🚫 don’t collapse card
+          >
+            {p.link}
+          </a>
+        </div>
+      )}
+            </div>
+          </>
+        )}
       </div>
-    </div>
-  ))}
+    );
+  })}
 </section>
 
+
+{/* 
           {selectedProject && (
             <div className="rounded-3xl border border-neutral-300 bg-white px-6 py-5">
               <div className="flex items-center justify-between mb-4">
@@ -457,7 +503,7 @@ export default function Projects() {
                 )}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Form */}
           <form

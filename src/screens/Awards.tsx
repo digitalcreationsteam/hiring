@@ -213,26 +213,42 @@ export default function Awards() {
     setYear("");
   };
 
+  // Helper 
+  const validateAward = (
+  name: string,
+  endYear: string,
+  description: string
+): string | null => {
+  if (!name.trim()) return "Award name is required";
+
+  if (!endYear.trim()) return "Year is required";
+
+  if (!/^\d{4}$/.test(endYear))
+    return "Year must be a valid 4-digit year";
+
+  const yearNum = Number(endYear);
+  const currentYear = new Date().getFullYear();
+
+  if (yearNum < 2000 || yearNum > currentYear)
+    return `Year must be between 2000 and ${currentYear}`;
+
+  if (description && description.length > 300)
+    return "Description cannot exceed 300 characters";
+
+  return null;
+};
+
+
+
+
   const handleAddAward = async () => {
     if (isSubmitting) return;
 
-    if (!name.trim() || !year.trim()) {
-      alert("Please complete all required fields before adding.");
-      return;
-    }
-
-    const yearNum = Number(year);
-    const currentYear = new Date().getFullYear();
-
-    if (!/^\d{4}$/.test(year)) {
-      alert("Year must be a 4-digit number.");
-      return;
-    }
-
-    if (yearNum < 2000 || yearNum > currentYear) {
-      alert(`Year must be between 2000 and ${currentYear}.`);
-      return;
-    }
+     const error = validateAward(name, endYear, description);
+  if (error) {
+    alert(error);
+    return;
+  }
 
     if (!userId) {
       alert("Session expired. Please login again.");
@@ -242,6 +258,8 @@ export default function Awards() {
 
     try {
       setIsSubmitting(true);
+
+      const yearNum = Number(endYear);
 
       await API(
         "POST",

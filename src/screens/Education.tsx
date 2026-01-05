@@ -233,6 +233,8 @@ export default function Education() {
       if (!isEndAfterStart(startYear, endYear))
         return "End year must be after start year";
     }
+      if (!gpa.trim()) return "GPA is required";
+
 
     if (gpa && !/^(10(\.0{1,2})?|[0-9](\.\d{1,2})?)$/.test(gpa))
       return "GPA must be between 0 and 10";
@@ -484,133 +486,132 @@ export default function Education() {
           </header>
 
           {/* Selected education preview list */}
-          <section className="mt-6 flex w-full flex-col gap-3">
-            {educations.map((ed) => (
-              <div
-                key={ed.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setSelectedEducation(ed)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setSelectedEducation(ed);
-                  }
-                }}
-                className="
-        rounded-2xl
-        border border-neutral-300
-        bg-neutral-50
-        px-4 py-3
-        flex items-center justify-between
-        cursor-pointer
-        hover:bg-neutral-100
-        transition
-        focus:outline-none
-        focus:ring-2
-        focus:ring-violet-500
-      "
-              >
-                {/* Left */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar
-                    size="large"
-                    image="https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop"
-                    square
-                    className="!rounded-2xl shadow-sm"
-                  >
-                    {ed.schoolName
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((s) => s[0])
-                      .join("")}
-                  </Avatar>
+       <section className="mt-6 flex w-full flex-col gap-3">
+  {educations.map((ed) => {
+    const isSelected = selectedEducation?.id === ed.id;
 
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-neutral-900 truncate">
-                      {ed.degree}
-                    </span>
-                    <span className="text-xs text-neutral-500 truncate">
-                      {ed.schoolName}
-                    </span>
-                  </div>
-                </div>
+    return (
+      <div
+        key={ed.id}
+        role="button"
+        tabIndex={0}
+        onClick={() =>
+          setSelectedEducation(isSelected ? null : ed)
+        }
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedEducation(isSelected ? null : ed);
+          }
+        }}
+        className="
+          rounded-3xl
+          border border-neutral-300
+          bg-white
+          px-4 py-3
+          cursor-pointer
+          transition
+          hover:bg-neutral-50
+          focus:outline-none
+          focus:ring-2
+          focus:ring-violet-500
+        "
+      >
+        {/* 🔹 TOP ROW */}
+        <div className="flex items-center justify-between">
+          {/* Left */}
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar
+              size="large"
+              image="https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop"
+              square
+              className="!rounded-2xl shadow-sm"
+            >
+              {ed.schoolName
+                .split(" ")
+                .slice(0, 2)
+                .map((s) => s[0])
+                .join("")}
+            </Avatar>
 
-                {/* Right */}
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <IconButton
-                    size="small"
-                    icon={<FeatherX />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteId(ed.id);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDeleteId(ed.id);
-                      }
-                    }}
-                    className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                  />
-
-                  <span className="text-xs text-neutral-500">
-                    {ed.startYear}
-                    {ed.currentlyStudying ? " - Present" : ` - ${ed.endYear}`}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          {selectedEducation && (
-            <div className="rounded-3xl border border-neutral-300 bg-white px-6 py-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-neutral-900">
-                  Education Details
-                </h3>
-
-                <IconButton
-                  size="small"
-                  icon={<FeatherX />}
-                  onClick={() => setSelectedEducation(null)}
-                  className="!bg-transparent !text-neutral-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-3 text-sm text-neutral-800">
-                <div>
-                  <span className="font-medium">Degeree Name:</span>{" "}
-                  {selectedEducation.degree}
-                </div>
-                <div>
-                  <span className="font-medium">Field of Study:</span>{" "}
-                  {selectedEducation.fieldOfStudy}
-                </div>
-
-                <div>
-                  <span className="font-medium">Institution:</span>{" "}
-                  {selectedEducation.schoolName}
-                </div>
-
-                <div>
-                  <span className="font-medium">Duration:</span>{" "}
-                  {selectedEducation.startYear}
-                  {selectedEducation.currentlyStudying
-                    ? " – Present"
-                    : ` – ${selectedEducation.endYear}`}
-                </div>
-
-                {selectedEducation.gpa && (
-                  <div>
-                    <span className="font-medium">GPA:</span>{" "}
-                    {selectedEducation.gpa}
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-neutral-900 truncate">
+                {ed.degree}
+              </span>
+              <span className="text-xs text-neutral-500 truncate">
+                {ed.schoolName}
+              </span>
             </div>
-          )}
+          </div>
+
+          {/* Right */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <IconButton
+              size="small"
+              icon={<FeatherX />}
+              aria-label={`Delete education ${ed.degree}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(ed.id);
+              }}
+              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+            />
+
+            <span className="text-xs text-neutral-500">
+              {ed.startYear}
+              {ed.currentlyStudying
+                ? " - Present"
+                : ed.endYear
+                ? ` - ${ed.endYear}`
+                : ""}
+            </span>
+          </div>
+        </div>
+
+        {/* 🔹 DETAILS (same card, same border) */}
+        {isSelected && (
+          <>
+            <div className="my-4 border-t border-neutral-200" />
+
+            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+              <div>
+                <span className="font-medium">Degree:</span>{" "}
+                {ed.degree}
+              </div>
+
+              <div>
+                <span className="font-medium">Field of study:</span>{" "}
+                {ed.fieldOfStudy}
+              </div>
+
+              <div>
+                <span className="font-medium">Institution:</span>{" "}
+                {ed.schoolName}
+              </div>
+
+              <div>
+                <span className="font-medium">Duration:</span>{" "}
+                {ed.startYear}
+                {ed.currentlyStudying
+                  ? " - Present"
+                  : ed.endYear
+                  ? ` - ${ed.endYear}`
+                  : ""}
+              </div>
+
+              {ed.gpa && (
+                <div>
+                  <span className="font-medium">GPA:</span>{" "}
+                  {ed.gpa}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  })}
+</section>
 
           {/* Form */}
           <form

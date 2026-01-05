@@ -498,7 +498,8 @@ export default function Experience() {
 
   const canContinue = experiences.length > 0;
 
-  const handleContinue = () => {
+  const 
+  handleContinue = () => {
     if (!experiences.length) {
       alert("Please add at least one experience.");
       return;
@@ -559,141 +560,132 @@ export default function Experience() {
 
           {/* Selected experience preview list */}
           {/* Selected experience preview list */}
-          <section className="mt-6 flex w-full flex-col gap-3">
-            {experiences.map((exp) => (
-              <div
-                key={exp.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setSelectedExperience(exp)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setSelectedExperience(exp);
-                  }
-                }}
-                className="
-        rounded-2xl
-        border border-neutral-300
-        bg-gray-50
-        px-4 py-3
-        flex items-center justify-between
-        cursor-pointer
-        hover:bg-neutral-100
-        transition
-        focus:outline-none
-        focus:ring-2
-        focus:ring-violet-500
-      "
-              >
-                {/* Left */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar
-                    size="large"
-                    square
-                    image="https://res.cloudinary.com/subframe/image/upload/v1711417525/shared/elkoy8wipvhulayviq7t.png"
-                    className="!rounded-2xl shadow-sm"
-                  >
-                    {(exp.company || "")
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((w) => w[0])
-                      .join("")}
-                  </Avatar>
+<section className="mt-6 flex w-full flex-col gap-3">
+  {experiences.map((exp) => {
+    const isSelected = selectedExperience?.id === exp.id;
 
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-neutral-900 truncate">
-                      {exp.roleTitle}
-                    </span>
-                    <span className="text-xs text-neutral-500 truncate">
-                      {exp.company}
-                    </span>
-                  </div>
-                </div>
+    return (
+      <div
+        key={exp.id}
+        role="button"
+        tabIndex={0}
+        onClick={() =>
+          setSelectedExperience(isSelected ? null : exp)
+        }
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedExperience(isSelected ? null : exp);
+          }
+        }}
+        className="
+          rounded-3xl
+          border border-neutral-300
+          bg-white
+          px-4 py-3
+          cursor-pointer
+          transition
+          hover:bg-neutral-50
+          focus:outline-none
+          focus:ring-2
+          focus:ring-violet-500
+        "
+      >
+        {/* 🔹 TOP ROW */}
+        <div className="flex items-center justify-between">
+          {/* Left */}
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar
+              size="large"
+              square
+              image="https://res.cloudinary.com/subframe/image/upload/v1711417525/shared/elkoy8wipvhulayviq7t.png"
+              className="!rounded-2xl shadow-sm"
+            >
+              {(exp.company || "")
+                .split(" ")
+                .slice(0, 2)
+                .map((w) => w[0])
+                .join("")}
+            </Avatar>
 
-                {/* Right */}
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <IconButton
-                    size="small"
-                    icon={<FeatherX />}
-                    aria-label={`Delete experience ${exp.roleTitle}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteId(exp.id);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDeleteId(exp.id);
-                      }
-                    }}
-                    className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                  />
-
-                  <span className="text-xs text-neutral-500">
-                    {exp.startDate || "—"}
-                    {exp.currentlyWorking
-                      ? " - Present"
-                      : exp.endDate
-                      ? ` - ${exp.endDate}`
-                      : ""}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          {selectedExperience && (
-            <div className="rounded-3xl border border-neutral-300 bg-white px-6 py-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-neutral-900">
-                  Experience Details
-                </h3>
-
-                <IconButton
-                  size="small"
-                  icon={<FeatherX />}
-                  onClick={() => setSelectedExperience(null)}
-                  className="!bg-transparent !text-neutral-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-3 text-sm text-neutral-800">
-                <div>
-                  <span className="font-medium">Role:</span>{" "}
-                  {selectedExperience.roleTitle}
-                </div>
-
-                <div>
-                  <span className="font-medium">Type:</span>{" "}
-                  {selectedExperience.typeOfRole}
-                </div>
-
-                <div>
-                  <span className="font-medium">Company:</span>{" "}
-                  {selectedExperience.company}
-                </div>
-
-                <div>
-                  <span className="font-medium">Duration:</span>{" "}
-                  {selectedExperience.startDate}
-                  {selectedExperience.currentlyWorking
-                    ? " - Present"
-                    : selectedExperience.endDate
-                    ? ` - ${selectedExperience.endDate}`
-                    : ""}
-                </div>
-
-                {selectedExperience.description && (
-                  <div>
-                    <span className="font-medium">Description:</span>{" "}
-                    {selectedExperience.description}
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-neutral-900 truncate">
+                {exp.roleTitle}
+              </span>
+              <span className="text-xs text-neutral-500 truncate">
+                {exp.company}
+              </span>
             </div>
-          )}
+          </div>
+
+          {/* Right */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <IconButton
+              size="small"
+              icon={<FeatherX />}
+              aria-label={`Delete experience ${exp.roleTitle}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(exp.id);
+              }}
+              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+            />
+
+            <span className="text-xs text-neutral-500">
+              {exp.startDate || "—"}
+              {exp.currentlyWorking
+                ? " - Present"
+                : exp.endDate
+                ? ` - ${exp.endDate}`
+                : ""}
+            </span>
+          </div>
+        </div>
+
+        {/* 🔹 DETAILS (same card, same border) */}
+        {isSelected && (
+          <>
+            <div className="my-4 border-t border-neutral-200" />
+
+            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+              <div>
+                <span className="font-medium">Role:</span>{" "}
+                {exp.roleTitle}
+              </div>
+
+              <div>
+                <span className="font-medium">Type Of Roll:</span>{" "}
+                {exp.typeOfRole}
+              </div>
+
+              <div>
+                <span className="font-medium">Company:</span>{" "}
+                {exp.company}
+              </div>
+
+              <div>
+                <span className="font-medium">Duration:</span>{" "}
+                {exp.startDate || "—"}
+                {exp.currentlyWorking
+                  ? " - Present"
+                  : exp.endDate
+                  ? ` - ${exp.endDate}`
+                  : ""}
+              </div>
+
+              {exp.description && (
+                <div>
+                  <span className="font-medium">Description:</span>{" "}
+                  {exp.description}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  })}
+</section>
 
           {/* form */}
           <form
