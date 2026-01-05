@@ -64,7 +64,7 @@ const DATE_REGEX = /^(0[1-9]|1[0-2])\/\d{4}$/;
 
 const isValidMonthYear = (value: string) => {
   if (!DATE_REGEX.test(value)) return false;
-  const [, year] = value.split("/").map(Number);
+  const [Month, year] = value.split("/").map(Number);
   const currentYear = new Date().getFullYear();
 
   return year >= 1950 && year <= currentYear + 1;

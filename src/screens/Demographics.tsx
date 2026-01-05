@@ -46,7 +46,19 @@ const scInputClass =
 
 
   /* -------------------- VALIDATION RULES -------------------- */
-  const normalizeText = (v: string) => v.replace(/\s+/g, " ").trim();
+const normalizeText = (value: string): string => {
+  return value
+    .replace(/\s+/g, " ")        // remove extra spaces
+    .trimStart()                 // avoid cursor jump at start
+    .split(" ")
+    .map((word) =>
+      word
+        ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        : ""
+    )
+    .join(" ");
+};
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneNumberRegex = /^[+]?[\d\s]{10,15}$/;
   const textRegex = /^[A-Za-z\s.'-]{2,}$/;

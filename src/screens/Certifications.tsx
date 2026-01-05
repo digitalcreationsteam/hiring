@@ -48,12 +48,14 @@ const isValidText = (value: string) => {
 };
 
 const isValidPastOrCurrentDate = (value: string) => {
+    if (!value) return true;
+
   if (!DATE_REGEX.test(value)) return false;
 
   const [mm, yyyy] = value.split("/").map(Number);
-  const inputDate = new Date(yyyy, mm - 1);
+  const inputDate = new Date(yyyy, mm - 1, 1);
   const now = new Date();
-  const currentMonth = new Date(now.getFullYear(), now.getMonth());
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   return inputDate <= currentMonth;
 };
@@ -297,6 +299,8 @@ export default function Certifications() {
     "rounded-full h-9 px-3 text-[15px] placeholder:text-[15px] bg-white !border-none focus:ring-0 w-full";
 
   const isAddable = () => {
+      const trimmedIssueDate = issueDate?.trim(); // ✅ KEY FIX
+
     if (!name.trim()) {
       notify("Certification name is required.");
       return false;
@@ -317,10 +321,16 @@ export default function Certifications() {
       return false;
     }
 
-    if (!isValidMonthYear(issueDate)) {
-      notify("Issue date must be in MM/YYYY format.");
-      return false;
-    }
+   // ✅ Date validation (fixed)
+  if (!trimmedIssueDate) {
+    notify("Please select an issue date.");
+    return false;
+  }
+
+  if (!isValidPastOrCurrentDate(trimmedIssueDate)) {
+    notify("Issue date must be in MM/YYYY format and not in the future.");
+    return false;
+  }
 
     if (!isValidPastOrCurrentDate(issueDate)) {
       notify("Issue date cannot be in the future.");
@@ -328,7 +338,7 @@ export default function Certifications() {
     }
 
     if (credentialLink.trim() && !isValidUrl(credentialLink)) {
-      notify("Credential link must be a valid URL (https://...)");
+      alert("Credential link must be a valid URL (https://...)");
       return false;
     }
 

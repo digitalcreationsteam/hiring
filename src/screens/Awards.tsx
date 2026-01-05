@@ -374,123 +374,113 @@ const handleRemove = async () => {
             </p>
           </header>
 
-        <section className="flex w-full flex-col gap-3">
-  {awards.map((a) => (
-    <div
-      key={a.id}
-      role="button"
-      tabIndex={0}
-      onClick={() => setSelectedAward(a)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setSelectedAward(a);
-        }
-      }}
-      className="
-        rounded-2xl
-        border border-neutral-300
-        bg-gray-50
-        px-4 py-3
-        flex items-center justify-between
-        cursor-pointer
-        hover:bg-neutral-100
-        transition
-        focus:outline-none
-        focus:ring-2
-        focus:ring-violet-500
-      "
-    >
-      {/* Left */}
-      <div className="flex items-center gap-3 min-w-0">
-        <Avatar
-          size="large"
-          square
-          className="!rounded-2xl bg-violet-200 text-violet-700 font-semibold"
-        >
-          {a.name
-            .split(" ")
-            .slice(0, 2)
-            .map((s) => s[0])
-            .join("")}
-        </Avatar>
+   <section className="flex w-full flex-col gap-3">
+  {awards.map((a) => {
+    const isSelected = selectedAward?.id === a.id;
 
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold text-neutral-900 truncate">
-            {a.name}
-          </span>
+    return (
+      <div
+        key={a.id}
+        role="button"
+        tabIndex={0}
+        onClick={() => setSelectedAward(isSelected ? null : a)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedAward(isSelected ? null : a);
+          }
+        }}
+        className="
+          rounded-3xl
+          border border-neutral-300
+          bg-white
+          px-4 py-3
+          cursor-pointer
+          transition
+          hover:bg-neutral-50
+          focus:outline-none
+          focus:ring-2
+          focus:ring-violet-500
+        "
+      >
+        {/* 🔹 TOP ROW */}
+        <div className="flex items-center justify-between">
+          {/* Left */}
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar
+              size="large"
+              square
+              className="!rounded-2xl bg-violet-200 text-violet-700 font-semibold"
+            >
+              {a.name
+                .split(" ")
+                .slice(0, 2)
+                .map((s) => s[0])
+                .join("")}
+            </Avatar>
 
-          {a.description && (
-            <span className="text-xs text-neutral-500 line-clamp-1">
-              {a.description}
-            </span>
-          )}
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-neutral-900 truncate">
+                {a.name}
+              </span>
+
+              {a.description && (
+                <span className="text-xs text-neutral-500 line-clamp-1">
+                  {a.description}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <IconButton
+              size="small"
+              icon={<FeatherX />}
+              aria-label={`Delete award ${a.name}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteAwardId(a.id);
+              }}
+              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+            />
+
+            <span className="text-xs text-neutral-500">{a.year}</span>
+          </div>
         </div>
-      </div>
 
-      {/* Right */}
-      <div className="flex flex-col items-end gap-2 shrink-0">
-    <IconButton
-  size="small"
-  icon={<FeatherX />}
-  aria-label={`Delete award ${a.name}`}
-  onClick={(e) => {
-    e.stopPropagation(); 
-    setDeleteAwardId(a.id);
-  }}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      e.stopPropagation();
-      setDeleteAwardId(a.id);
-    }
-  }}
-  className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-/>
+        {/* 🔹 DETAILS (inside same card) */}
+        {isSelected && (
+          <>
+            <div className="my-4 border-t border-neutral-200" />
 
-        <span className="text-xs text-neutral-500">{a.year}</span>
+            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+              <div>
+                <span className="font-medium">Award name:</span>{" "}
+                {a.name}
+              </div>
+
+              {a.description && (
+                <div>
+                  <span className="font-medium">Description:</span>{" "}
+                  {a.description}
+                </div>
+              )}
+
+              {a.year && (
+                <div>
+                  <span className="font-medium">Year:</span>{" "}
+                  {a.year}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
-    </div>
-  ))}
+    );
+  })}
 </section>
 
-{selectedAward && (
-  <div className="rounded-3xl border border-neutral-300 bg-white px-6 py-5">
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-sm font-semibold text-neutral-900">
-        Award Details
-      </h3>
-
-      <IconButton
-        size="small"
-        icon={<FeatherX />}
-        onClick={() => setSelectedAward(null)}
-        className="!bg-transparent !text-neutral-500"
-      />
-    </div>
-
-    <div className="flex flex-col gap-3 text-sm text-neutral-800">
-      <div>
-        <span className="font-medium">Award name:</span>{" "}
-        {selectedAward.name}
-      </div>
-
-      {selectedAward.description && (
-        <div>
-          <span className="font-medium">Description:</span>{" "}
-          {selectedAward.description}
-        </div>
-      )}
-
-      {selectedAward.year && (
-        <div>
-          <span className="font-medium">Year:</span>{" "}
-          {selectedAward.year}
-        </div>
-      )}
-    </div>
-  </div>
-)}
 
 
 
