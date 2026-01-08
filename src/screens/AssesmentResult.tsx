@@ -46,14 +46,10 @@ const fetchResult = React.useCallback(async () => {
   }
 
   try {
-    // API helper already returns JSON
     const res = await API("GET", URL_PATH.result, undefined, {
       attemptId,
     });
-
     console.log("FINAL RESPONSE:", res);
-
-    // 🔥 THIS IS THE CORRECT PATH
     setResult({
       skillIndex: res.hireabilityIndex.skillIndexScore,
       maxSkillIndex: res.hireabilityIndex.skillIndexTotal,
