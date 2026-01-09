@@ -194,6 +194,8 @@ function AssessmentPage() {
     startAssessment();
   }, [attemptId, userId, navigate]);
 
+
+
   //=============== GET API FOR TO FETCH QUESTIONS============//
 
   const startTimer = (expiryTime: number) => {
@@ -390,9 +392,18 @@ useEffect(() => {
   if (loading) return <div>Loading assessment...</div>;
 
   return (
-    <div className="w-screen h-screen bg-neutral-50 flex justify-center py-12">
-      <div className="flex w-full max-w-[1024px] h-full items-stretch gap-6">
-        <div className="flex w-64 flex-none flex-col items-start gap-4 self-stretch h-full rounded-2xl border border-solid border-neutral-border bg-white px-8 py-8 overflow-y-auto">
+    <div className="min-h-screen w-full bg-neutral-50 flex justify-center px-4 py-4 sm:py-6 lg:py-12">
+<div className="flex w-full max-w-[1024px] flex-col lg:flex-row items-stretch gap-4 lg:gap-6">
+  
+<div className="
+  hidden lg:flex
+  w-full lg:w-64
+  flex-none flex-col items-start gap-4
+  self-stretch rounded-2xl
+  border border-neutral-border
+  bg-violet-200 px-6 lg:px-8 py-6
+  overflow-y-auto
+">
           <div className="flex w-full items-start gap-4">
             <div className="flex grow shrink-0 basis-0 flex-col items-start gap-2">
               <span className="text-heading-3 font-heading-3 text-default-font">
@@ -433,8 +444,16 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="flex grow shrink-0 basis-0 flex-col items-start justify-start gap-4 h-full">
-          <div className="flex w-full items-center justify-between rounded-full border bg-yellow-50 px-3 py-1">
+
+        {/* RIGHT PANNEL */}
+
+<div className="flex w-full flex-col items-start justify-start gap-4">
+<div className="
+  flex w-full flex-wrap items-center gap-2
+  justify-between rounded-xl
+  border bg-yellow-50
+  px-3 py-2
+">
             <div className="flex items-center gap-2">
               <FeatherAlertCircle className="text-caption font-caption text-yellow-700" />
               <span className="text-xs text-yellow-700">
@@ -444,7 +463,13 @@ useEffect(() => {
             <FeatherX className="text-caption font-caption text-yellow-700" />
           </div>
 
-          <div className="flex w-full flex-col items-start gap-6 rounded-2xl border border-solid border-neutral-border bg-white px-8 py-8 shadow-sm">
+<div className="
+  flex w-full flex-col items-start gap-5
+  rounded-2xl border bg-white shadow-sm
+  px-4 py-5
+  sm:px-6 sm:py-6
+  lg:px-8 lg:py-8
+">
             <div className="flex w-full items-center justify-between">
               <span className="text-sm text-subtext-color">
                 Question {currentIndex + 1} of {questions.length}
@@ -482,7 +507,7 @@ useEffect(() => {
               </span>
             </div>
 
-            <span className="w-full text-heading-3 font-heading-3 text-neutral-700">
+<span className="w-full text-lg sm:text-xl lg:text-heading-3 font-heading-3 text-neutral-700">
               Product Management Fundamentals Assessment
             </span>
 
@@ -498,7 +523,8 @@ useEffect(() => {
                 {currentQuestion.options.map((opt) => (
                   <CheckboxCard
                     key={opt.key}
-                    className={`h-auto w-full flex-none rounded-2xl border px-4 py-3 
+                    className={` h-auto w-full rounded-xl sm:rounded-2xl
+  border px-3 py-3 sm:px-4 
     ${
       answers[currentIndex] === opt.key
         ? "border-violet-600 bg-violet-50"
@@ -540,7 +566,7 @@ useEffect(() => {
             {/* Bottom horizontal line */}
             <div className="w-full h-[1px] bg-gray-300 my-2 flex-shrink-0" />
 
-            <div className="flex w-full rounded-full items-center justify-between">
+<div className="flex w-full flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between">
               <Button
                 disabled={saving}
                 className="w-10px h-10 rounded-full text-white]"
@@ -553,7 +579,7 @@ useEffect(() => {
 
               <Button
                 disabled={saving}
-                className="w-10px h-10 rounded-full bg-gradient-to-r from-violet-600 to-violet-600
+                className="h-10 px-6 rounded-full bg-gradient-to-r from-violet-600 to-violet-600
     hovur:from-violet-600 hover:to-violet-800
     text-white shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
                 size="large"

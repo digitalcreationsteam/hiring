@@ -106,6 +106,14 @@ export const URL_PATH = {
 
   /*========= Result ================*/
   result: "/user/experience_index",
+
+
+
+  /* ---------- FORGOT PASSWORD ---------- */
+  forgotPassword: "/auth/forgot-password",
+  verifyResetCode: "/auth/verify-reset-code",
+  resetPassword: "/auth/reset-password",
+
 };
 
 /* =========================================
@@ -121,7 +129,7 @@ export default async function API(method, url, data = {}, headers = {}) {
       url,
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
-        ...(userId && { "user-id": userId }), // 👈 CRITICAL: use "user-id" with hyphen
+        ...(userId && { "user-id": userId }), 
         ...headers,
       },
     };
