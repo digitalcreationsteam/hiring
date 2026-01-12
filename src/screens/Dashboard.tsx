@@ -602,7 +602,7 @@ const fetchDashboardData = useCallback(async () => {
                 </Badge>
 
                 <Badge
-                  className="flex-1 rounded-xl py-6 justify-center border-none"
+                  className="flex-1 rounded-xl py-6  justify-center border-none"
                   style={{
                     backgroundColor: colors.mint,
                     color: colors.secondary,
