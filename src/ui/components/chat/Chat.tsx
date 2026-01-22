@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-// import { socket } from "./socket";
+import { useParams } from "react-router-dom";
+import { socket } from "./socket";
 
 type Message = {
   role: "user" | "assistant";
@@ -7,26 +8,38 @@ type Message = {
 };
 
 export default function Chat() {
+  const { otherUserId } = useParams(); // 👈 FROM URL
+  const currentUserId = localStorage.getItem("userId"); // 👈 LOGGED-IN USER
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
 
-  // useEffect(() => {
-  //   socket.on("chat-reply", (reply: string) => {
-  //     setMessages(prev => [...prev, { role: "assistant", text: reply }]);
-  //   });
+   useEffect(() => {
+    // 🔑 Join room
+    socket.emit("join", currentUserId);
 
-  //   return () => {
-  //     socket.off("chat-reply");
-  //   };
-  // }, []);
+    socket.on("receive-message", (msg: Message) => {
+      setMessages(prev => [...prev, msg]);
+    });
 
-  // const sendMessage = () => {
-  //   if (!input) return;
+    return () => {
+      socket.off("receive-message");
+    };
+  }, [currentUserId]);
 
-  //   setMessages(prev => [...prev, { role: "user", text: input }]);
-  //   socket.emit("chat-message", input);
-  //   setInput("");
-  // };
+  const sendMessage = () => {
+    if (!input || !otherUserId || !currentUserId) return;
+
+    setMessages(prev => [...prev, { role: "user", text: input }]);
+
+    socket.emit("chat-message", {
+      senderId: currentUserId,
+      receiverId: otherUserId,
+      text: input
+    });
+
+    setInput("");
+  };
 
   return (
     <div className="max-w-xl mx-auto p-4">
@@ -43,16 +56,15 @@ export default function Chat() {
         ))}
       </div>
 
-
       <div className="flex gap-2 mt-2">
         <input
           className="border flex-1 p-2"
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        {/* <button onClick={sendMessage} className="bg-black text-white px-4">
+        <button onClick={sendMessage} className="bg-black text-white px-4">
           Send
-        </button> */}
+        </button>
       </div>
     </div>
   );

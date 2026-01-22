@@ -100,14 +100,24 @@ function Login() {
   };
 
   // OAuth handlers
-  const handleOAuth = (provider: "google" | "linkedin") => {
-    if (provider === "google") {
-      window.location.href = `${BASE_URL}/auth/google`;
-    }
-    if (provider === "linkedin") {
-      window.location.href = `${BASE_URL}/auth/linkedin`;
-    }
-  };
+  // const handleOAuth = (provider: "google" | "linkedin") => {
+  //   if (provider === "google") {
+  //     window.location.href = `${BASE_URL}/auth/google`;
+  //   }
+  //   if (provider === "linkedin") {
+  //     window.location.href = `${BASE_URL}/auth/linkedin`;
+  //   }
+  // };
+ const handleOAuth = (provider: "google" | "linkedin") => {
+  if (provider === "google") {
+    window.location.href = "http://localhost:5000/api/auth/google";
+  }
+
+  if (provider === "linkedin") {
+    window.location.href = "http://localhost:5000/api/auth/linkedin";
+  }
+};
+
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-neutral-50 px-4 sm:px-6">
