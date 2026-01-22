@@ -1,4 +1,5 @@
-"use client";
+// components/Login.tsx
+// ⭐ REPLACE YOUR ENTIRE LOGIN FILE WITH THIS
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,17 +9,23 @@ import {
   FeatherMessageSquare,
 } from "@subframe/core";
 import { OAuthSocialButton } from "../ui";
-import API, { URL_PATH } from "src/common/API";
+import API, { URL_PATH, BASE_URL } from "src/common/API";
+import { useAppDispatch } from "src/store/hooks";
+import { setToken } from "src/store/slices/authSlice";
+import { setUserProfile } from "src/store/slices/userSlice";
+import { setNavigation } from "src/store/slices/onboardingSlice"; // ✅ NEW
 
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  // form state
+  // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Validation
   const validate = () => {
     setError("");
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,6 +48,7 @@ function Login() {
     return true;
   };
 
+  // Handle login
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
@@ -49,17 +57,38 @@ function Login() {
     setLoading(true);
     setError("");
 
-    const formData = { email, password };
-
     try {
-      const response = await API("POST", URL_PATH.login, formData);
+      const response = await API("POST", URL_PATH.login, {
+        email,
+        password,
+      });
 
       if (response?.success) {
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("userId", response.user._id);
-        localStorage.setItem("user", JSON.stringify(response.user));
+        // ✅ Save token
+        dispatch(setToken(response.token));
 
-        navigate("/demographics");
+        // ✅ Save user profile
+        dispatch(setUserProfile(response.user));
+
+        // ✅ NEW: Get navigation from login response
+        // Backend login now includes navigation object
+        if (response.navigation) {
+          dispatch(
+            setNavigation({
+              nextRoute: response.navigation.nextRoute,
+              currentStep: response.navigation.currentStep,
+              completedSteps: response.navigation.completedSteps,
+              isOnboardingComplete: response.navigation.isOnboardingComplete,
+              hasPayment: response.navigation.hasPayment,
+            })
+          );
+
+          // Navigate to next step (decided by backend)
+          navigate(response.navigation.nextRoute);
+        } else {
+          // Fallback for old API (shouldn't happen)
+          navigate("/demographics");
+        }
       } else {
         setError("Invalid credentials. Please try again.");
       }
@@ -70,16 +99,15 @@ function Login() {
     }
   };
 
- const handleOAuth = (provider: "google" | "linkedin") => {
-  if (provider === "google") {
-    window.location.href = "http://localhost:5001/api/auth/google";
-  }
-
-  if (provider === "linkedin") {
-    window.location.href = "http://localhost:5001/api/auth/linkedin";
-  }
-};
-
+  // OAuth handlers
+  const handleOAuth = (provider: "google" | "linkedin") => {
+    if (provider === "google") {
+      window.location.href = `${BASE_URL}/auth/google`;
+    }
+    if (provider === "linkedin") {
+      window.location.href = `${BASE_URL}/auth/linkedin`;
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-neutral-50 px-4 sm:px-6">

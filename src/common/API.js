@@ -1,26 +1,17 @@
+// src/common/API.js
+// ✅ PURE JAVASCRIPT VERSION (No TypeScript)
+
 import axios from "axios";
 
 /* =========================================
    🌐 BASE URL
 ========================================= */
-export const BASE_URL = "http://localhost:5000/api";
-// export const BASE_URL = "http://localhost:5001/api";
+export const BASE_URL = "http://localhost:5001/api";
 
 const isDev = process.env.NODE_ENV === "development";
 
-
 /* =========================================
-   🧪 LOGGER
-========================================= */
-export const log = (str) => {
-  if (!isDev) return;
-  console.log("====================================");
-  console.log(str);
-  console.log("====================================");
-};
-
-/* =========================================
-   🔥 AXIOS INSTANCE (CORS + SESSION SAFE)
+   🔥 AXIOS INSTANCE
 ========================================= */
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -30,7 +21,6 @@ const apiClient = axios.create({
   },
 });
 
-
 /* =========================================
    🔗 ALL API PATHS
 ========================================= */
@@ -38,20 +28,28 @@ export const URL_PATH = {
   /* ---------- AUTH ---------- */
   signup: "/auth/signup",
   login: "/auth/login",
-  loginGoogle:"/auth/google",
-
   logout: "/auth/logout",
-  verifyEmail: "/auth/verify",          
+  loginGoogle: "/auth/google",
+  loginLinkedin: "/auth/linkedin",
+
+  /* ✅ Navigation endpoints */
+  getUserStatus: "/auth/user-status",
+  verifyRoute: "/auth/verify-route",
+
+  /* ---------- EMAIL VERIFICATION ---------- */
+  verifyEmail: "/auth/verify",
   resendVerification: "/auth/resend-verification",
-  /* ---------- USER ---------- */
+
+  /* ---------- PASSWORD RESET ---------- */
+  forgotPassword: "/auth/forgot-password",
+  verifyResetCode: "/auth/verify-reset-code",
+  resetPassword: "/auth/reset-password",
+
+  /* ---------- USER PROFILE ---------- */
   getUser: "/user",
   updateUser: "/user",
-
-
-  /*-----------UPLOAD RESUME-----------*/
-  uploadResume:"/user/resume",
-  uploadProfile:"/user/profile",
-
+  uploadResume: "/user/resume",
+  uploadProfile: "/user/profile",
 
   /* ---------- EXPERIENCE INDEX ---------- */
   calculateExperienceIndex: "/user/experience_index",
@@ -86,40 +84,37 @@ export const URL_PATH = {
   getProjects: "/user/projects",
   deleteProject: "/user/projects",
 
+  /* ---------- JOB DOMAIN & SKILLS ---------- */
+  jobDomain: "/user/addUserDomainSubDomain",
+  updateUserDomainSkills: "/user/updateUserDomainSkills",
+  getJobDomain: "/user/domain",
+  getSubDomain: "/user/by-domain/694e588f2af883559ebe9540",
+  getUserDomainSkills: "/user/getUserDomainSkills",
 
-
-
-  /*========Skill Indes==========*/
-  jobDomain:"/user/addUserDomainSubDomain",
-  updateUserDomainSkills:"/user/updateUserDomainSkills",
-  getJobDomain:"/user/domain",
-  getSubDomain:"/user/by-domain/694e588f2af883559ebe9540",
+  /* ---------- SKILL ASSESSMENT ---------- */
+  startAssessment: "/user/assessment/start",
+  getAttemptQuestions: "/user/assessment/getAttemptQuestions",
+  saveAnswer: "/user/assessment/saveAnswer",
+  submitAssessment: "/user/assessment/submit",
   getUserDomainSkils:"/user/getUserDomainSkills",
 
+  createSubscription: "/subscription/create",
+  verifyPayment: "/subscription/verify",
+  getSubscriptions: "/subscription",
+  getCurrentSubscription: "/subscription/current",
+  cancelSubscription: "/subscription",
+  getPlans: "/subscription/plans",
 
-  /*=======Skill Assesment=========*/
-  startAssessment:"/user/assessment/start",
-  getAttemptQuestions:"/user/assessment/getAttemptQuestions",
-  saveAnswer:"/user/assessment/saveAnswer",
-  submitAssessment:"/user/assessment/submit",
-
-  /*========= Result ================*/
+  /* ---------- RESULTS ---------- */
   result: "/user/experience_index",
-
-
-
-  /* ---------- FORGOT PASSWORD ---------- */
-  forgotPassword: "/auth/forgot-password",
-  verifyResetCode: "/auth/verify-reset-code",
-  resetPassword: "/auth/reset-password",
-
 };
 
 /* =========================================
-   🚀 API WRAPPER
+   🚀 API WRAPPER FUNCTION
 ========================================= */
 export default async function API(method, url, data = {}, headers = {}) {
   try {
+    // Get auth token and userId from localStorage
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
 
@@ -127,16 +122,23 @@ export default async function API(method, url, data = {}, headers = {}) {
       method: method.toLowerCase(),
       url,
       headers: {
+        // Add auth token if exists
         ...(token && { Authorization: `Bearer ${token}` }),
-        ...(userId && { "user-id": userId }), 
+        // Add userId if exists
+        ...(userId && { "user-id": userId }),
+        // Merge custom headers
         ...headers,
       },
     };
 
+    // Handle GET requests
     if (config.method === "get") {
       config.params = data;
     } else {
+      // Handle POST/PUT/PATCH requests
       config.data = data;
+
+      // Don't set Content-Type for FormData
       if (data instanceof FormData) {
         delete config.headers["Content-Type"];
       } else {
@@ -144,18 +146,39 @@ export default async function API(method, url, data = {}, headers = {}) {
       }
     }
 
+    // Make request
     const response = await apiClient(config);
 
-    console.log("responseresponse:::::::",response)
+    // Log in development
+    if (isDev) {
+      console.log(`✅ ${method.toUpperCase()} ${url}`, response.data);
+    }
+
     return response.data;
   } catch (error) {
+    // Log error in development
+    if (isDev) {
+      console.error(`❌ ${method.toUpperCase()} ${url}`, error);
+    }
+
+    // Handle response errors
     if (error.response) {
       const { data, status } = error.response;
       throw { ...data, status };
-    } else if (error.request) {
-      throw { success: false, message: "No response from server." };
-    } else {
-      throw { success: false, message: error.message || "Unknown error occurred." };
+    }
+    // Handle network errors
+    else if (error.request) {
+      throw {
+        success: false,
+        message: "No response from server. Check your connection.",
+      };
+    }
+    // Handle other errors
+    else {
+      throw {
+        success: false,
+        message: error.message || "An unexpected error occurred.",
+      };
     }
   }
 }

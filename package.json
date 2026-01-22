@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "@subframe/core": "^1.148.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -15,6 +16,7 @@
     "axios": "^1.13.2",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.10.1",
     "react-scripts": "^5.0.1",
     "react-toastify": "^11.0.5",

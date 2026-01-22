@@ -7,6 +7,8 @@ import { FeatherArrowLeft, FeatherChevronDown } from "@subframe/core";
 import { useNavigate } from "react-router-dom";
 import * as SubframeCore from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
+import { useAppDispatch } from "src/store/hooks";
+import { setNavigation } from "src/store/slices/onboardingSlice";
 
 const notify = (msg: string) => {
   console.warn(msg);
@@ -14,6 +16,7 @@ const notify = (msg: string) => {
 
 function JobDomain() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const userId = React.useMemo(() => localStorage.getItem("userId"), []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +53,10 @@ function JobDomain() {
     try {
       setIsSubmitting(true);
 
-      await API(
+      console.log("💾 Saving domain and subdomain...");
+
+      // ✅ Step 1: Save domain/subdomain
+      const saveResponse = await API(
         "POST",
         URL_PATH.jobDomain,
         {
@@ -63,15 +69,47 @@ function JobDomain() {
         }
       );
 
+      console.log("✅ Domain saved:", saveResponse);
+
       localStorage.setItem("domainId", domain.id);
       localStorage.setItem("subDomainId", subDomain.id);
-
       localStorage.setItem("jobDomain", domain.name);
       localStorage.setItem("subDomain", subDomain.name);
 
-      navigate("/skills");
+      // ✅ Step 2: Get updated navigation status
+      console.log("🔍 Fetching updated navigation...");
+
+      const statusResponse = await API("GET", URL_PATH.getUserStatus);
+
+      if (!statusResponse?.success) {
+        console.error("❌ Failed to get navigation:", statusResponse);
+        notify("Failed to get next step");
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log("📊 Updated navigation:", statusResponse.navigation);
+
+      // ✅ Step 3: Update Redux with new navigation
+      dispatch(
+        setNavigation({
+          nextRoute: statusResponse.navigation.nextRoute,
+          currentStep: statusResponse.navigation.currentStep,
+          completedSteps: statusResponse.navigation.completedSteps,
+          isOnboardingComplete:
+            statusResponse.navigation.isOnboardingComplete,
+          hasPayment: statusResponse.navigation.hasPayment,
+        })
+      );
+
+      // ✅ Step 4: Navigate to next step
+      console.log(
+        "🚀 Navigating to:",
+        statusResponse.navigation.nextRoute
+      );
+      navigate(statusResponse.navigation.nextRoute);
     } catch (err: any) {
-      console.error(err);
+      console.error("❌ Error:", err);
       notify(err?.response?.data?.message || "Failed to save job domain");
     } finally {
       setIsSubmitting(false);
@@ -84,6 +122,8 @@ function JobDomain() {
       if (!userId) return;
 
       try {
+        console.log("📋 Fetching user selected domain...");
+
         const res = await API("GET", URL_PATH.getUserDomainSkils, undefined, {
           "user-id": userId,
         });
@@ -118,6 +158,8 @@ function JobDomain() {
   useEffect(() => {
     const fetchAvailableDomains = async () => {
       try {
+        console.log("📋 Fetching available domains...");
+
         const res = await API("GET", URL_PATH.getJobDomain);
 
         const activeDomains = res.map((d: any) => ({
@@ -145,6 +187,8 @@ function JobDomain() {
 
     const fetchSubDomains = async () => {
       try {
+        console.log("📋 Fetching subdomains for domain:", domain.id);
+
         const res = await API(
           "GET",
           `${URL_PATH.getSubDomain}?domainId=${domain.id}`
@@ -193,7 +237,7 @@ function JobDomain() {
 
           {/* Title */}
           <div>
-            <h2 className="text-[22 px] text-neutral-900">
+            <h2 className="text-[22px] text-neutral-900">
               Choose your job domain
             </h2>
             <p className="text-xs text-neutral-500">
@@ -229,6 +273,7 @@ function JobDomain() {
                     <div
                       key={item._id}
                       onClick={() => {
+                        console.log("🎯 Domain selected:", item.name);
                         setDomain({ id: item._id, name: item.name });
                         setSubDomain(null); // reset subdomain when domain changes
                       }}
@@ -282,9 +327,10 @@ function JobDomain() {
                     {subDomains.map((item) => (
                       <div
                         key={item._id}
-                        onClick={() =>
-                          setSubDomain({ id: item._id, name: item.name })
-                        }
+                        onClick={() => {
+                          console.log("🎯 SubDomain selected:", item.name);
+                          setSubDomain({ id: item._id, name: item.name });
+                        }}
                         className={`px-4 py-2 cursor-pointer text-sm hover:bg-violet-50 ${
                           subDomain?.id === item._id
                             ? "bg-violet-100 font-semibold"

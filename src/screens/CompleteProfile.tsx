@@ -8,6 +8,8 @@ export default function CompleteProfile() {
 
   const params = new URLSearchParams(location.search);
   const sub = params.get("sub");
+  const userId = params.get("userId");
+  const linkedinId = sub || userId;
   const firstName = params.get("firstName");
   const lastName = params.get("lastName");
 
@@ -16,7 +18,7 @@ export default function CompleteProfile() {
   const [error, setError] = useState("");
 
   // 🔒 Guard
-  if (!sub) {
+  if (!linkedinId) {
     navigate("/login", { replace: true });
     return null;
   }
@@ -30,15 +32,17 @@ export default function CompleteProfile() {
     try {
       setLoading(true);
 
-      console.log("SUB SENT TO API:", sub);
+      console.log("LINKEDIN ID SENT TO API:", linkedinId);
 
       const res = await API("POST", "/auth/linkedin/complete", {
-        linkedinId: sub,
+        linkedinId: linkedinId,
         email,
-        userId:'695e35a1d5d9d2382a535857',
+        userId: linkedinId,
         firstName,
         lastName,
       });
+
+      console.log("API RESPONSE:", res);
 
       localStorage.setItem("token", res.token);
       navigate("/demographics", { replace: true });
