@@ -103,16 +103,20 @@ function Paywall() {
       console.log("🚀 Creating subscription for plan:", selectedPlan.name);
 
       // Step 1: Create subscription
-      const subscriptionResponse = await API("POST", URL_PATH.createSubscription, {
-        planId: selectedPlanId,
-        paymentMethod: "razorpay",
-      });
+      const subscriptionResponse = await API(
+        "POST",
+        URL_PATH.createSubscription,
+        {
+          planId: selectedPlanId,
+          paymentMethod: "razorpay",
+        },
+      );
 
       console.log("📦 Subscription response:", subscriptionResponse);
 
       if (!subscriptionResponse?.success) {
         setError(
-          subscriptionResponse?.message || "Failed to create subscription"
+          subscriptionResponse?.message || "Failed to create subscription",
         );
         setIsLoading(false);
         return;
@@ -135,15 +139,24 @@ function Paywall() {
           nextRoute: statusResponse.navigation.nextRoute,
           currentStep: statusResponse.navigation.currentStep,
           completedSteps: statusResponse.navigation.completedSteps,
-          isOnboardingComplete:
-            statusResponse.navigation.isOnboardingComplete,
+          isOnboardingComplete: statusResponse.navigation.isOnboardingComplete,
           hasPayment: true,
-        })
+        }),
       );
 
       // ✅ Step 4: Navigate to next step (skips intro screens automatically)
-      console.log("✅ Subscription complete - navigating to:", statusResponse.navigation.nextRoute);
-      navigate(statusResponse.navigation.nextRoute);
+      console.log(
+        "✅ Subscription complete - navigating to:",
+        statusResponse.navigation.nextRoute,
+      );
+      // navigate(statusResponse.navigation.nextRoute);
+      if (
+        subscriptionResponse?.message === "Subscription created successfully"
+      ) {
+        navigate("/assessment");
+      } else {
+        navigate(statusResponse.navigation.nextRoute);
+      }
     } catch (err: any) {
       console.error("❌ Error processing subscription:", err);
       setError(err?.message || "Failed to process subscription");
@@ -159,9 +172,7 @@ function Paywall() {
     if (plan.price === 0) return "Free";
 
     const price =
-      plan.currency === "INR"
-        ? plan.price
-        : Math.round(plan.price * 83); // Convert USD to INR approx
+      plan.currency === "INR" ? plan.price : Math.round(plan.price * 83); // Convert USD to INR approx
 
     const period = plan.billingPeriod === "yearly" ? "year" : "month";
     return `₹${price}/${period}`;
@@ -258,26 +269,28 @@ function Paywall() {
 
                 {/* Features */}
                 <div className="flex flex-col gap-3">
-                  {getPlanFeatures(plan).map((feature: string, index: number) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
-                          selectedPlanId === plan._id
-                            ? "bg-violet-100"
-                            : "bg-gray-100"
-                        }`}
-                      >
-                        <FeatherCheck
-                          className={`w-3 h-3 ${
+                  {getPlanFeatures(plan).map(
+                    (feature: string, index: number) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
                             selectedPlanId === plan._id
-                              ? "text-violet-600"
-                              : "text-gray-500"
+                              ? "bg-violet-100"
+                              : "bg-gray-100"
                           }`}
-                        />
+                        >
+                          <FeatherCheck
+                            className={`w-3 h-3 ${
+                              selectedPlanId === plan._id
+                                ? "text-violet-600"
+                                : "text-gray-500"
+                            }`}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-800">{feature}</span>
                       </div>
-                      <span className="text-sm text-gray-800">{feature}</span>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
 
                 {/* Limits */}
@@ -319,8 +332,8 @@ function Paywall() {
             isLoading
               ? "bg-violet-400 cursor-not-allowed text-white"
               : selectedPlanId
-              ? "bg-violet-600 hover:bg-violet-700 text-white"
-              : "bg-gray-300 cursor-not-allowed text-gray-500"
+                ? "bg-violet-600 hover:bg-violet-700 text-white"
+                : "bg-gray-300 cursor-not-allowed text-gray-500"
           }`}
         >
           {isLoading ? (
