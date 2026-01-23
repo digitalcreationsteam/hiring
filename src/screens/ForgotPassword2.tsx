@@ -54,7 +54,7 @@ export default function VerifyResetCode() {
 
     try {
       setLoading(true);
-      await API("post", URL_PATH.verifyResetCode, { email, code });
+      await API("post", URL_PATH.verifyResetCode, { email, otp: code });
 
       toast.success("Code verified successfully");
 

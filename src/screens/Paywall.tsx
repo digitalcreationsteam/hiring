@@ -151,9 +151,10 @@ function Paywall() {
       );
       // navigate(statusResponse.navigation.nextRoute);
       if (
-        subscriptionResponse?.message === "Subscription created successfully"
+        subscriptionResponse?.success
+        
       ) {
-        navigate("/assessment");
+        navigate(statusResponse.navigation.nextRoute);
       } else {
         navigate(statusResponse.navigation.nextRoute);
       }
