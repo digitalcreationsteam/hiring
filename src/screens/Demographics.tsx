@@ -301,7 +301,7 @@ export default function Demographics() {
 
             <TextField
               label="Email *"
-              helpText="Used for account access and recruiter outreach"
+              helpText={<span className="text-xs text-gray-400">Used for account access and recruiter outreach</span>}
               className={fieldClass}
             >
               <TextField.Input
@@ -314,7 +314,7 @@ export default function Demographics() {
 
             <TextField
               label="Phone Number"
-              helpText="Optional for recruiter contact"
+              helpText={<span className="text-gray-400 text-xs">Optional for recruiter contact</span>}
               className={fieldClass}
             >
               <TextField.Input
@@ -383,9 +383,9 @@ export default function Demographics() {
             disabled={isSubmitting || isLoading}
             className={`w-full h-10 rounded-full font-semibold text-white transition ${
               isSubmitting || isLoading
-                ? "bg-violet-400 cursor-not-allowed"
-                : "bg-violet-700 hover:bg-violet-800 shadow-lg"
-            }`}
+              ? "bg-violet-400 cursor-not-allowed"
+              : "bg-violet-700 hover:bg-violet-800 shadow-lg"
+              }`}
           >
             {isLoading ? "Loading..." : isSubmitting ? "Submitting..." : "Continue"}
           </Button>
