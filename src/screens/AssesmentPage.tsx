@@ -54,6 +54,32 @@ function AssessmentPage() {
   const [expiryReady, setExpiryReady] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
+  const [warningOpen, setWarningOpen] = useState(false);
+const [warningMsg, setWarningMsg] = useState("");
+const [violations, setViolations] = useState(0);
+const [isLocked, setIsLocked] = useState(false);
+
+
+const violationLockRef = useRef(false);
+
+const registerViolation = (msg: string) => {
+  // prevent spamming multiple triggers in same moment
+  if (violationLockRef.current) return;
+  violationLockRef.current = true;
+
+  setViolations((v) => v + 1);
+  setWarningMsg(msg);
+  setWarningOpen(true);
+    setIsLocked(true);
+
+
+  // unlock after a short delay so next real violation counts
+  setTimeout(() => {
+    violationLockRef.current = false;
+  }, 800);
+};
+
+
   //   // --- TIMER EFFECT FOR BACKEND ---
   //   useEffect(() => {
   //     if (!location.state?.expiresAt) return;
@@ -112,6 +138,80 @@ function AssessmentPage() {
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, []);
+
+
+useEffect(() => {
+
+    if (violations >= 4 && !submitLockRef.current) {
+    handleSubmit(); // strict: auto-submit on first leave
+  }
+  // -------- Tab switch / leaving page detection ----------
+  const onVisibilityChange = () => {
+    if (document.hidden) {
+      registerViolation("Warning: You switched tabs / minimized the exam window. Otherwise the exam will be auto-submitted after 3 warnings.");
+    }
+  };
+
+  const onBlur = () => {
+    // blur fires when user clicks outside or switches apps
+    registerViolation("Warning: You moved away from the exam window. Otherwise the exam will be auto-submitted after 3 warnings.");
+  };
+
+  // -------- Block copy/cut/paste/right click ----------
+  const onCopy = (e: ClipboardEvent) => {
+    e.preventDefault();
+    registerViolation("Copy is disabled during the exam. Otherwise the exam will be auto-submitted after 3 warnings.");
+  };
+
+  const onCut = (e: ClipboardEvent) => {
+    e.preventDefault();
+    registerViolation("Cut is disabled during the exam. Otherwise the exam will be auto-submitted after 3 warnings.");
+  };
+
+  const onPaste = (e: ClipboardEvent) => {
+    e.preventDefault();
+    registerViolation("Paste is disabled during the exam. Otherwise the exam will be auto-submitted after 3 warnings.");
+  };
+
+  
+
+  // -------- Block common shortcuts (Ctrl+C, Ctrl+V, Ctrl+P, Ctrl+S, etc.) ----------
+  const onKeyDown = (e: KeyboardEvent) => {
+    const key = e.key.toLowerCase();
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+    // Block DevTools shortcuts too (not perfect, but helps)
+    const blocked =
+      (ctrlOrCmd && ["c", "x", "v", "a", "p", "s", "u"].includes(key)) || // copy/cut/paste/select all/print/save/view source
+      (e.key === "F12") ||
+      (ctrlOrCmd && e.shiftKey && ["i", "j", "c"].includes(key)); // devtools
+
+    if (blocked) {
+      e.preventDefault();
+      registerViolation("That action is not allowed during the exam.");
+    }
+  };
+
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  window.addEventListener("blur", onBlur);
+
+  document.addEventListener("copy", onCopy);
+  document.addEventListener("cut", onCut);
+  document.addEventListener("paste", onPaste);
+  document.addEventListener("keydown", onKeyDown);
+
+  return () => {
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+    window.removeEventListener("blur", onBlur);
+
+    document.removeEventListener("copy", onCopy);
+    document.removeEventListener("cut", onCut);
+    document.removeEventListener("paste", onPaste);
+    document.removeEventListener("keydown", onKeyDown);
+  };
+}, [violations]);
+
+
 
   // --- COMPUTED VALUES ---
   const answeredCount = useMemo(
@@ -667,6 +767,47 @@ const totalMarks = useMemo(() => {
           </div>
         </div>
       </div>
+
+
+     {warningOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-neutral-900">
+          Exam Warning
+        </h3>
+        <button
+          onClick={() => setWarningOpen(false)}
+          className="text-neutral-400 hover:text-neutral-600"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p className="text-sm text-neutral-600 mb-2">
+        {warningMsg}
+      </p>
+
+      <p className="text-xs text-neutral-500 mb-6">
+        Violations: <b>{violations}</b> / 3  
+        <br />
+        Switching tabs or copying may auto-submit your exam.
+      </p>
+
+      <div className="flex gap-3">
+        <Button
+          variant="neutral-secondary"
+          className="flex-1"
+          onClick={() => setWarningOpen(false)}
+        >
+          Continue Exam
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }

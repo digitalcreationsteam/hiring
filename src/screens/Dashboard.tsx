@@ -163,9 +163,9 @@ export default function Dashboard() {
     return DEFAULT_AVATAR;
   });
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
-  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
-
-
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null,
+  );
 
   const [user, setUser] = useState<UserProfile>({
     name: "",
@@ -206,127 +206,132 @@ export default function Dashboard() {
 
   const [recruiterVisibility, setRecruiterVisibility] = useState(0);
 
+  const [chatUserId, setChatUserId] = useState("");
+  const [testOtherUserId, setTestOtherUserId] = useState("");
+
+  const openChat = () => {
+    if (!chatUserId.trim()) return;
+    navigate(`/chat/${chatUserId.trim()}`);
+  };
 
   /* ==================== API CALLS ==================== */
 
- const fetchDashboardData = useCallback(async () => {
-  try {
-    const res = await API("GET", URL_PATH.calculateExperienceIndex);
-
-    console.log("fetchDashboardData response:", res);
-    if (!res) return;
-
-    /* DEMOGRAPHICS */
-    const demo = res?.data?.demographics?.[0];
-    setUser({
-      name: demo?.fullName || "",
-      domain: "Professional",
-      location: formatLocation(demo?.city, demo?.state),
-    });
-
-    /* AVATAR */
-    const profileFromServer = res?.documents?.profileUrl;
-    let normalizedProfile: string | null = null;
-
-    if (profileFromServer) {
-      const origin = BASE_URL.replace(/\/api\/?$/, "");
-      if (/^https?:\/\//.test(profileFromServer)) normalizedProfile = profileFromServer;
-      else if (profileFromServer.startsWith("/")) normalizedProfile = origin + profileFromServer;
-      else normalizedProfile = origin + "/" + profileFromServer;
-    }
-
-    setAvatar(normalizedProfile || DEFAULT_AVATAR);
-
-    // save in localStorage safely
+  const fetchDashboardData = useCallback(async () => {
     try {
-      if (normalizedProfile) {
-        const u = localStorage.getItem("user");
-        const parsed = u ? JSON.parse(u) : {};
-        parsed.profileUrl = normalizedProfile;
-        localStorage.setItem("user", JSON.stringify(parsed));
+      const res = await API("GET", URL_PATH.calculateExperienceIndex);
+
+      console.log("fetchDashboardData response:", res);
+      if (!res) return;
+
+      /* DEMOGRAPHICS */
+      const demo = res?.data?.demographics?.[0];
+      setUser({
+        name: demo?.fullName || "",
+        domain: "Professional",
+        location: formatLocation(demo?.city, demo?.state),
+      });
+
+      /* AVATAR */
+      const profileFromServer = res?.documents?.profileUrl;
+      let normalizedProfile: string | null = null;
+
+      if (profileFromServer) {
+        const origin = BASE_URL.replace(/\/api\/?$/, "");
+        if (/^https?:\/\//.test(profileFromServer))
+          normalizedProfile = profileFromServer;
+        else if (profileFromServer.startsWith("/"))
+          normalizedProfile = origin + profileFromServer;
+        else normalizedProfile = origin + "/" + profileFromServer;
       }
-    } catch {}
 
-    /* RANK */
-    const rank = res?.rank;
-    setRankData({
-      global: {
-        rank: rank?.globalRank ?? "-",
-        percentile: calculatePercentile(rank?.globalRank),
-      },
-      country: {
-        rank: rank?.countryRank ?? "-",
-        percentile: calculatePercentile(rank?.countryRank),
-      },
-      state: {
-        rank: rank?.stateRank ?? "-",
-        percentile: calculatePercentile(rank?.stateRank),
-      },
-      city: {
-        rank: rank?.cityRank ?? "-",
-        percentile: calculatePercentile(rank?.cityRank),
-      },
-      university: {
-        // ✅ FIX KEY (your response is universityRank, not universityrank)
-        rank: rank?.universityRank ?? "-",
-        percentile: calculatePercentile(rank?.universityRank),
-      },
-    });
+      setAvatar(normalizedProfile || DEFAULT_AVATAR);
 
-    /* HIREABILITY */
-    const hireabilityIndex = res?.hireabilityIndex;
-    setHireability({
-      totalScore: hireabilityIndex?.hireabilityIndex ?? 0,
-      weeklyChange: 0,
-      nextRankPoints:
-        (hireabilityIndex?.experienceIndexTotal ?? 0) -
-        (hireabilityIndex?.experienceIndexScore ?? 0),
-      skill: {
-        score: hireabilityIndex?.skillIndexScore ?? 0,
-        max: hireabilityIndex?.skillIndexTotal ?? 0,
-      },
-      experience: {
-        score: hireabilityIndex?.experienceIndexScore ?? 0,
-        max: hireabilityIndex?.experienceIndexTotal ?? 0,
-      },
-    });
+      // save in localStorage safely
+      try {
+        if (normalizedProfile) {
+          const u = localStorage.getItem("user");
+          const parsed = u ? JSON.parse(u) : {};
+          parsed.profileUrl = normalizedProfile;
+          localStorage.setItem("user", JSON.stringify(parsed));
+        }
+      } catch {}
 
-    /* LISTS */
-    setWorkExperience(res?.data?.workExperience || []);
-    setProjects(
-      (res?.data?.projects || []).map((p: any) => ({
-        title: p.projectName,
-        summary: p.summary,
-      }))
-    );
-    setCertifications(
-      (res?.data?.certifications || []).map((c: any) => ({
-        name: c.certificationName,
-        issuedBy: c.issuer,
-        issueYear: c.issueDate,
-      }))
-    );
-    setEducation(res?.data?.education || []);
-    setSkills((res?.skills?.list || []).map((s: string) => ({ name: s })));
-  } catch (err: any) {
-    console.error("fetchDashboardData FAILED:", err);
-    console.error("message:", err?.message);
-    console.error("response:", err?.response?.data);
+      /* RANK */
+      const rank = res?.rank;
+      setRankData({
+        global: {
+          rank: rank?.globalRank ?? "-",
+          percentile: calculatePercentile(rank?.globalRank),
+        },
+        country: {
+          rank: rank?.countryRank ?? "-",
+          percentile: calculatePercentile(rank?.countryRank),
+        },
+        state: {
+          rank: rank?.stateRank ?? "-",
+          percentile: calculatePercentile(rank?.stateRank),
+        },
+        city: {
+          rank: rank?.cityRank ?? "-",
+          percentile: calculatePercentile(rank?.cityRank),
+        },
+        university: {
+          // ✅ FIX KEY (your response is universityRank, not universityrank)
+          rank: rank?.universityRank ?? "-",
+          percentile: calculatePercentile(rank?.universityRank),
+        },
+      });
 
-    // fallback - avoid crash
-    setAvatar(DEFAULT_AVATAR);
-  }
-}, []);
+      /* HIREABILITY */
+      const hireabilityIndex = res?.hireabilityIndex;
+      setHireability({
+        totalScore: hireabilityIndex?.hireabilityIndex ?? 0,
+        weeklyChange: 0,
+        nextRankPoints:
+          (hireabilityIndex?.experienceIndexTotal ?? 0) -
+          (hireabilityIndex?.experienceIndexScore ?? 0),
+        skill: {
+          score: hireabilityIndex?.skillIndexScore ?? 0,
+          max: hireabilityIndex?.skillIndexTotal ?? 0,
+        },
+        experience: {
+          score: hireabilityIndex?.experienceIndexScore ?? 0,
+          max: hireabilityIndex?.experienceIndexTotal ?? 0,
+        },
+      });
 
+      /* LISTS */
+      setWorkExperience(res?.data?.workExperience || []);
+      setProjects(
+        (res?.data?.projects || []).map((p: any) => ({
+          title: p.projectName,
+          summary: p.summary,
+        })),
+      );
+      setCertifications(
+        (res?.data?.certifications || []).map((c: any) => ({
+          name: c.certificationName,
+          issuedBy: c.issuer,
+          issueYear: c.issueDate,
+        })),
+      );
+      setEducation(res?.data?.education || []);
+      setSkills((res?.skills?.list || []).map((s: string) => ({ name: s })));
+    } catch (err: any) {
+      console.error("fetchDashboardData FAILED:", err);
+      console.error("message:", err?.message);
+      console.error("response:", err?.response?.data);
 
-
+      // fallback - avoid crash
+      setAvatar(DEFAULT_AVATAR);
+    }
+  }, []);
 
   /* ==================== EFFECTS ==================== */
 
   useEffect(() => {
-   
     fetchDashboardData(); // 👈 ONLY ONE CALL
-  }, [ fetchDashboardData]);
+  }, [fetchDashboardData]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -343,6 +348,14 @@ export default function Dashboard() {
   }, []);
 
   /* ==================== HANDLERS ==================== */
+  const openMyChat = () => {
+    const studentId = localStorage.getItem("userId");
+    if (!studentId) {
+      alert("User ID not found. Please login again.");
+      return;
+    }
+    navigate(`/chat/${studentId}`);
+  };
 
   const handleNavigate = (path: string) => navigate(path);
 
@@ -359,7 +372,7 @@ export default function Dashboard() {
       await API(
         "POST", // or "PUT" based on backend
         URL_PATH.uploadProfile, // "user/profile"
-        formData
+        formData,
         // ❌ DO NOT pass headers here
       );
 
@@ -377,7 +390,7 @@ export default function Dashboard() {
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("", e)
+    console.log("", e);
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -433,13 +446,10 @@ export default function Dashboard() {
     }
   };
 
-
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
-
-
 
   /* ==================== MEMOS ==================== */
 
@@ -471,10 +481,7 @@ export default function Dashboard() {
       style={{ backgroundColor: colors.white }}
     >
       {/* TOP WELCOME BANNER */}
-      <div
-        className="w-full "
-        style={{ borderColor: colors.aqua }}
-      >
+      <div className="w-full " style={{ borderColor: colors.aqua }}>
         <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-end gap-4 px-4 sm:px-8 py-8 mb-8">
           <div className="space-y-1">
             <h1
@@ -489,13 +496,19 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-3 items-center">
-            {/* Weekly Growth Badge */}
-            <Badge
-              className="px-4 py-2 rounded-xl text-sm border-none font-bold"
-              style={{ backgroundColor: colors.mint, color: colors.secondary }}
-            >
-              {hireability.weeklyChange} growth this week
-            </Badge>
+            
+            <Button
+  size="small"
+  className="rounded-full px-4 py-2 font-semibold shadow-sm"
+  style={{
+    backgroundColor: colors.primary,
+    color: "white",
+  }}
+  onClick={() => navigate(`/chat/$`)}
+>
+  Message
+</Button>
+
 
             {/* PROFILE DROPDOWN */}
             <div className="relative" ref={profileMenuRef}>
@@ -631,72 +644,75 @@ export default function Dashboard() {
                   variant="warning"
                   icon={<FeatherTrophy className="w-4 h-4 sm:w-5 sm:h-5" />}
                 >
-                  Global Rank<br />
-                  #{rankData.global.rank}
-                </Badge>
-
-                {/* University Rank */}
-                <Badge
-                  className="
-      flex-1
-      rounded-xl
-      py-4 sm:py-6
-      text-sm sm:text-base
-      justify-center
-      items-center
-      border-none
-      text-center
-    "
-                  style={{
-                    backgroundColor: colors.mint,
-                    color: colors.secondary,
-                  }}
-                  variant="brand"
-                  icon={<FeatherAward className="w-4 h-4 sm:w-5 sm:h-5" />}
-                >
-                  <span className="block font-semibold">University Rank</span>
-                  <span className="block text-lg sm:text-xl font-black">
-                    #{rankData.university.rank}
-                  </span>
+                  Global Rank
+                  <br />#{rankData.global.rank}
                 </Badge>
               </div>
             </div>
-            {/* Quick Update Buttons */}
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {[
-                { label: "Exp", icon: <FeatherPlus />, path: "/experience" },
-                {
-                  label: "Proj",
-                  icon: <FeatherFolderOpen />,
-                  path: "/projects",
-                },
-                {
-                  label: "Edu",
-                  icon: <FeatherUniversity />,
-                  path: "/education",
-                },
-                { label: "Skills", icon: <FeatherTool />, path: "/skills" },
-                {
-                  label: "Certification",
-                  icon: <FeatherTool />,
-                  path: "/certifications",
-                },
-              ].map((item, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleNavigate(item.path)}
-                  className="p-4 bg-white border rounded-2xl flex flex-col items-center gap-2 transition-all hover:scale-105"
-                  style={{ borderColor: colors.aqua }}
-                >
-                  <div style={{ color: colors.accent }}>{item.icon}</div>
-                  <span
-                    className="text-[9px] font-black uppercase"
-                    style={{ color: colors.primary }}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              ))}
+
+            {/* ACTIVITY INTENSITY (Placed here as requested) */}
+            <div
+              className="flex w-full flex-col gap-4 rounded-[2rem] border shadow-sm px-6 py-6"
+              style={{
+                backgroundColor: colors.white,
+                borderColor: colors.aqua,
+              }}
+            >
+              <span
+                className="text-sm font-bold"
+                style={{ color: colors.primary }}
+              >
+                Activity This Week
+              </span>
+              <div className="space-y-4">
+                {[
+                  {
+                    label: "Case Studies",
+                    pct: "45%",
+                    color: colors.accent,
+                    val: "3/5",
+                  },
+                  {
+                    label: "Hackathons",
+                    pct: "50%",
+                    color: colors.secondary,
+                    val: "1/2",
+                  },
+                  {
+                    label: "Interview Prep",
+                    pct: "24%",
+                    color: colors.aqua,
+                    val: "1/10",
+                  },
+                ].map((item, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex justify-between text-[11px] font-bold">
+                      <span style={{ color: colors.neutral[600] }}>
+                        {item.label}
+                      </span>
+                      <span style={{ color: colors.primary }}>{item.val}</span>
+                    </div>
+                    <div
+                      className="h-1.5 w-full rounded-full overflow-hidden"
+                      style={{ backgroundColor: colors.cream }}
+                    >
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: item.pct, backgroundColor: item.color }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div
+                className="mt-2 rounded-xl px-3 py-2 text-center text-[10px] font-bold"
+                style={{
+                  backgroundColor: colors.mint,
+                  color: colors.secondary,
+                }}
+              >
+                You're more active than 78% of peers
+              </div>
             </div>
 
             {/* PROFESSIONAL RESUME (SIDEBAR) */}
@@ -801,8 +817,6 @@ export default function Dashboard() {
                 ))}
               </div>
 
-
-
               {/* Certifications */}
               <div className="space-y-3">
                 <p
@@ -856,7 +870,6 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-
 
               {/* Education & Certs */}
               <div className="space-y-3 pt-2">
@@ -917,7 +930,7 @@ export default function Dashboard() {
           {/* --- CENTER DASHBOARD --- */}
           <div className="flex w-full flex-col gap-8 lg:max-w-[800px]">
             {/* Rankings Cards */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   label: "Global Rank",
@@ -940,13 +953,13 @@ export default function Dashboard() {
                   icon: <FeatherMapPin />,
                   theme: colors.primary,
                 },
-                {
-                  label: "Stanford",
-                  val: rankData.university,
-                  pct: rankData.university.percentile,
-                  icon: <FeatherUniversity />,
-                  theme: colors.accent,
-                },
+                // {
+                //   label: "Stanford",
+                //   val: rankData.university,
+                //   pct: rankData.university.percentile,
+                //   icon: <FeatherUniversity />,
+                //   theme: colors.accent,
+                // },
               ].map((rank, i) => (
                 <div
                   key={i}
@@ -1000,7 +1013,7 @@ export default function Dashboard() {
                       strokeWidth="10"
                       fill="transparent"
                     />
-                     <circle
+                    <circle
                       cx="80"
                       cy="80"
                       r="72"
@@ -1028,10 +1041,30 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex-1 space-y-6">
-                  <div>
-                    <h3 className="text-2xl font-bold">Hireability Index</h3>
-                    {/* <p className="opacity-80 text-sm">You are just {hireability.nextRankPoints} points away from rank 22 at Stanford!</p> */}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Left: Title */}
+                    <h3
+                      className="text-lg sm:text-xl font-bold"
+                      style={{ color: colors.white }}
+                    >
+                      Hireability Index
+                    </h3>
+
+                    {/* Right: Weekly growth */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-green-600">
+                        +{hireability?.weeklyChange ?? 0}
+                      </span>
+
+                      <span
+                        className="text-xs font-semibold"
+                        style={{ color: colors.secondary }}
+                      >
+                        this week
+                      </span>
+                    </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest opacity-70">
@@ -1082,192 +1115,178 @@ export default function Dashboard() {
               </div>
             </div>
 
-           {/* Recommended Actions */}
-<div className="space-y-4">
-  {/* Header */}
-  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-    <h3 className="text-lg sm:text-xl font-bold text-neutral-900">
-      Recommended Actions
-    </h3>
+            {/* Recommended Actions */}
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-lg sm:text-xl font-bold text-neutral-900">
+                  Recommended Actions
+                </h3>
 
-    <span className="w-fit text-[10px] sm:text-xs font-bold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">
-      4 Actions Available
-    </span>
-  </div>
+                <span className="w-fit text-[10px] sm:text-xs font-bold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">
+                  4 Actions Available
+                </span>
+              </div>
 
-  {/* Grid */}
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-    {/* Assessment */}
-    <div className="bg-white border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] hover:border-violet-300 transition-all group shadow-sm">
-      <div className="flex justify-between items-start mb-4 sm:mb-6">
-        <div className="p-3 bg-violet-50 rounded-2xl text-violet-600 group-hover:bg-violet-600 group-hover:text-white transition-colors">
-          <FeatherFileText />
-        </div>
+              {/* Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                {/* Assessment */}
+                <div className="bg-white border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] hover:border-violet-300 transition-all group shadow-sm">
+                  <div className="flex justify-between items-start mb-4 sm:mb-6">
+                    <div className="p-3 bg-violet-50 rounded-2xl text-violet-600 group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                      <FeatherFileText />
+                    </div>
 
-        <Badge className="bg-violet-50 text-violet-600 border-none font-bold text-[10px] uppercase tracking-wider">
-          +50 Skill
-        </Badge>
-      </div>
+                    <Badge className="bg-violet-50 text-violet-600 border-none font-bold text-[10px] uppercase tracking-wider">
+                      +50 Skill
+                    </Badge>
+                  </div>
 
-      <h4 className="text-base sm:text-lg font-bold mb-2">Complete Assessment</h4>
-      <p className="text-sm text-neutral-500 mb-4 sm:mb-6 leading-relaxed">
-        Begin evaluation and boost your credibility with role-specific eval.
-      </p>
+                  <h4 className="text-base sm:text-lg font-bold mb-2">
+                    Complete Assessment
+                  </h4>
+                  <p className="text-sm text-neutral-500 mb-4 sm:mb-6 leading-relaxed">
+                    Begin evaluation and boost your credibility with
+                    role-specific eval.
+                  </p>
 
-      {/* Footer row responsive */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold text-violet-600 flex items-center gap-1">
-            <FeatherRepeat className="w-3 h-3" /> Paid retakes: 1
-          </span>
-          <span className="text-[10px] font-bold text-green-600 flex items-center gap-1">
-            <FeatherGift className="w-3 h-3" /> Free retakes: 1
-          </span>
-        </div>
+                  {/* Footer row responsive */}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-violet-600 flex items-center gap-1">
+                        <FeatherRepeat className="w-3 h-3" /> Paid retakes: 1
+                      </span>
+                      <span className="text-[10px] font-bold text-green-600 flex items-center gap-1">
+                        <FeatherGift className="w-3 h-3" /> Free retakes: 1
+                      </span>
+                    </div>
 
-        <Button
-          variant="brand-primary"
-          className="w-full sm:w-auto rounded-2xl bg-violet-700 hover:bg-violet-800 px-5 sm:px-6"
-          onClick={() => handleNavigate("/assessment")}
-        >
-          Start Now
-        </Button>
-      </div>
-    </div>
+                    <Button
+                      variant="brand-primary"
+                      className="w-full sm:w-auto rounded-2xl bg-violet-700 hover:bg-violet-800 px-5 sm:px-6"
+                      onClick={() => handleNavigate("/assessment")}
+                    >
+                      Start Now
+                    </Button>
+                  </div>
+                </div>
 
-    {/* Case Studies */}
-    <div className="bg-white border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] hover:border-green-300 transition-all group shadow-sm">
-      <div className="flex justify-between items-start mb-4 sm:mb-6">
-        <div className="p-3 bg-green-50 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
-          <FeatherBookOpen />
-        </div>
+                {/* Case Studies */}
+                <div className="bg-white border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] hover:border-green-300 transition-all group shadow-sm">
+                  <div className="flex justify-between items-start mb-4 sm:mb-6">
+                    <div className="p-3 bg-green-50 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                      <FeatherBookOpen />
+                    </div>
 
-        <Badge className="bg-green-50 text-green-600 border-none font-bold text-[10px] uppercase tracking-wider">
-          +40 Exp
-        </Badge>
-      </div>
+                    <Badge className="bg-green-50 text-green-600 border-none font-bold text-[10px] uppercase tracking-wider">
+                      +40 Exp
+                    </Badge>
+                  </div>
 
-      <h4 className="text-base sm:text-lg font-bold mb-2">Solve Case Studies</h4>
-      <p className="text-sm text-neutral-500 mb-4 sm:mb-6 leading-relaxed">
-        Solving cases shows recruiters your effort to increase your knowledge base.
-      </p>
+                  <h4 className="text-base sm:text-lg font-bold mb-2">
+                    Solve Case Studies
+                  </h4>
+                  <p className="text-sm text-neutral-500 mb-4 sm:mb-6 leading-relaxed">
+                    Solving cases shows recruiters your effort to increase your
+                    knowledge base.
+                  </p>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-xs font-bold text-neutral-400 flex items-center gap-1">
-          <FeatherClock className="w-3 h-3" /> 20 min
-        </span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-xs font-bold text-neutral-400 flex items-center gap-1">
+                      <FeatherClock className="w-3 h-3" /> 20 min
+                    </span>
 
-        <Button
-          variant="brand-primary"
-          className="w-full sm:w-auto rounded-2xl bg-violet-700 hover:bg-violet-800 px-5 sm:px-6"
-          onClick={() => handleNavigate("/cases")}
-        >
-          Start Now
-        </Button>
-      </div>
-    </div>
+                    <Button
+                      variant="brand-primary"
+                      className="w-full sm:w-auto rounded-2xl bg-violet-700 hover:bg-violet-800 px-5 sm:px-6"
+                      onClick={() => handleNavigate("/cases")}
+                    >
+                      Start Now
+                    </Button>
+                  </div>
+                </div>
 
-    {/* Hackathons */}
-    <div className="bg-neutral-50 border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] opacity-80 group shadow-sm">
-      <div className="flex justify-between items-start mb-4 sm:mb-6">
-        <div className="p-3 bg-neutral-200 rounded-2xl text-neutral-500">
-          <FeatherUsers />
-        </div>
+                {/* Hackathons */}
+                <div className="bg-neutral-50 border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] opacity-80 group shadow-sm">
+                  <div className="flex justify-between items-start mb-4 sm:mb-6">
+                    <div className="p-3 bg-neutral-200 rounded-2xl text-neutral-500">
+                      <FeatherUsers />
+                    </div>
 
-        <Badge
-          variant="neutral"
-          icon={<FeatherLock />}
-          className="bg-gray-100 text-gray-600 border-none font-bold text-[10px] uppercase"
-        >
-          Coming Soon
-        </Badge>
-      </div>
+                    <Badge
+                      variant="neutral"
+                      icon={<FeatherLock />}
+                      className="bg-gray-100 text-gray-600 border-none font-bold text-[10px] uppercase"
+                    >
+                      Coming Soon
+                    </Badge>
+                  </div>
 
-      <h4 className="text-base sm:text-lg font-bold mb-2 text-neutral-700">
-        Participate in Hackathons
-      </h4>
-      <p className="text-sm text-neutral-400 mb-4 sm:mb-6 leading-relaxed">
-        Collaborate and build visibility with other PMs in upcoming events.
-      </p>
+                  <h4 className="text-base sm:text-lg font-bold mb-2 text-neutral-700">
+                    Participate in Hackathons
+                  </h4>
+                  <p className="text-sm text-neutral-400 mb-4 sm:mb-6 leading-relaxed">
+                    Collaborate and build visibility with other PMs in upcoming
+                    events.
+                  </p>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-xs font-bold text-neutral-400 flex items-center gap-1">
-          <FeatherCalendar className="w-3 h-3" /> Starts in 5 days
-        </span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-xs font-bold text-neutral-400 flex items-center gap-1">
+                      <FeatherCalendar className="w-3 h-3" /> Starts in 5 days
+                    </span>
 
-        <Button
-          disabled
-          className="w-full sm:w-auto rounded-2xl bg-neutral-200 text-neutral-500 cursor-not-allowed border-none px-5 sm:px-6"
-        >
-          Notify Me
-        </Button>
-      </div>
-    </div>
+                    <Button
+                      disabled
+                      className="w-full sm:w-auto rounded-2xl bg-neutral-200 text-neutral-500 cursor-not-allowed border-none px-5 sm:px-6"
+                    >
+                      Notify Me
+                    </Button>
+                  </div>
+                </div>
 
-    {/* Courses */}
-    <div className="bg-neutral-50 border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] opacity-80 group shadow-sm">
-      <div className="flex justify-between items-start mb-4 sm:mb-6">
-        <div className="p-3 bg-neutral-200 rounded-2xl text-neutral-500">
-          <FeatherBook />
-        </div>
+                {/* Courses */}
+                <div className="bg-neutral-50 border border-neutral-200 p-4 sm:p-6 rounded-3xl sm:rounded-[2rem] opacity-80 group shadow-sm">
+                  <div className="flex justify-between items-start mb-4 sm:mb-6">
+                    <div className="p-3 bg-neutral-200 rounded-2xl text-neutral-500">
+                      <FeatherBook />
+                    </div>
 
-        <Badge
-          variant="neutral"
-          icon={<FeatherLock />}
-          className="bg-gray-100 text-gray-600 border-none font-bold text-[10px] uppercase"
-        >
-          Coming Soon
-        </Badge>
-      </div>
+                    <Badge
+                      variant="neutral"
+                      icon={<FeatherLock />}
+                      className="bg-gray-100 text-gray-600 border-none font-bold text-[10px] uppercase"
+                    >
+                      Coming Soon
+                    </Badge>
+                  </div>
 
-      <h4 className="text-base sm:text-lg font-bold mb-2 text-neutral-700">
-        Courses
-      </h4>
-      <p className="text-sm text-neutral-400 mb-4 sm:mb-6 leading-relaxed">
-        Complete structured learning path to earn verified PM badges.
-      </p>
+                  <h4 className="text-base sm:text-lg font-bold mb-2 text-neutral-700">
+                    Courses
+                  </h4>
+                  <p className="text-sm text-neutral-400 mb-4 sm:mb-6 leading-relaxed">
+                    Complete structured learning path to earn verified PM
+                    badges.
+                  </p>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-xs font-bold text-neutral-400 flex items-center gap-1">
-          <FeatherClock className="w-3 h-3" /> 8 weeks
-        </span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-xs font-bold text-neutral-400 flex items-center gap-1">
+                      <FeatherClock className="w-3 h-3" /> 8 weeks
+                    </span>
 
-        <Button
-          disabled
-          className="w-full sm:w-auto rounded-2xl bg-neutral-200 text-neutral-500 cursor-not-allowed border-none px-5 sm:px-6"
-        >
-          Notify Me
-        </Button>
-      </div>
-    </div>
-  </div>
-</div>
-
+                    <Button
+                      disabled
+                      className="w-full sm:w-auto rounded-2xl bg-neutral-200 text-neutral-500 cursor-not-allowed border-none px-5 sm:px-6"
+                    >
+                      Notify Me
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* --- RIGHT SIDEBAR --- */}
           <div className="flex w-full flex-col gap-6 lg:w-[340px] lg:flex-none">
-            {/* Visibility Probability */}
-            <div
-              className="rounded-[2.5rem] p-8 shadow-lg text-center relative overflow-hidden"
-              style={{ backgroundColor: colors.accent, color: colors.primary }}
-            >
-              <div className="relative z-10">
-                <p className="text-xs font-black uppercase tracking-widest opacity-70">
-                  Visibility Probability
-                </p>
-                <div className="text-6xl font-black my-4">
-                  {recruiterVisibility}%
-                </div>
-                <div
-                  className="p-3 rounded-2xl text-[10px] font-bold"
-                  style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-                >
-                  Based on rankings and case studies solved.
-                </div>
-              </div>
-            </div>
-
             {/* Mini Leaderboard */}
             <div
               className="bg-white rounded-[2rem] border shadow-sm p-6"
@@ -1344,68 +1363,24 @@ export default function Dashboard() {
               </Button>
             </div>
 
-            {/* ACTIVITY INTENSITY (Placed here as requested) */}
+            {/* Visibility Probability */}
             <div
-              className="flex w-full flex-col gap-4 rounded-[2rem] border shadow-sm px-6 py-6"
-              style={{
-                backgroundColor: colors.white,
-                borderColor: colors.aqua,
-              }}
+              className="rounded-[2.5rem] p-8 shadow-lg text-center relative overflow-hidden"
+              style={{ backgroundColor: colors.accent, color: colors.primary }}
             >
-              <span
-                className="text-sm font-bold"
-                style={{ color: colors.primary }}
-              >
-                Activity This Week
-              </span>
-              <div className="space-y-4">
-                {[
-                  {
-                    label: "Case Studies",
-                    pct: "45%",
-                    color: colors.accent,
-                    val: "3/5",
-                  },
-                  {
-                    label: "Hackathons",
-                    pct: "50%",
-                    color: colors.secondary,
-                    val: "1/2",
-                  },
-                  {
-                    label: "Interview Prep",
-                    pct: "24%",
-                    color: colors.aqua,
-                    val: "1/10",
-                  },
-                ].map((item, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold">
-                      <span style={{ color: colors.neutral[600] }}>
-                        {item.label}
-                      </span>
-                      <span style={{ color: colors.primary }}>{item.val}</span>
-                    </div>
-                    <div
-                      className="h-1.5 w-full rounded-full overflow-hidden"
-                      style={{ backgroundColor: colors.cream }}
-                    >
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: item.pct, backgroundColor: item.color }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div
-                className="mt-2 rounded-xl px-3 py-2 text-center text-[10px] font-bold"
-                style={{
-                  backgroundColor: colors.mint,
-                  color: colors.secondary,
-                }}
-              >
-                You're more active than 78% of peers
+              <div className="relative z-10">
+                <p className="text-xs font-black uppercase tracking-widest opacity-70">
+                  Visibility Probability
+                </p>
+                <div className="text-6xl font-black my-4">
+                  {recruiterVisibility}%
+                </div>
+                <div
+                  className="p-3 rounded-2xl text-[10px] font-bold"
+                  style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+                >
+                  Based on rankings and case studies solved.
+                </div>
               </div>
             </div>
 
@@ -1468,6 +1443,136 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
+
+            {/* Quick Update Buttons */}
+            <div className="mt-6">
+              <div
+                className="rounded-3xl border bg-white overflow-hidden"
+                style={{ borderColor: colors.aqua }}
+              >
+                {/* Header */}
+                <div className="px-5 pt-5 pb-3">
+                  <p
+                    className="text-lg font-extrabold"
+                    style={{ color: colors.primary }}
+                  >
+                    Update Your Profile
+                  </p>
+                  <p
+                    className="mt-1 text-xs"
+                    style={{ color: colors.secondary }}
+                  >
+                    Got new updates? Add them over here!
+                  </p>
+                </div>
+
+                <div className="px-5 pb-5 flex flex-col gap-4">
+                  {[
+                    {
+                      label: "Experience",
+                      sub: "Showcase your impactful projects and product outcomes",
+                      icon: <FeatherPlus />,
+                      path: "/experience",
+                    },
+                    {
+                      label: "Projects",
+                      sub: "Showcase your impactful projects and product outcomes",
+                      icon: <FeatherFolderOpen />,
+                      path: "/projects",
+                    },
+                    {
+                      label: "Education",
+                      sub: "Update your educational background and achievements",
+                      icon: <FeatherUniversity />,
+                      path: "/education",
+                    },
+                    {
+                      label: "Certifications",
+                      sub: "Add relevant certifications to validate your expertise",
+                      icon: <FeatherTool />,
+                      path: "/certifications",
+                    },
+                    {
+                      label: "Skills",
+                      sub: "List your product management and technical skills",
+                      icon: <FeatherTool />,
+                      path: "/skills",
+                    },
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      className="rounded-2xl border bg-white px-4 py-4"
+                      style={{ borderColor: "#E5E7EB" }}
+                    >
+                      {/* Row top: icon + title */}
+                      <div className="flex items-start gap-3">
+                        {/* icon bubble */}
+                        <div
+                          className="flex h-9 w-9 items-center justify-center rounded-full"
+                          style={{
+                            backgroundColor: `${colors.accent}1A`,
+                            color: colors.accent,
+                          }}
+                        >
+                          {item.icon}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p
+                            className="text-sm font-extrabold"
+                            style={{ color: colors.primary }}
+                          >
+                            {item.label}
+                          </p>
+                          <p
+                            className="mt-1 text-xs leading-4"
+                            style={{ color: colors.secondary }}
+                          >
+                            {item.sub}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* CTA button full width like screenshot */}
+                      <button
+                        onClick={() => handleNavigate(item.path)}
+                        className="mt-4 w-full rounded-2xl py-3 text-sm font-extrabold transition active:scale-[0.99]"
+                        style={{
+                          backgroundColor: colors.accent,
+                          color: "#fff",
+                        }}
+                      >
+                        + Add {item.label}
+                      </button>
+
+                      {/* Divider like screenshot (except last) */}
+                      {i !== 4 && (
+                        <div className="mt-4 h-px w-full bg-neutral-200" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* // CHATBOAT TESTING */}
+
+            {/* <div className="mt-4 flex gap-2">
+              <input
+                className="border p-2 flex-1"
+                placeholder="Paste recruiter userId"
+                value={testOtherUserId}
+                onChange={(e) => setTestOtherUserId(e.target.value)}
+              />
+              <button
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white"
+                onClick={() =>
+                  testOtherUserId && navigate(`/chat/${testOtherUserId}`)
+                }
+              >
+                Chat With Recruiter
+              </button>
+            </div> */}
           </div>
         </div>
       </div>
