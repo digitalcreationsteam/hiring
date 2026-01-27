@@ -1,7 +1,7 @@
 // src/components/Education.tsx
 "use client";
 
-import React, { useState, useEffect, useRef  } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Avatar } from "../ui/components/Avatar";
@@ -26,12 +26,12 @@ import * as SubframeCore from "@subframe/core";
 import { FeatherChevronDown } from "@subframe/core";
 
 const DEGREE_OPTIONS = [
-  "High School Diploma",
+  // "High School Diploma",
   "Diploma",
-  "Associate's Degree",
+  // "Associate's Degree",
   "Bachelor's Degree",
   "B.Tech",
-  "BSC",
+  // "BSC",
   "Master's Degree",
   "M.Tech",
   "Doctorate (PhD)",
@@ -76,7 +76,6 @@ const toTitleCase = (v: string) =>
 const notify = (msg: string) => {
   alert(msg);
 };
- 
 
 // -------------------Year Picker------------------
 function YearPicker({
@@ -97,7 +96,7 @@ function YearPicker({
 
   const [open, setOpen] = useState(false);
   const [decadeStart, setDecadeStart] = useState(
-    Math.floor(selectedYear / 10) * 10
+    Math.floor(selectedYear / 10) * 10,
   );
 
   const ref = useRef<HTMLDivElement>(null);
@@ -124,7 +123,7 @@ function YearPicker({
         value={value}
         placeholder="YYYY"
         onClick={() => !disabled && setOpen((v) => !v)}
-        className={`w-full h-10 px-4 rounded-full cursor-pointer border border-neutral-300 focus:outline-none ${
+        className={`w-full h-9 px-3 text-sm rounded-full cursor-pointer border border-neutral-300 focus:outline-none ${
           disabled ? "bg-neutral-100 text-neutral-400" : "bg-white"
         }`}
       />
@@ -159,9 +158,7 @@ function YearPicker({
           <div className="grid grid-cols-4 gap-2 text-sm">
             {years.map((year) => {
               const isDisabled =
-                year < minYear ||
-                year > maxYear ||
-                year > currentYear;
+                year < minYear || year > maxYear || year > currentYear;
 
               return (
                 <button
@@ -235,8 +232,7 @@ export default function Education() {
       if (!isEndAfterStart(startYear, endYear))
         return "End year must be after start year";
     }
-      if (!gpa.trim()) return "GPA is required";
-
+    if (!gpa.trim()) return "GPA is required";
 
     if (gpa && !/^(10(\.0{1,2})?|[0-9](\.\d{1,2})?)$/.test(gpa))
       return "GPA must be between 0 and 10";
@@ -268,48 +264,47 @@ export default function Education() {
     }
 
     // ✅ DUPLICATE CHECK (CORRECT PLACE)
-   // ✅ HIERARCHICAL DUPLICATE CHECK (DEGREE → FIELD → SCHOOL)
-const normalizedNew = {
-  degree: normalize(toTitleCase(degree)).trim(),
-  fieldOfStudy: normalize(toTitleCase(fieldOfStudy)).trim(),
-  schoolName: normalize(toTitleCase(schoolName)).trim(),
-  startYear,
-};
+    // ✅ HIERARCHICAL DUPLICATE CHECK (DEGREE → FIELD → SCHOOL)
+    const normalizedNew = {
+      degree: normalize(toTitleCase(degree)).trim(),
+      fieldOfStudy: normalize(toTitleCase(fieldOfStudy)).trim(),
+      schoolName: normalize(toTitleCase(schoolName)).trim(),
+      startYear,
+    };
 
-// 1️⃣ Check if degree already exists
-const degreeExists = educations.some(
-  (ed) => normalize(ed.degree).trim() === normalizedNew.degree
-);
-if (degreeExists) {
-  notify("You have already added this degree.");
-  return;
-}
+    // 1️⃣ Check if degree already exists
+    const degreeExists = educations.some(
+      (ed) => normalize(ed.degree).trim() === normalizedNew.degree,
+    );
+    if (degreeExists) {
+      notify("You have already added this degree.");
+      return;
+    }
 
-// 2️⃣ Check if field of study exists under this degree
-const fieldExists = educations.some(
-  (ed) =>
-    normalize(ed.degree).trim() === normalizedNew.degree &&
-    normalize(ed.fieldOfStudy).trim() === normalizedNew.fieldOfStudy
-);
-if (fieldExists) {
-  notify("This field of study already exists for this degree.");
-  return;
-}
+    // 2️⃣ Check if field of study exists under this degree
+    const fieldExists = educations.some(
+      (ed) =>
+        normalize(ed.degree).trim() === normalizedNew.degree &&
+        normalize(ed.fieldOfStudy).trim() === normalizedNew.fieldOfStudy,
+    );
+    if (fieldExists) {
+      notify("This field of study already exists for this degree.");
+      return;
+    }
 
-// 3️⃣ Check if school exists under this degree + field
-const schoolExists = educations.some(
-  (ed) =>
-    normalize(ed.degree).trim() === normalizedNew.degree &&
-    normalize(ed.fieldOfStudy).trim() === normalizedNew.fieldOfStudy &&
-    normalize(ed.schoolName).trim() === normalizedNew.schoolName
-);
-if (schoolExists) {
-  notify(
-    "This school is already added for this degree and field of study."
-  );
-  return;
-}
-
+    // 3️⃣ Check if school exists under this degree + field
+    const schoolExists = educations.some(
+      (ed) =>
+        normalize(ed.degree).trim() === normalizedNew.degree &&
+        normalize(ed.fieldOfStudy).trim() === normalizedNew.fieldOfStudy &&
+        normalize(ed.schoolName).trim() === normalizedNew.schoolName,
+    );
+    if (schoolExists) {
+      notify(
+        "This school is already added for this degree and field of study.",
+      );
+      return;
+    }
 
     const currentYear = new Date().getFullYear();
 
@@ -384,7 +379,7 @@ if (schoolExists) {
         "DELETE",
         `${URL_PATH.deleteEducation}/${deleteId}`,
         undefined,
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       setEducations((prev) => prev.filter((e) => e.id !== deleteId));
@@ -421,7 +416,7 @@ if (schoolExists) {
           endYear: e.currentlyStudying ? undefined : String(e.endYear),
           currentlyStudying: e.currentlyStudying,
           gpa: e.gpa ? String(e.gpa) : undefined,
-        })
+        }),
       );
 
       setEducations(mappedEducations);
@@ -439,7 +434,7 @@ if (schoolExists) {
         "GET",
         URL_PATH.calculateExperienceIndex,
         undefined,
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       setExperiencePoints(res?.points ?? null);
@@ -511,25 +506,23 @@ if (schoolExists) {
           </header>
 
           {/* Selected education preview list */}
-       <section className="mt-6 flex w-full flex-col gap-3">
-  {educations.map((ed) => {
-    const isSelected = selectedEducation?.id === ed.id;
+          <section className="mt-6 flex w-full flex-col gap-3">
+            {educations.map((ed) => {
+              const isSelected = selectedEducation?.id === ed.id;
 
-    return (
-      <div
-        key={ed.id}
-        role="button"
-        tabIndex={0}
-        onClick={() =>
-          setSelectedEducation(isSelected ? null : ed)
-        }
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setSelectedEducation(isSelected ? null : ed);
-          }
-        }}
-        className="
+              return (
+                <div
+                  key={ed.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedEducation(isSelected ? null : ed)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedEducation(isSelected ? null : ed);
+                    }
+                  }}
+                  className="
           rounded-3xl
           border border-neutral-300
           bg-white
@@ -541,102 +534,100 @@ if (schoolExists) {
           focus:ring-2
           focus:ring-violet-500
         "
-      >
-        {/* 🔹 TOP ROW */}
-        <div className="flex items-center justify-between">
-          {/* Left */}
-          <div className="flex items-center gap-3 min-w-0">
-            <Avatar
-              size="large"
-              image="https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop"
-              square
-              className="!rounded-2xl shadow-sm"
-            >
-              {ed.schoolName
-                .split(" ")
-                .slice(0, 2)
-                .map((s) => s[0])
-                .join("")}
-            </Avatar>
+                >
+                  {/* 🔹 TOP ROW */}
+                  <div className="flex items-center justify-between">
+                    {/* Left */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar
+                        size="large"
+                        square
+                        className="!rounded-3xl shadow-sm bg-violet-200 text-violet-700"
+                      >
+                        {ed.schoolName
+                          .split(" ")
+                          .slice(0, 2)
+                          .map((s) => s[0])
+                          .join("")}
+                      </Avatar>
 
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-neutral-900 truncate">
-                {ed.degree}
-              </span>
-              <span className="text-xs text-neutral-500 truncate">
-                {ed.schoolName}
-              </span>
-            </div>
-          </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-semibold text-neutral-900 truncate">
+                          {ed.degree}
+                        </span>
+                        <span className="text-xs text-neutral-500 truncate">
+                          {ed.schoolName}
+                        </span>
+                      </div>
+                    </div>
 
-          {/* Right */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <IconButton
-              size="small"
-              icon={<FeatherX />}
-              aria-label={`Delete education ${ed.degree}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteId(ed.id);
-              }}
-              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-            />
+                    {/* Right */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <IconButton
+                        size="small"
+                        icon={<FeatherX />}
+                        aria-label={`Delete education ${ed.degree}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteId(ed.id);
+                        }}
+                        className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                      />
 
-            <span className="text-xs text-neutral-500">
-              {ed.startYear}
-              {ed.currentlyStudying
-                ? " - Present"
-                : ed.endYear
-                ? ` - ${ed.endYear}`
-                : ""}
-            </span>
-          </div>
-        </div>
+                      <span className="text-xs text-neutral-500">
+                        {ed.startYear}
+                        {ed.currentlyStudying
+                          ? " - Present"
+                          : ed.endYear
+                            ? ` - ${ed.endYear}`
+                            : ""}
+                      </span>
+                    </div>
+                  </div>
 
-        {/* 🔹 DETAILS (same card, same border) */}
-        {isSelected && (
-          <>
-            <div className="my-4 border-t border-neutral-200" />
+                  {/* 🔹 DETAILS (same card, same border) */}
+                  {isSelected && (
+                    <>
+                      <div className="my-4 border-t border-neutral-200" />
 
-            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
-              <div>
-                <span className="font-medium">Degree:</span>{" "}
-                {ed.degree}
-              </div>
+                      <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+                        <div>
+                          <span className="font-medium">Degree:</span>{" "}
+                          {ed.degree}
+                        </div>
 
-              <div>
-                <span className="font-medium">Field of study:</span>{" "}
-                {ed.fieldOfStudy}
-              </div>
+                        <div>
+                          <span className="font-medium">Field of study:</span>{" "}
+                          {ed.fieldOfStudy}
+                        </div>
 
-              <div>
-                <span className="font-medium">Institution:</span>{" "}
-                {ed.schoolName}
-              </div>
+                        <div>
+                          <span className="font-medium">Institution:</span>{" "}
+                          {ed.schoolName}
+                        </div>
 
-              <div>
-                <span className="font-medium">Duration:</span>{" "}
-                {ed.startYear}
-                {ed.currentlyStudying
-                  ? " - Present"
-                  : ed.endYear
-                  ? ` - ${ed.endYear}`
-                  : ""}
-              </div>
+                        <div>
+                          <span className="font-medium">Duration:</span>{" "}
+                          {ed.startYear}
+                          {ed.currentlyStudying
+                            ? " - Present"
+                            : ed.endYear
+                              ? ` - ${ed.endYear}`
+                              : ""}
+                        </div>
 
-              {ed.gpa && (
-                <div>
-                  <span className="font-medium">GPA:</span>{" "}
-                  {ed.gpa}
+                        {ed.gpa && (
+                          <div>
+                            <span className="font-medium">GPA:</span> {ed.gpa}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  })}
-</section>
+              );
+            })}
+          </section>
 
           {/* Form */}
           <form
@@ -674,6 +665,7 @@ if (schoolExists) {
                     <SubframeCore.DropdownMenu.Content
                       className="bg-white rounded-2xl shadow-lg py-1 max-h-[220px] overflow-y-auto border border-neutral-300 min-w-[200px]"
                       sideOffset={4}
+                      align="start" 
                     >
                       {DEGREE_OPTIONS.map((item) => (
                         <SubframeCore.DropdownMenu.Item
@@ -693,7 +685,11 @@ if (schoolExists) {
             {/* Field of Study */}
             <TextField
               className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
-              label={<span className="text-[12px]">Field of Study <span className="text-red-500">*</span> </span>}
+              label={
+                <span className="text-[12px]">
+                  Field of Study <span className="text-red-500">*</span>{" "}
+                </span>
+              }
               helpText={
                 <span className="text-[12px]">
                   Your major or concentration{" "}
@@ -714,7 +710,11 @@ if (schoolExists) {
             {/* School Name */}
             <TextField
               className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
-              label={<span className="text-[12px]">School Name  <span className="text-red-500">*</span> </span>}
+              label={
+                <span className="text-[12px]">
+                  School Name <span className="text-red-500">*</span>{" "}
+                </span>
+              }
               helpText=""
             >
               <TextField.Input
@@ -728,38 +728,38 @@ if (schoolExists) {
               />
             </TextField>
 
-      {/* Years */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Start Year */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[12px] font-medium">
-            Start Year <span className="text-red-500">*</span>
-          </label>
-          
-          <YearPicker 
-            value={startYear}
-            onChange={setStartYear}
-            minYear={1950}
-            maxYear={new Date().getFullYear()}
-          />
-        </div>
+            {/* Years */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Start Year */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-medium">
+                  Start Year <span className="text-red-500">*</span>
+                </label>
 
-        {/* End Year */}
-        <div className="flex flex-col gap-1">
-          <label className="text-[12px] font-medium">
-            End Year <span className="text-red-500">*</span>
-          </label>
-          <YearPicker
-            value={endYear}
-            onChange={setEndYear}
-            disabled={currentlyStudying}
-            minYear={Number(startYear) || 1950}
-            maxYear={new Date().getFullYear()}
-          />
-        </div>
-      </div>
+                <YearPicker
+                  value={startYear}
+                  onChange={setStartYear}
+                  minYear={1950}
+                  maxYear={new Date().getFullYear()}
+                />
+              </div>
 
-{/* // --------------------------------------- */}
+              {/* End Year */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[12px] font-medium">
+                  End Year <span className="text-red-500">*</span>
+                </label>
+                <YearPicker
+                  value={endYear}
+                  onChange={setEndYear}
+                  disabled={currentlyStudying}
+                  minYear={Number(startYear) || 1950}
+                  maxYear={new Date().getFullYear()}
+                />
+              </div>
+            </div>
+
+            {/* // --------------------------------------- */}
             <div className="flex items-center gap-3">
               <Switch
                 checked={currentlyStudying}

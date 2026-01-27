@@ -48,7 +48,7 @@ const isValidText = (value: string) => {
 };
 
 const isValidPastOrCurrentDate = (value: string) => {
-    if (!value) return true;
+  if (!value) return true;
 
   if (!DATE_REGEX.test(value)) return false;
 
@@ -72,13 +72,21 @@ const notify = (msg: string) => {
   alert(msg); // replace with toast later
 };
 
-
 // -----------------Month And Year Picker----------
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr",
-  "May", "Jun", "Jul", "Aug",
-  "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 type MonthYearPickerProps = {
@@ -89,9 +97,7 @@ type MonthYearPickerProps = {
   maxYear?: number;
 };
 
-
-
- function MonthYearPicker({
+function MonthYearPicker({
   value,
   onChange,
   disabled = false,
@@ -132,7 +138,7 @@ type MonthYearPickerProps = {
       <input
         readOnly
         disabled={disabled}
-       value={value || ""}
+        value={value || ""}
         placeholder="MM / YYYY"
         onClick={() => !disabled && setOpen((o) => !o)}
         className={`w-full h-10 px-4 rounded-full cursor-pointer border border-neutral-300
@@ -201,11 +207,12 @@ type MonthYearPickerProps = {
   );
 }
 
-
 export default function Certifications() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userId = localStorage.getItem("userId");
+
+  const MAX_CERTS = 5;
 
   // form state
   const [name, setName] = useState("");
@@ -217,7 +224,6 @@ export default function Certifications() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedCert, setSelectedCert] = useState<CertEntry | null>(null);
 
-
   const displayedIndex =
     (experiencePoints?.demographics ?? 0) +
     (experiencePoints?.education ?? 0) +
@@ -226,51 +232,47 @@ export default function Certifications() {
 
   //GET
   const fetchCertifications = async () => {
-  if (!userId) return;
+    if (!userId) return;
 
-  try {
-    const res = await API(
-  "GET",
-  `${URL_PATH.getCertification}?_=${Date.now()}`,
-  undefined,
-  { "user-id": userId }
-);
+    try {
+      const res = await API(
+        "GET",
+        `${URL_PATH.getCertification}?_=${Date.now()}`,
+        undefined,
+        { "user-id": userId },
+      );
 
-    console.log("FULL API RESPONSE:", res);
+      // console.log("FULL API RESPONSE:", res);
 
-    const apiCerts = Array.isArray(res?.data)
-  ? res.data
-  : [];
+      const apiCerts = Array.isArray(res?.data) ? res.data : [];
 
+      // console.log("CERT ARRAY:", apiCerts);
 
-    console.log("CERT ARRAY:", apiCerts);
+      setCerts(
+        apiCerts.map((c: any) => {
+          let formattedDate = "";
 
-    setCerts(
-      apiCerts.map((c: any) => {
-        let formattedDate = "";
+          if (c.issueDate) {
+            const d = new Date(c.issueDate);
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const yyyy = d.getFullYear();
+            formattedDate = `${mm}/${yyyy}`;
+          }
 
-        if (c.issueDate) {
-          const d = new Date(c.issueDate);
-          const mm = String(d.getMonth() + 1).padStart(2, "0");
-          const yyyy = d.getFullYear();
-          formattedDate = `${mm}/${yyyy}`;
-        }
-
-        return {
-          id: c._id,
-          name: c.certificationName,
-          issuer: c.issuer,
-          issueDate: formattedDate,
-          credentialLink: c.credentialLink,
-        };
-      })
-    );
-  } catch (e) {
-    console.error("FETCH ERROR", e);
-    setCerts([]);
-  }
-};
-
+          return {
+            id: c._id,
+            name: c.certificationName,
+            issuer: c.issuer,
+            issueDate: formattedDate,
+            credentialLink: c.credentialLink,
+          };
+        }),
+      );
+    } catch (e) {
+      console.error("FETCH ERROR", e);
+      setCerts([]);
+    }
+  };
 
   const fetchExperienceIndex = async () => {
     if (!userId) return;
@@ -280,7 +282,7 @@ export default function Certifications() {
         "GET",
         URL_PATH.calculateExperienceIndex,
         undefined,
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       setExperiencePoints(res?.points ?? null);
@@ -307,7 +309,7 @@ export default function Certifications() {
     "rounded-full h-9 px-3 text-[15px] placeholder:text-[15px] bg-white !border-none focus:ring-0 w-full";
 
   const isAddable = () => {
-      const trimmedIssueDate = issueDate?.trim(); // ✅ KEY FIX
+    const trimmedIssueDate = issueDate?.trim(); // ✅ KEY FIX
 
     if (!name.trim()) {
       notify("Certification name is required.");
@@ -329,40 +331,46 @@ export default function Certifications() {
       return false;
     }
 
-    
-
-   // ✅ Date validation (fixed)
-   if (!issueDate.trim()) {
+    // ✅ Date validation (fixed)
+    if (!issueDate.trim()) {
       notify("Date is required.");
       return false;
     }
 
-  if (!isValidPastOrCurrentDate(trimmedIssueDate)) {
-    notify("Issue date must be in MM/YYYY format and not in the future.");
-    return false;
-  }
+    // if (!isValidPastOrCurrentDate(trimmedIssueDate)) {
+    //   notify("Issue date must be in MM/YYYY format and not in the future.");
+    //   return false;
+    // }
 
-    if (!isValidPastOrCurrentDate(issueDate)) {
-      notify("Issue date cannot be in the future.");
+    // if (!isValidPastOrCurrentDate(issueDate)) {
+    //   notify("Issue date cannot be in the future.");
+    //   return false;
+    // }
+
+    if (!isValidPastOrCurrentDate(issueDate.trim())) {
+      notify("Issue date must be in MM/YYYY format and not in the future.");
       return false;
     }
-
-   
 
     if (credentialLink.trim() && !isValidUrl(credentialLink)) {
       alert("Credential link must be a valid URL (https://...)");
       return false;
     }
 
-  if (!credentialLink.trim()) {
-      notify("Certification Link is required.");
+    if (!credentialLink.trim() && !file) {
+      notify(" Provide either a credential link or upload the certificate PDF");
       return false;
     }
 
-    if (!file) {
-      notify("Please upload the certification PDF.");
-      return false;
-    }
+    // if (!credentialLink.trim()) {
+    //     notify("Certification Link is required.");
+    //     return false;
+    //   }
+
+    //   if (!file) {
+    //     notify("Please upload the certification PDF.");
+    //     return false;
+    //   }
 
     return true;
   };
@@ -374,8 +382,9 @@ export default function Certifications() {
     if (!isValidText(issuer)) return false;
     if (!isValidMonthYear(issueDate)) return false;
     if (!isValidPastOrCurrentDate(issueDate)) return false;
+    if (!credentialLink.trim() && !file) return false;
     if (credentialLink.trim() && !isValidUrl(credentialLink)) return false;
-    if (!file) return false;
+    // if (!file) return false;
     return true;
   };
 
@@ -389,6 +398,10 @@ export default function Certifications() {
   };
 
   const handleAdd = async () => {
+    if (certs.length >= MAX_CERTS) {
+      notify("You can add a maximum of 5 certifications only.");
+      return;
+    }
     if (isSubmitting) return;
     if (!isAddable()) return;
 
@@ -400,7 +413,7 @@ export default function Certifications() {
     const isDuplicate = certs.some(
       (c) =>
         c.name.toLowerCase() === name.toLowerCase().trim() &&
-        c.issuer.toLowerCase() === issuer.toLowerCase().trim()
+        c.issuer.toLowerCase() === issuer.toLowerCase().trim(),
     );
 
     if (isDuplicate) {
@@ -461,13 +474,13 @@ export default function Certifications() {
         "DELETE",
         `${URL_PATH.deleteCertification}/${deleteId}`,
         undefined,
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       setCerts((prev) => prev.filter((c) => c.id !== deleteId));
-       if (selectedCert?.id === deleteId) {
-      setSelectedCert(null); 
-    }
+      if (selectedCert?.id === deleteId) {
+        setSelectedCert(null);
+      }
 
       await fetchExperienceIndex();
 
@@ -587,25 +600,23 @@ export default function Certifications() {
 
           {/* selected cert preview list */}
 
- <section className="flex w-full flex-col gap-3">
-  {certs.map((c) => {
-    const isSelected = selectedCert?.id === c.id;
+          <section className="flex w-full flex-col gap-3">
+            {certs.map((c) => {
+              const isSelected = selectedCert?.id === c.id;
 
-    return (
-      <div
-        key={c.id}
-        role="button"
-        tabIndex={0}
-        onClick={() =>
-          setSelectedCert(isSelected ? null : c)
-        }
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setSelectedCert(isSelected ? null : c);
-          }
-        }}
-        className="
+              return (
+                <div
+                  key={c.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedCert(isSelected ? null : c)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedCert(isSelected ? null : c);
+                    }
+                  }}
+                  className="
           rounded-3xl
           border border-neutral-300
           bg-white
@@ -617,101 +628,99 @@ export default function Certifications() {
           focus:ring-2
           focus:ring-violet-500
         "
-      >
-        {/* 🔹 TOP ROW */}
-        <div className="flex items-center justify-between">
-          {/* Left */}
-          <div className="flex items-center gap-3 min-w-0">
-            <Avatar
-              size="large"
-              square
-              image="https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=100&h=100&fit=crop"
-              className="!rounded-2xl"
-            >
-              {c.issuer
-                ? c.issuer
-                    .split(" ")
-                    .slice(0, 2)
-                    .map((s) => s[0])
-                    .join("")
-                : "C"}
-            </Avatar>
+                >
+                  {/* 🔹 TOP ROW */}
+                  <div className="flex items-center justify-between">
+                    {/* Left */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar
+                        size="large"
+                        square
+                        className="!rounded-3xl bg-violet-200 text-violet-700"
+                      >
+                        {c.issuer
+                          ? c.issuer
+                              .split(" ")
+                              .slice(0, 2)
+                              .map((s) => s[0])
+                              .join("")
+                          : "C"}
+                      </Avatar>
 
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-neutral-900 truncate">
-                {c.name}
-              </span>
-              <span className="text-xs text-neutral-500 truncate">
-                {c.issuer}
-              </span>
-            </div>
-          </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-semibold text-neutral-900 truncate">
+                          {c.name}
+                        </span>
+                        <span className="text-xs text-neutral-500 truncate">
+                          {c.issuer}
+                        </span>
+                      </div>
+                    </div>
 
-          {/* Right */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <IconButton
-              size="small"
-              icon={<FeatherX />}
-              aria-label={`Delete certificate ${c.name}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteId(c.id);
-              }}
-              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-            />
+                    {/* Right */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <IconButton
+                        size="small"
+                        icon={<FeatherX />}
+                        aria-label={`Delete certificate ${c.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteId(c.id);
+                        }}
+                        className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                      />
 
-            <span className="text-xs text-neutral-500">
-              {c.issueDate}
-            </span>
-          </div>
-        </div>
+                      <span className="text-xs text-neutral-500">
+                        {c.issueDate}
+                      </span>
+                    </div>
+                  </div>
 
-        {/* 🔹 DETAILS (INSIDE SAME BORDER) */}
-        {isSelected && (
-          <>
-            <div className="my-4 border-t border-neutral-200" />
+                  {/* 🔹 DETAILS (INSIDE SAME BORDER) */}
+                  {isSelected && (
+                    <>
+                      <div className="my-4 border-t border-neutral-200" />
 
-            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
-              <div>
-                <span className="font-medium">Name:</span>{" "}
-                {c.name}
-              </div>
+                      <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+                        <div>
+                          <span className="font-medium">Name:</span> {c.name}
+                        </div>
 
-              {c.issuer && (
-                <div>
-                  <span className="font-medium">Issuer:</span>{" "}
-                  {c.issuer}
+                        {c.issuer && (
+                          <div>
+                            <span className="font-medium">Issuer:</span>{" "}
+                            {c.issuer}
+                          </div>
+                        )}
+
+                        {c.issueDate && (
+                          <div>
+                            <span className="font-medium">Issue date:</span>{" "}
+                            {c.issueDate}
+                          </div>
+                        )}
+
+                        {c.credentialLink && (
+                          <div>
+                            <span className="font-medium">Credential:</span>{" "}
+                            <a
+                              href={c.credentialLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-violet-700 underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              View
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-
-              {c.issueDate && (
-                <div>
-                  <span className="font-medium">Issue date:</span>{" "}
-                  {c.issueDate}
-                </div>
-              )}
-
-              {c.credentialLink && (
-                <div>
-                  <span className="font-medium">Credential:</span>{" "}
-                  <a
-                    href={c.credentialLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-violet-700 underline"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View
-                  </a>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  })}
-</section>
+              );
+            })}
+          </section>
 
           {/* form */}
           <form
@@ -722,7 +731,11 @@ export default function Certifications() {
             className="flex w-full flex-col gap-4"
           >
             <TextField
-              label={<span className="text-[12px]">Certification Name <span className="text-red-500">*</span></span>}
+              label={
+                <span className="text-[12px]">
+                  Certification Name <span className="text-red-500">*</span>
+                </span>
+              }
               helpText=""
               className={scTextFieldClass}
             >
@@ -737,8 +750,9 @@ export default function Certifications() {
               />
             </TextField>
 
-            <TextField label={<span className="text-[12px]">Issuer * </span>}
-            className={scTextFieldClass}
+            <TextField
+              label={<span className="text-[12px]">Issuer * </span>}
+              className={scTextFieldClass}
             >
               <TextField.Input
                 placeholder="Issuing organization"
@@ -750,30 +764,29 @@ export default function Certifications() {
                 className={scInputClass}
               />
             </TextField>
-{/* ------------Date------------------ */}
+            {/* ------------Date------------------ */}
 
- {/* // date------------------------- */}
-          <div className="flex flex-col gap-6 max-w-lg">
-  {/* Issue Month & Year */}
-  <div className="flex flex-col gap-1">
-    <label
-      htmlFor="issueDate"
-      className="text-[12px] font-medium text-neutral-700"
-    >
-      Issue Month & Year <span className="text-red-500">*</span>
-    </label>
+            {/* // date------------------------- */}
+            <div className="flex flex-col gap-6 max-w-lg">
+              {/* Issue Month & Year */}
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="issueDate"
+                  className="text-[12px] font-medium text-neutral-700"
+                >
+                  Issue Month & Year <span className="text-red-500">*</span>
+                </label>
 
-    <MonthYearPicker
-      value={issueDate}
-      onChange={setIssueDate}
-    />
-  </div>
-</div>
+                <MonthYearPicker value={issueDate} onChange={setIssueDate} />
+              </div>
+            </div>
 
-  {/* ---------------End Date-------------- */}
+            {/* ---------------End Date-------------- */}
 
             <TextField
-              label={<span className="text-[12px]">Credential Link <span className="text-red-500">*</span> </span>}
+              label={
+                <span className="text-[12px]">Credential Link (Optional)</span>
+              }
               helpText=""
               className={scTextFieldClass}
             >
@@ -796,7 +809,7 @@ export default function Certifications() {
             {/* Upload */}
             <div className="w-full">
               <div className="text-[12px] text-neutral-800 mb-2">
-                Upload Certificate (PDF) <span className="text-red-500">*</span>
+                Upload Certificate (Optional)
               </div>
 
               <div

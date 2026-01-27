@@ -117,6 +117,8 @@ export default function Awards() {
   const userId = localStorage.getItem("userId");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const MAX_AWARDS = 5;
+
   // form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -242,6 +244,10 @@ export default function Awards() {
 
 
   const handleAddAward = async () => {
+    if (awards.length >= MAX_AWARDS) {
+    alert("You can add a maximum of 5 awards only.");
+    return;
+  }
     if (isSubmitting) return;
 
      const error = validateAward(name, endYear, description);
@@ -281,9 +287,14 @@ export default function Awards() {
       await fetchExperienceIndex();
 
       resetForm();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to add award");
-    } finally {
+   } catch (err: any) {
+  if (err?.response?.data?.message) {
+    alert(err.response.data.message);
+  } else {
+    alert("You can add a maximum of 5 awards only.");
+  }
+}
+ finally {
       setIsSubmitting(false);
     }
   };
@@ -302,7 +313,7 @@ const handleRemove = async () => {
     setIsSubmitting(true);
 
     await API(
-      "DELETE",
+      "POST",
       `${URL_PATH.deleteAward}/${deleteAwardId}`,
       undefined,
       { "user-id": userId }

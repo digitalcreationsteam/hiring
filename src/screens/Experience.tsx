@@ -24,16 +24,6 @@ import API, { URL_PATH } from "src/common/API";
 import * as SubframeCore from "@subframe/core";
 import { FeatherChevronDown } from "@subframe/core";
 
-// const ROLE_TITLES = [
-//   "Software Engineer",
-//   "Frontend Developer",
-//   "Backend Developer",
-//   "Full Stack Developer",
-//   "Product Manager",
-//   "UI/UX Designer",
-//   "Data Analyst",
-//   "Intern",
-// ];
 
 const ROLE_TITLES = [
   { label: "internship", value: "Internship" },
@@ -42,10 +32,8 @@ const ROLE_TITLES = [
   { label: "contract", value: "Contract" },
   { label: "freelance", value: "Freelance" },
   { label: "entrepreneurship", value: "Entrepreneurship" },
-
-
 ] as const;
-type RoleType = typeof ROLE_TITLES[number]
+type RoleType = (typeof ROLE_TITLES)[number];
 type ExperiencePoints = {
   demographics?: number;
   education?: number;
@@ -65,7 +53,7 @@ type ExperienceEntry = {
 
 const DATE_REGEX = /^(0[1-9]|1[0-2])\/\d{4}$/;
 
-const isValidMonthYear = (value: string) =>  {
+const isValidMonthYear = (value: string) => {
   if (!DATE_REGEX.test(value)) return false;
   const [Month, year] = value.split("/").map(Number);
   const currentYear = new Date().getFullYear();
@@ -308,7 +296,7 @@ export default function Experience() {
 
     const [mm, yyyy] = value.split("/").map(Number);
 
-    const inputDate = new Date(yyyy, mm ); // first day of that month
+    const inputDate = new Date(yyyy, mm); // first day of that month
     const now = new Date();
     const currentMonth = new Date(now.getFullYear(), now.getMonth());
 
@@ -326,17 +314,15 @@ export default function Experience() {
   };
 
   const calculateDurationInMonths = (
-  startMonth: number, // 1–12
-  startYear: number,
-  endMonth: number,   // 1–12
-  endYear: number
-): number => {
-  const months =
-    (endYear - startYear) * 12 + (endMonth - startMonth);
+    startMonth: number, // 1–12
+    startYear: number,
+    endMonth: number, // 1–12
+    endYear: number,
+  ): number => {
+    const months = (endYear - startYear) * 12 + (endMonth - startMonth);
 
-  return Math.max(0, months);
-};
-
+    return Math.max(0, months);
+  };
 
   const handleAddExperience = async () => {
     if (!isAddable()) return;
@@ -350,7 +336,7 @@ export default function Experience() {
     const isDuplicate = experiences.some(
       (e) =>
         e.roleTitle.toLowerCase() === roleTitle.toLowerCase().trim() &&
-        e.company.toLowerCase() === company.toLowerCase().trim()
+        e.company.toLowerCase() === company.toLowerCase().trim(),
     );
 
     if (isDuplicate) {
@@ -379,37 +365,33 @@ export default function Experience() {
     //     },
     //   ],
     // };
-const [startMonthNum, startYearNum] = startDate
-  .split("/")
-  .map(Number);
+    const [startMonthNum, startYearNum] = startDate.split("/").map(Number);
 
-const [endMonthNum, endYearNum] = currentlyWorking
-  ? [new Date().getMonth() + 1, new Date().getFullYear()]
-  : endDate.split("/").map(Number);
-const  duration= calculateDurationInMonths(
-  startMonthNum,
-  startYearNum,
-  endMonthNum,
-  endYearNum
-);
-const payload = {
-  workExperiences: [
-    {
-      jobTitle: toTitleCase(roleTitle.trim()),
-      companyName: toTitleCase(company.trim()),
-      startYear: startYearNum,
-      startMonth: startMonthNum,
-      endYear: currentlyWorking ? null : endYearNum,
-      endMonth: currentlyWorking ? null : endMonthNum,
-      currentlyWorking,
-      duration, // ✅ months only
-      description: description.trim() || "",
-      typeOfRole: typeOfRole
-        ? toTitleCase(typeOfRole.trim())
-        : undefined,
-    },
-  ],
-};
+    const [endMonthNum, endYearNum] = currentlyWorking
+      ? [new Date().getMonth() + 1, new Date().getFullYear()]
+      : endDate.split("/").map(Number);
+    const duration = calculateDurationInMonths(
+      startMonthNum,
+      startYearNum,
+      endMonthNum,
+      endYearNum,
+    );
+    const payload = {
+      workExperiences: [
+        {
+          jobTitle: toTitleCase(roleTitle.trim()),
+          companyName: toTitleCase(company.trim()),
+          startYear: startYearNum,
+          startMonth: startMonthNum,
+          endYear: currentlyWorking ? null : endYearNum,
+          endMonth: currentlyWorking ? null : endMonthNum,
+          currentlyWorking,
+          duration, // ✅ months only
+          description: description.trim() || "",
+          typeOfRole: typeOfRole ? toTitleCase(typeOfRole.trim()) : undefined,
+        },
+      ],
+    };
 
     try {
       setIsSubmitting(true);
@@ -435,7 +417,7 @@ const payload = {
       //   },
       //   ...prev,
       // ]);
-setExperiences((prev) => [
+      setExperiences((prev) => [
         {
           id: created._id,
           roleTitle: created.jobTitle,
@@ -476,7 +458,7 @@ setExperiences((prev) => [
         "DELETE",
         `${URL_PATH.deleteExperience}/${deleteId}`,
         undefined,
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       setExperiences((prev) => prev.filter((e) => e.id !== deleteId));
@@ -511,12 +493,15 @@ setExperiences((prev) => [
         roleTitle: typeof e.jobTitle === "string" ? e.jobTitle : "",
         typeOfRole: typeof e.typeOfRole === "string" ? e.typeOfRole : undefined,
         company: typeof e.companyName === "string" ? e.companyName : "",
-        startDate: e.startYear && e.startMonth ? `${String(e.startMonth).padStart(2, "0")}/${e.startYear}` : "",
+        startDate:
+          e.startYear && e.startMonth
+            ? `${String(e.startMonth).padStart(2, "0")}/${e.startYear}`
+            : "",
         endDate: e.currentlyWorking
           ? undefined
           : e.endYear && e.endMonth
-          ? `${String(e.endMonth).padStart(2, "0")}/${e.endYear}`
-          : undefined,
+            ? `${String(e.endMonth).padStart(2, "0")}/${e.endYear}`
+            : undefined,
         currentlyWorking: Boolean(e.currentlyWorking),
         description:
           typeof e.description === "string" ? e.description : undefined,
@@ -546,7 +531,7 @@ setExperiences((prev) => [
         "GET",
         URL_PATH.calculateExperienceIndex,
         undefined,
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       setExperiencePoints(res?.points ?? null);
@@ -559,8 +544,7 @@ setExperiences((prev) => [
 
   const canContinue = experiences.length > 0;
 
-  const 
-  handleContinue = () => {
+  const handleContinue = () => {
     if (!experiences.length) {
       alert("Please add at least one experience.");
       return;
@@ -621,25 +605,23 @@ setExperiences((prev) => [
 
           {/* Selected experience preview list */}
           {/* Selected experience preview list */}
-<section className="mt-6 flex w-full flex-col gap-3">
-  {experiences.map((exp) => {
-    const isSelected = selectedExperience?.id === exp.id;
+          <section className="mt-6 flex w-full flex-col gap-3">
+            {experiences.map((exp) => {
+              const isSelected = selectedExperience?.id === exp.id;
 
-    return (
-      <div
-        key={exp.id}
-        role="button"
-        tabIndex={0}
-        onClick={() =>
-          setSelectedExperience(isSelected ? null : exp)
-        }
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setSelectedExperience(isSelected ? null : exp);
-          }
-        }}
-        className="
+              return (
+                <div
+                  key={exp.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedExperience(isSelected ? null : exp)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedExperience(isSelected ? null : exp);
+                    }
+                  }}
+                  className="
           rounded-3xl
           border border-neutral-300
           bg-white
@@ -651,102 +633,101 @@ setExperiences((prev) => [
           focus:ring-2
           focus:ring-violet-500
         "
-      >
-        {/* 🔹 TOP ROW */}
-        <div className="flex items-center justify-between">
-          {/* Left */}
-          <div className="flex items-center gap-3 min-w-0">
-            <Avatar
-              size="large"
-              square
-              image="https://res.cloudinary.com/subframe/image/upload/v1711417525/shared/elkoy8wipvhulayviq7t.png"
-              className="!rounded-2xl shadow-sm"
-            >
-              {(exp.company || "")
-                .split(" ")
-                .slice(0, 2)
-                .map((w) => w[0])
-                .join("")}
-            </Avatar>
+                >
+                  {/* 🔹 TOP ROW */}
+                  <div className="flex items-center justify-between">
+                    {/* Left */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar
+                        size="large"
+                        square
+                        className="!rounded-3xl shadow-sm bg-violet-200 text-violet-700"
+                      >
+                        {(exp.company || "")
+                          .split(" ")
+                          .slice(0, 2)
+                          .map((w) => w[0])
+                          .join("")}
+                      </Avatar>
 
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-neutral-900 truncate">
-                {exp.roleTitle}
-              </span>
-              <span className="text-xs text-neutral-500 truncate">
-                {exp.company}
-              </span>
-            </div>
-          </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-semibold text-neutral-900 truncate">
+                          {exp.roleTitle}
+                        </span>
+                        <span className="text-xs text-neutral-500 truncate">
+                          {exp.company}
+                        </span>
+                      </div>
+                    </div>
 
-          {/* Right */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <IconButton
-              size="small"
-              icon={<FeatherX />}
-              aria-label={`Delete experience ${exp.roleTitle}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteId(exp.id);
-              }}
-              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-            />
+                    {/* Right */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <IconButton
+                        size="small"
+                        icon={<FeatherX />}
+                        aria-label={`Delete experience ${exp.roleTitle}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteId(exp.id);
+                        }}
+                        className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                      />
 
-            <span className="text-xs text-neutral-500">
-              {exp.startDate || "—"}
-              {exp.currentlyWorking
-                ? " - Present"
-                : exp.endDate
-                ? ` - ${exp.endDate}`
-                : ""}
-            </span>
-          </div>
-        </div>
+                      <span className="text-xs text-neutral-500">
+                        {exp.startDate || "—"}
+                        {exp.currentlyWorking
+                          ? " - Present"
+                          : exp.endDate
+                            ? ` - ${exp.endDate}`
+                            : ""}
+                      </span>
+                    </div>
+                  </div>
 
-        {/* 🔹 DETAILS (same card, same border) */}
-        {isSelected && (
-          <>
-            <div className="my-4 border-t border-neutral-200" />
+                  {/* 🔹 DETAILS (same card, same border) */}
+                  {isSelected && (
+                    <>
+                      <div className="my-4 border-t border-neutral-200" />
 
-            <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
-              <div>
-                <span className="font-medium">Role:</span>{" "}
-                {exp.roleTitle}
-              </div>
+                      <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+                        <div>
+                          <span className="font-medium">Role:</span>{" "}
+                          {exp.roleTitle}
+                        </div>
 
-              <div>
-                <span className="font-medium">Type Of Roll:</span>{" "}
-                {exp.typeOfRole}
-              </div>
+                        <div>
+                          <span className="font-medium">Type Of Roll:</span>{" "}
+                          {exp.typeOfRole}
+                        </div>
 
-              <div>
-                <span className="font-medium">Company:</span>{" "}
-                {exp.company}
-              </div>
+                        <div>
+                          <span className="font-medium">Company:</span>{" "}
+                          {exp.company}
+                        </div>
 
-              <div>
-                <span className="font-medium">Duration:</span>{" "}
-                {exp.startDate || "—"}
-                {exp.currentlyWorking
-                  ? " - Present"
-                  : exp.endDate
-                  ? ` - ${exp.endDate}`
-                  : ""}
-              </div>
+                        <div>
+                          <span className="font-medium">Duration:</span>{" "}
+                          {exp.startDate || "—"}
+                          {exp.currentlyWorking
+                            ? " - Present"
+                            : exp.endDate
+                              ? ` - ${exp.endDate}`
+                              : ""}
+                        </div>
 
-              {exp.description && (
-                <div>
-                  <span className="font-medium">Description:</span>{" "}
-                  {exp.description}
+                        {exp.description && (
+                          <div>
+                            <span className="font-medium">Description:</span>{" "}
+                            {exp.description}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  })}
-</section>
+              );
+            })}
+          </section>
 
           {/* form */}
           <form
@@ -758,7 +739,11 @@ setExperiences((prev) => [
           >
             <TextField
               className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
-              label={<span className="text-[12px]">Role Title <span className="text-red-500">*</span> </span>}
+              label={
+                <span className="text-[12px]">
+                  Role Title <span className="text-red-500">*</span>{" "}
+                </span>
+              }
               helpText=""
             >
               <TextField.Input
@@ -777,43 +762,49 @@ setExperiences((prev) => [
                 Type of Role <span className="text-red-500">*</span>
               </label>
 
-  <SubframeCore.DropdownMenu.Root>
-    <SubframeCore.DropdownMenu.Trigger asChild>
-      <div className="flex h-9 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 cursor-pointer">
-        <span
-          className={
-            typeOfRole
-              ? "text-neutral-900 text-[12px]"
-              : "text-neutral-400 text-[12px]"
-          }
-        >
-          {typeOfRole || "Select type of role"}
-        </span>
-        <FeatherChevronDown className="text-neutral-500" />
-      </div>
-    </SubframeCore.DropdownMenu.Trigger>
+              <SubframeCore.DropdownMenu.Root>
+                <SubframeCore.DropdownMenu.Trigger asChild>
+                  <div className="flex h-9 items-center justify-between rounded-full border border-neutral-300 bg-white px-3 cursor-pointer">
+                    <span
+                      className={
+                        typeOfRole
+                          ? "text-neutral-900 text-[12px]"
+                          : "text-neutral-400 text-[12px]"
+                      }
+                    >
+                      {typeOfRole || "Select type of role"}
+                    </span>
+                    <FeatherChevronDown className="text-neutral-500" />
+                  </div>
+                </SubframeCore.DropdownMenu.Trigger>
 
-              <SubframeCore.DropdownMenu.Portal>
-  <SubframeCore.DropdownMenu.Content asChild>
-    <div className="bg-white rounded-2xl shadow-lg py-1">
-      {ROLE_TITLES.map((item) => (
-        <div
-          key={item.value}
-          onClick={() => setTypeOfRole(item.value)}
-          className="px-4 py-2 text-sm cursor-pointer hover:bg-neutral-100"
-        >
-          {item.label}
-        </div>
-      ))}
-    </div>
+                <SubframeCore.DropdownMenu.Portal>
+  <SubframeCore.DropdownMenu.Content
+    align="start"          
+    sideOffset={4}
+    className="bg-white rounded-2xl shadow-lg py-1 border border-neutral-300 min-w-[200px]"
+  >
+    {ROLE_TITLES.map((item) => (
+      <SubframeCore.DropdownMenu.Item
+        key={item.value}
+        onSelect={() => setTypeOfRole(item.value)}
+        className="px-4 py-2 text-sm cursor-pointer hover:bg-neutral-100 outline-none"
+      >
+        {item.label}
+      </SubframeCore.DropdownMenu.Item>
+    ))}
   </SubframeCore.DropdownMenu.Content>
 </SubframeCore.DropdownMenu.Portal>
-  </SubframeCore.DropdownMenu.Root>
 
+              </SubframeCore.DropdownMenu.Root>
             </div>
 
             <TextField
-              label={<span className="text-[12px]">Company <span className="text-red-500">*</span></span>}
+              label={
+                <span className="text-[12px]">
+                  Company <span className="text-red-500">*</span>
+                </span>
+              }
               helpText=""
               className={`${scTextFieldClass}`}
             >
