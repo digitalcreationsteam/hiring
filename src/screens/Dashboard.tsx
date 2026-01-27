@@ -208,6 +208,7 @@ export default function Dashboard() {
 
   const [chatUserId, setChatUserId] = useState("");
   const [testOtherUserId, setTestOtherUserId] = useState("");
+  const [domain, setDomain] = useState("Professional");
 
   const openChat = () => {
     if (!chatUserId.trim()) return;
@@ -317,6 +318,10 @@ export default function Dashboard() {
       );
       setEducation(res?.data?.education || []);
       setSkills((res?.skills?.list || []).map((s: string) => ({ name: s })));
+
+      /* JOB DOMAIN */
+setDomain(res?.jobdomain || "Professional");
+
     } catch (err: any) {
       console.error("fetchDashboardData FAILED:", err);
       console.error("message:", err?.message);
@@ -678,12 +683,7 @@ export default function Dashboard() {
                     color: colors.secondary,
                     val: "1/2",
                   },
-                  {
-                    label: "Interview Prep",
-                    pct: "24%",
-                    color: colors.aqua,
-                    val: "1/10",
-                  },
+                 
                 ].map((item, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-[11px] font-bold">
