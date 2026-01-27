@@ -1,7 +1,9 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// import Chat from "./ui/components/chat/Chat";
+import Chat from "./ui/components/chat/Chat";
+import RecruiterChats from "./screens/RecruiterChats";
+
 
 import SignUp from "./screens/SignUp";
 import LogIn from "./screens/Login";

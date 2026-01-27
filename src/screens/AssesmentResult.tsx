@@ -20,8 +20,28 @@ import { useNavigate, useLocation } from "react-router-dom";
 import API, { URL_PATH } from "src/common/API";
 
 
+
 type RankItem = {
   rank: number | string;
+};
+
+type Violation = {
+  type: "COPY" | "PASTE" | "TAB_SWITCH";
+  at: string;
+};
+
+type IntegrityReport = {
+  attemptId: string;
+  integrityScore: number;
+  integrityLevel: string;
+  cheatAlertSent: boolean;
+  totalViolations: number;
+  violationBreakdown: {
+    COPY: number;
+    PASTE: number;
+    TAB_SWITCH: number;
+  };
+  violationTimeline: Violation[];
 };
 
 function AssessmentResult() {
@@ -37,6 +57,11 @@ function AssessmentResult() {
 
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
   const [timeTakenSeconds, setTimeTakenSeconds] = useState<number | null>(null);
+  const [report, setReport] = useState<IntegrityReport | null>(null);
+  const [loading, setLoading] = useState(false);
+
+    const userId = sessionStorage.getItem("userId"); // or however you store
+
 
   const [rankData, setRankData] = useState<{
     global: RankItem;
@@ -153,10 +178,39 @@ function AssessmentResult() {
     }
   }, []);
 
+
+  // ✅ FETCH INTEGRITY REPORT
+const fetchIntegrityReport = useCallback(async () => {
+  const attemptId =
+    location.state?.attemptId ||
+    localStorage.getItem("attemptId") ||
+    sessionStorage.getItem("attemptId");
+
+  if (!attemptId || !userId) return;
+
+  setLoading(true);
+  try {
+    const res = await API(
+      "GET",
+      `/attempts/${attemptId}/integrity-report`,
+      undefined,
+      { "user-id": userId }
+    );
+    setReport(res);
+  } catch (err) {
+    console.error("fetchIntegrityReport failed:", err);
+    setReport(null);
+  } finally {
+    setLoading(false);
+  }
+}, [location.state?.attemptId, userId]);
+
+
   useEffect(() => {
     fetchResult();
     fetchRanks();
-  }, [fetchResult, fetchRanks]);
+    fetchIntegrityReport();
+  }, [fetchResult, fetchRanks, fetchIntegrityReport]);
 
   // ✅ LOADING STATE
   if (isResultLoading) {
@@ -298,46 +352,53 @@ function AssessmentResult() {
           </div>
         </div>
 
-        <div className="flex w-full items-center justify-center gap-8 rounded-3xl border border-neutral-200 bg-white px-8 py-4 shadow-md">
-          <div className="flex items-center gap-2">
-            <FeatherCalendar className="text-sm text-green-600" />
-            <div className="flex flex-col">
-              <span className="text-[14px] font-medium text-default-font">
-{formattedSubmittedDate}              </span>
-              <span className="text-xs text-subtext-color">Completed</span>
-            </div>
-          </div>
+       <div className="w-full rounded-3xl border border-neutral-200 bg-white shadow-md">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-8 px-4 sm:px-8 py-4">
+    {/* Item 1 */}
+    <div className="flex items-center gap-3 sm:gap-2">
+      <FeatherCalendar className="text-sm text-green-600 shrink-0" />
+      <div className="flex flex-col min-w-0">
+        <span className="text-[14px] font-medium text-default-font truncate">
+          {formattedSubmittedDate}
+        </span>
+        <span className="text-xs text-subtext-color">Completed</span>
+      </div>
+    </div>
 
-          <div className="h-6 w-px bg-neutral-200" />
+    {/* Divider */}
+    <div className="h-px w-full bg-neutral-200 sm:h-6 sm:w-px" />
 
-          <div className="flex items-center gap-2">
-            <FeatherClock className="text-sm text-violet-600" />
-            <div className="flex flex-col">
-              <span className="text-[14px] font-medium text-default-font">
-  {formattedTimeTaken}
-              </span>
-              <span className="text-xs text-subtext-color">Time Taken</span>
-            </div>
-          </div>
+    {/* Item 2 */}
+    <div className="flex items-center gap-3 sm:gap-2">
+      <FeatherClock className="text-sm text-violet-600 shrink-0" />
+      <div className="flex flex-col min-w-0">
+        <span className="text-[14px] font-medium text-default-font truncate">
+          {formattedTimeTaken}
+        </span>
+        <span className="text-xs text-subtext-color">Time Taken</span>
+      </div>
+    </div>
 
-          <div className="h-6 w-px bg-neutral-200" />
+    {/* Divider */}
+    <div className="h-px w-full bg-neutral-200 sm:h-6 sm:w-px" />
 
-          <div className="flex items-center gap-2">
-            <FeatherShield className="text-sm text-green-600" />
-            <div className="flex flex-col">
-              <span className="text-[14px] font-medium text-default-font">
-                Good
-              </span>
-              <span className="text-xs text-subtext-color">
-                Integrity Report
-              </span>
-            </div>
-          </div>
-        </div>
+    {/* Item 3 */}
+    <div className="flex items-center gap-3 sm:gap-2">
+      <FeatherShield className="text-sm text-green-600 shrink-0" />
+      <div className="flex flex-col min-w-0">
+        <span className="text-[14px] font-medium text-default-font truncate">
+          {loading ? "Loading..." : report?.integrityLevel ?? "—"}
+        </span>
+        <span className="text-xs text-subtext-color">Integrity Report</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
   {/* University */}
-  <div className="flex min-w-[220px] grow flex-col items-center gap-3 rounded-3xl border border-violet-200 bg-gradient-to-b from-[#F4F2FF] to-white px-6 py-8 shadow-md">
+  {/* <div className="flex min-w-[220px] grow flex-col items-center gap-3 rounded-3xl border border-violet-200 bg-gradient-to-b from-[#F4F2FF] to-white px-6 py-8 shadow-md">
     <IconWithBackground
       className="text-yellow-700 bg-yellow-100 rounded-full text-[20px]"
       variant="warning"
@@ -348,7 +409,7 @@ function AssessmentResult() {
       {rankData.university.rank !== "-" ? `#${rankData.university.rank}` : "--"}
     </span>
     <span className="text-sm text-subtext-color">University Ranking</span>
-  </div>
+  </div> */}
 
   {/* City */}
   <div className="flex min-w-[220px] grow flex-col items-center gap-3 rounded-3xl border border-violet-200 bg-gradient-to-b from-[#F4F2FF] to-white px-6 py-8 shadow-md">
@@ -395,7 +456,7 @@ function AssessmentResult() {
 
 
 
-        <div className="flex w-full flex-col items-start gap-6 rounded-3xl border border-solid border-neutral-border bg-white px-8 py-8 shadow-md">
+        {/* <div className="flex w-full flex-col items-start gap-6 rounded-3xl border border-solid border-neutral-border bg-white px-8 py-8 shadow-md">
           <div className="flex w-full items-center gap-3">
             <FeatherTarget className="text-heading-3 font-heading-3 text-violet-700" />
             <span className="text-heading-3 font-heading-3 text-default-font">
@@ -465,7 +526,9 @@ function AssessmentResult() {
               </Button>
             </div>
           </div>
-        </div>
+        </div> */}
+
+        
         <div className="flex w-full items-center justify-center opacity-60">
           <Button
             className="w-full max-w-[180px] h-10 rounded-2xl bg-violet-600 hover:bg-violet-800 text-white font-semibold"
