@@ -355,6 +355,7 @@ export default function Education() {
       const res = await API("POST", URL_PATH.education, payload, {
         "user-id": userId,
       });
+      toast.success("Education added successfully");
 
       const created = res.data[0];
 

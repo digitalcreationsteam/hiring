@@ -20,6 +20,8 @@ import {
   FeatherPackage,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface DemographicsData {
   fullName: string;
@@ -58,12 +60,23 @@ export default function Demographics() {
   /* ============================================
      GUARD: Redirect if not on demographics step
   ============================================ */
+  // useEffect(() => {
+  //   if (currentStep && currentStep !== "demographics") {
+  //     console.warn("User tried to access demographics but on", currentStep);
+  //     navigate(nextRoute || "/demographics");
+  //   }
+  // }, [currentStep, nextRoute, navigate]);
   useEffect(() => {
-    if (currentStep && currentStep !== "demographics") {
-      console.warn("User tried to access demographics but on", currentStep);
-      navigate(nextRoute || "/demographics");
-    }
-  }, [currentStep, nextRoute, navigate]);
+  // ⛔ Do nothing until onboarding state is ready
+  if (!currentStep) return;
+
+  // ⛔ Allow demographics
+  if (currentStep === "demographics") return;
+
+  // ✅ Redirect only if user is NOT supposed to be here
+  navigate(nextRoute || "/");
+}, [currentStep, nextRoute, navigate]);
+
 
   /* ============================================
      LOCAL STATE
@@ -162,6 +175,7 @@ export default function Demographics() {
     try {
       // ✅ Step 1: Save demographics to backend
       const saveResponse = await API("POST", URL_PATH.demographics, payload);
+      toast.success("Demographics added successfully");
 
       if (!saveResponse?.data) {
         setError(saveResponse?.message || "Failed to save demographics");
@@ -203,37 +217,78 @@ export default function Demographics() {
   /* ============================================
      DATA FETCHING
   ============================================ */
-  useEffect(() => {
-    const fetchData = async (): Promise<void> => {
+  // useEffect(() => {
+  //   const fetchData = async (): Promise<void> => {
+  //     try {
+  //       // Fetch existing demographics
+  //       const demographicsRes = await API("GET", URL_PATH.getDemographics);
+
+  //       if (demographicsRes?.fullName) {
+  //         setForm({
+  //           fullName: demographicsRes.fullName,
+  //           email: demographicsRes.email || "",
+  //           phoneNumber: demographicsRes.phoneNumber || "",
+  //           city: demographicsRes.city || "",
+  //           state: demographicsRes.state || "",
+  //           country: demographicsRes.country || "",
+  //         });
+
+  //         setPhoneVisible(!!demographicsRes.phoneVisibleToRecruiters);
+  //       }
+
+  //       // Fetch experience index
+  //       const expRes = await API("GET", URL_PATH.calculateExperienceIndex);
+  //       setExperienceIndex(expRes?.points?.demographics || 0);
+  //     } catch (err) {
+  //       console.error("❌ Error fetching data:", err);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+useEffect(() => {
+  const fetchData = async (): Promise<void> => {
+    try {
+      let demographicsRes = null;
+
+      // ✅ 404 is NORMAL for first-time users
       try {
-        // Fetch existing demographics
-        const demographicsRes = await API("GET", URL_PATH.getDemographics);
-
-        if (demographicsRes?.fullName) {
-          setForm({
-            fullName: demographicsRes.fullName,
-            email: demographicsRes.email || "",
-            phoneNumber: demographicsRes.phoneNumber || "",
-            city: demographicsRes.city || "",
-            state: demographicsRes.state || "",
-            country: demographicsRes.country || "",
-          });
-
-          setPhoneVisible(!!demographicsRes.phoneVisibleToRecruiters);
+        demographicsRes = await API("GET", URL_PATH.getDemographics);
+      } catch (err: any) {
+        if (err?.response?.status !== 404) {
+          throw err; // real error
         }
-
-        // Fetch experience index
-        const expRes = await API("GET", URL_PATH.calculateExperienceIndex);
-        setExperienceIndex(expRes?.points?.demographics || 0);
-      } catch (err) {
-        console.error("❌ Error fetching data:", err);
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    fetchData();
-  }, []);
+      // Populate form ONLY if data exists
+      if (demographicsRes?.fullName) {
+        setForm({
+          fullName: demographicsRes.fullName,
+          email: demographicsRes.email || "",
+          phoneNumber: demographicsRes.phoneNumber || "",
+          city: demographicsRes.city || "",
+          state: demographicsRes.state || "",
+          country: demographicsRes.country || "",
+        });
+        setPhoneVisible(!!demographicsRes.phoneVisibleToRecruiters);
+      }
+
+      // Experience index is safe
+      const expRes = await API("GET", URL_PATH.calculateExperienceIndex);
+      setExperienceIndex(expRes?.points?.demographics || 0);
+
+    } catch (err) {
+      console.error("Demographics load failed:", err);
+      setError("Failed to load demographics");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
 
   /* ============================================
      RENDER
@@ -252,7 +307,8 @@ export default function Demographics() {
     { label: "Projects", icon: <FeatherPackage key="proj" /> },
   ];
 
-  return (
+  return (<>
+  <ToastContainer position="top-center" autoClose={3000} />
     <div className="min-h-screen flex justify-center bg-gradient-to-br from-purple-50 via-white to-neutral-50 px-4 sm:px-6 py-10 sm:py-22">
       <div className="w-full max-w-[1000px] mx-auto flex flex-col md:flex-row gap-6 md:gap-8 justify-center">
         {/* LEFT CARD */}
@@ -432,5 +488,6 @@ export default function Demographics() {
         </aside>
       </div>
     </div>
+    </>
   );
 }

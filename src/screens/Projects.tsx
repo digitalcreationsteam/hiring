@@ -240,6 +240,7 @@ if (!isValidUrl(link)) {
         },
         { "user-id": userId },
       );
+      toast.success("Project added successfully");
 
       await fetchProjects();
       await fetchExperienceIndex();

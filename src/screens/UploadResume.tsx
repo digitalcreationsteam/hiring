@@ -3,6 +3,9 @@
 
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "src/store/hooks";
+import { setNavigation } from "src/store/slices/onboardingSlice";
+
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
 import { IconWithBackground } from "../ui/components/IconWithBackground";
@@ -72,8 +75,8 @@ function UploadResume() {
       return;
     }
 
-    if (uploaded.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB.");
+    if (uploaded.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB.");
       return;
     }
 
@@ -108,26 +111,68 @@ function UploadResume() {
     }
   };
 
+  // const uploadResume = async () => {
+
+  //   if (!file || uploading) return;
+
+  //   try {
+  //     setUploading(true);
+  //     const userId = localStorage.getItem("userId");
+  //     const token = localStorage.getItem("token");
+
+  //     if (!token) {
+  //       alert("Session expired. Please login again.");
+  //       return;
+  //     }
+  //     const formData = new FormData();
+  //     formData.append("resume", file);
+
+  //     await API("POST", URL_PATH.uploadResume, formData, {
+  //       "user-id": userId,
+  //       Authorization: `Bearer ${token}`,
+  //     });
+  //     navigate("/demographics");
+  //   } catch (error: any) {
+  //     console.error("UPLOAD ERROR:", error);
+  //     alert(error?.response?.data?.message || "Resume upload failed");
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+
+  const dispatch = useAppDispatch();
+
   const uploadResume = async () => {
     if (!file || uploading) return;
 
     try {
       setUploading(true);
+
       const userId = localStorage.getItem("userId");
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        alert("Session expired. Please login again.");
-        return;
-      }
       const formData = new FormData();
       formData.append("resume", file);
 
+      // 1️⃣ Upload resume
       await API("POST", URL_PATH.uploadResume, formData, {
         "user-id": userId,
         Authorization: `Bearer ${token}`,
       });
-      navigate("/demographics");
+
+      // 2️⃣ Ask backend where to go next
+      const statusRes = await API("GET", URL_PATH.getUserStatus, undefined, {
+        Authorization: `Bearer ${token}`,
+      });
+
+      const navigation = statusRes?.navigation || statusRes?.data?.navigation;
+
+      if (navigation?.nextRoute) {
+        dispatch(setNavigation(navigation));
+        navigate(navigation.nextRoute);
+      } else {
+        console.error("Navigation missing", statusRes);
+      }
     } catch (error: any) {
       console.error("UPLOAD ERROR:", error);
       alert(error?.response?.data?.message || "Resume upload failed");

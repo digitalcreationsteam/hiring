@@ -104,14 +104,23 @@ function SkillIndexIntro() {
               </div>
             </div>
           </div>
-          <div className="flex w-full items-center justify-center border-t border-neutral-200 pt-6">
+          <div className="flex w-full flex-col items-center justify-center gap-3 border-t border-neutral-200 pt-6">
             <Button
               className="h-9 w-full rounded-2xl bg-violet-600 text-sm font-medium text-white hover:bg-violet-700 transition"
               size="large"
-              onClick={() => navigate("/paywall")}
+              onClick={() => navigate("/job-domain")}
             >
               Proceed to Skill Index Assessment
             </Button>
+
+            {/* Skip button */}
+            <button
+  onClick={() => navigate("/dashboard")}
+  className="text-xs font-medium text-neutral-500 hover:text-neutral-700 transition"
+>
+  Skip for now
+</button>
+
           </div>
         </div>
       </div>
