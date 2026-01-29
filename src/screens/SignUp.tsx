@@ -97,11 +97,13 @@ const handleSubmit = async (e: any) => {
 
 
   const handleOAuth = (provider: any) => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate("/verify-email");
-    }, 800);
+    const baseURL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+    if (provider === "google") {
+      window.location.href = `${baseURL}/auth/google`;
+    }
+    if (provider === "linkedin") {
+      window.location.href = `${baseURL}/auth/linkedin`;
+    }
   };
 
 
