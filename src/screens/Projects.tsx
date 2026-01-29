@@ -183,10 +183,10 @@ export default function Projects() {
       return false;
     }
 
-    if (!summary.trim()) {
-      toast.error("Project Summary is required.");
-      return false;
-    }
+    // if (!summary.trim()) {
+    //   toast.error("Project Summary is required.");
+    //   return false;
+    // }
 
   if (!link.trim()) {
   toast.error("Project link is required.");
@@ -229,7 +229,10 @@ if (!isValidUrl(link)) {
               projectName: toTitleCase(normalizeSpaces(name)),
               role: role ? toTitleCase(normalizeSpaces(role)) : null,
 
-              summary: toSentenceCase(normalizeSpaces(summary.trim())),
+summary: summary
+  ? toSentenceCase(normalizeSpaces(summary.trim()))
+  : null,
+
               outcome: outcome
                 ? toSentenceCase(normalizeSpaces(outcome.trim()))
                 : null,
@@ -567,34 +570,7 @@ if (!isValidUrl(link)) {
               />
             </TextField>
 
-            <TextField
-              label={<span className="text-[12px]">Summary <span className="text-red-500">*</span> </span>}
-              helpText=""
-              className={scTextFieldClass}
-            >
-              <TextField.Input
-                placeholder="What was the project about?"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-                onBlur={() => setSummary(toSentenceCase(summary))}
-                className={scInputClass}
-              />
-            </TextField>
-
-            <TextField
-              label={<span className="text-[12px]">Outcome (optional) </span>}
-              helpText=""
-              className={scTextFieldClass}
-            >
-              <TextField.Input
-                placeholder="What was the result or impact?"
-                value={outcome}
-                onChange={(ev) => setOutcome(toSentenceCase(ev.target.value))}
-                className={scInputClass}
-              />
-            </TextField>
-
-            <TextField
+              <TextField
               label={<span className="text-[12px]">Link <span className="text-red-500">*</span></span>}
               helpText=""
               className={scTextFieldClass}
@@ -612,6 +588,37 @@ if (!isValidUrl(link)) {
                 className={scInputClass}
               />
             </TextField>
+
+            <TextField
+              label={<span className="text-[12px]">Summary </span>}
+              helpText=""
+              className={scTextFieldClass}
+            >
+              <TextField.Input
+                placeholder="What was the project about?"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                onBlur={() => setSummary(toSentenceCase(summary))}
+                className={scInputClass}
+              />
+            </TextField>
+
+             
+
+            <TextField
+              label={<span className="text-[12px]">Outcome </span>}
+              helpText=""
+              className={scTextFieldClass}
+            >
+              <TextField.Input
+                placeholder="What was the result or impact?"
+                value={outcome}
+                onChange={(ev) => setOutcome(toSentenceCase(ev.target.value))}
+                className={scInputClass}
+              />
+            </TextField>
+
+         
 
             <div className="flex gap-3 mt-2">
               <Button

@@ -792,7 +792,7 @@ export default function Certifications() {
 
             <TextField
               label={
-                <span className="text-[12px]">Credential Link (Optional)</span>
+                <span className="text-[12px]">Credential Link </span>
               }
               helpText=""
               className={scTextFieldClass}
@@ -813,10 +813,19 @@ export default function Certifications() {
               />
             </TextField>
 
+            {/* ✅ OR Divider (ADD THIS) */}
+            <div className="flex items-center gap-3 my-1">
+              <div className="flex-1 h-px bg-neutral-300" />
+              <span className="text-[11px] text-neutral-500 font-medium tracking-wide">
+                OR
+              </span>
+              <div className="flex-1 h-px bg-neutral-300" />
+            </div>
+
             {/* Upload */}
             <div className="w-full">
               <div className="text-[12px] text-neutral-800 mb-2">
-                Upload Certificate (Optional)
+                Upload Certificate
               </div>
 
               <div

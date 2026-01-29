@@ -248,21 +248,27 @@ export default function Education() {
     setGpa("");
   };
 
-  const hasEducationOverlap = () => {
-    const newStart = Number(startYear);
-    const newEnd = currentlyStudying
+const hasEducationOverlap = () => {
+  const newStart = Number(startYear);
+  const newEnd = currentlyStudying
+    ? new Date().getFullYear()
+    : Number(endYear);
+
+  if (!Number.isFinite(newStart) || !Number.isFinite(newEnd)) return false;
+
+  return educations.some((ed) => {
+    const oldStart = Number(ed.startYear);
+    const oldEnd = ed.currentlyStudying
       ? new Date().getFullYear()
-      : Number(endYear);
+      : Number(ed.endYear);
 
-    return educations.some((ed) => {
-      const oldStart = Number(ed.startYear);
-      const oldEnd = ed.currentlyStudying
-        ? new Date().getFullYear()
-        : Number(ed.endYear);
+    if (!Number.isFinite(oldStart) || !Number.isFinite(oldEnd)) return false;
 
-      return newStart <= oldEnd && newEnd >= oldStart;
-    });
-  };
+    // ✅ strict overlap: allows 2003–2006 and 2006–2008
+    return newStart < oldEnd && newEnd > oldStart;
+  });
+};
+
 
   const handleAddEducation = async () => {
     const error = validateEducation();

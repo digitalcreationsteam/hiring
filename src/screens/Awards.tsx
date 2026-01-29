@@ -535,21 +535,7 @@ export default function Awards() {
                 />
               </TextField>
 
-              <TextField
-                label={
-                  <span className="text-[12px]">Description (optional) </span>
-                }
-                helpText=""
-                className={scTextFieldClass}
-              >
-                <TextField.Input
-                  placeholder="Brief description of the achievement or role"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  onBlur={() => setDescription(toSentenceCase(description))}
-                  className={scInputClass}
-                />
-              </TextField>
+              
 
               {/* End Year */}
               <div className="flex flex-col gap-1">
@@ -563,6 +549,22 @@ export default function Awards() {
                   maxYear={new Date().getFullYear()}
                 />
               </div>
+
+              <TextField
+                label={
+                  <span className="text-[12px]">Description</span>
+                }
+                helpText=""
+                className={scTextFieldClass}
+              >
+                <TextField.Input
+                  placeholder="Brief description of the achievement or role"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  onBlur={() => setDescription(toSentenceCase(description))}
+                  className={scInputClass}
+                />
+              </TextField>
 
               <div className="flex flex-col sm:flex-row gap-3 mt-2">
                 <Button

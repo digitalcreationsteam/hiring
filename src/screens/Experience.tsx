@@ -28,14 +28,14 @@ import { FeatherChevronDown } from "@subframe/core";
 
 
 const ROLE_TITLES = [
-  { label: "internship", value: "Internship" },
-  { label: "full_time", value: "Full Time" },
-  { label: "part_ime", value: "Part Time" },
-  { label: "contract", value: "Contract" },
-  { label: "freelance", value: "Freelance" },
-  { label: "entrepreneurship", value: "Entrepreneurship" },
+  { label: "Internship", value: "internship" },
+  { label: "Full Time", value: "full_time" },
+  { label: "Part Time", value: "part_time" },
+  { label: "Contract", value: "contract" },
+  { label: "Freelance", value: "freelance" },
+  { label: "Entrepreneurship", value: "entrepreneurship" },
 ] as const;
-type RoleType = (typeof ROLE_TITLES)[number];
+type RoleValue = (typeof ROLE_TITLES)[number]["value"];
 type ExperiencePoints = {
   demographics?: number;
   education?: number;
@@ -198,7 +198,11 @@ export default function Experience() {
 
   // form state
   const [roleTitle, setRoleTitle] = useState("");
-  const [typeOfRole, setTypeOfRole] = useState<string>("");
+
+const [typeOfRole, setTypeOfRole] = useState<RoleValue | "">("");
+const typeOfRoleLabel =
+  ROLE_TITLES.find((r) => r.value === typeOfRole)?.label || "";
+
   const [company, setCompany] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -228,10 +232,18 @@ export default function Experience() {
       return false;
     }
 
-    if (typeOfRole.trim() && !isValidText(typeOfRole)) {
-      toast.error("Type of role must contain only letters and valid symbols.");
-      return false;
-    }
+   // ✅ typeOfRole is a dropdown enum, so just validate it exists in ROLE_TITLES
+if (!typeOfRole) {
+  toast.error("Type of role is required.");
+  return false;
+}
+
+const isValidRole = ROLE_TITLES.some((r) => r.value === typeOfRole);
+if (!isValidRole) {
+  toast.error("Please select a valid type of role.");
+  return false;
+}
+
 
     if (!company.trim()) {
       toast.error("Company name is required.");
@@ -818,7 +830,7 @@ const payload = {
                           : "text-neutral-400 text-[12px]"
                       }
                     >
-                      {typeOfRole || "Select type of role"}
+                       {typeOfRole ? typeOfRoleLabel : "Select type of role"}
                     </span>
                     <FeatherChevronDown className="text-neutral-500" />
                   </div>
