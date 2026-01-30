@@ -34,7 +34,7 @@ export default function LoginSuccess() {
         }
       }
       
-      navigate("/demographics", { replace: true });
+      navigate("/talent-ranking", { replace: true });
       return;
     }
 
