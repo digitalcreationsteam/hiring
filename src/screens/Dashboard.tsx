@@ -208,7 +208,7 @@ export default function Dashboard() {
 
   const [chatUserId, setChatUserId] = useState("");
   const [testOtherUserId, setTestOtherUserId] = useState("");
-  const [domain, setDomain] = useState("Professional");
+  const [domain, setDomain] = useState("");
 
   const openChat = () => {
     if (!chatUserId.trim()) return;
@@ -228,7 +228,7 @@ export default function Dashboard() {
       const demo = res?.data?.demographics?.[0];
       setUser({
         name: demo?.fullName || "",
-        domain: "Professional",
+        domain: "",
         location: formatLocation(demo?.city, demo?.state),
       });
 
@@ -320,7 +320,7 @@ export default function Dashboard() {
       setSkills((res?.skills?.list || []).map((s: string) => ({ name: s })));
 
       /* JOB DOMAIN */
-setDomain(res?.jobdomain || "Professional");
+setDomain(res?.jobdomain || "");
 
     } catch (err: any) {
       console.error("fetchDashboardData FAILED:", err);
@@ -629,30 +629,43 @@ setDomain(res?.jobdomain || "Professional");
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row w-full gap-3 mt-4">
-                {/* Global Rank */}
-                <Badge
-                  className="
-      flex-1
-      rounded-xl
-      py-4 sm:py-6
-      text-sm sm:text-base
-      justify-center
-      items-center
-      border-none
-      text-center
+     <div className="mt-4 flex w-full justify-center">
+  <div
+    className="
+      inline-flex items-center gap-3
+      rounded-2xl
+      px-5 py-3
+      border
+      shadow-sm
     "
-                  style={{
-                    backgroundColor: colors.cream,
-                    color: colors.accent,
-                  }}
-                  variant="warning"
-                  icon={<FeatherTrophy className="w-4 h-4 sm:w-5 sm:h-5" />}
-                >
-                  Global Rank
-                  <br />#{rankData.global.rank}
-                </Badge>
-              </div>
+    style={{
+      backgroundColor: colors.cream,
+      borderColor: colors.aqua,
+      color: colors.accent,
+    }}
+  >
+    {/* Icon bubble */}
+    <div
+      className="h-9 w-9 rounded-xl flex items-center justify-center"
+      style={{
+        backgroundColor: "rgba(255,255,255,0.7)",
+        border: `1px solid ${colors.aqua}`,
+      }}
+    >
+      <FeatherTrophy className="w-5 h-5" />
+    </div>
+
+    {/* Text */}
+    <div className="flex flex-col leading-none">
+      <span className="text-[13px] font-semibold opacity-90">Global Rank</span>
+      <span className="text-[22px] font-extrabold mt-1">
+        #{rankData?.global?.rank ?? 0}
+      </span>
+    </div>
+  </div>
+</div>
+
+
             </div>
 
             {/* ACTIVITY INTENSITY (Placed here as requested) */}

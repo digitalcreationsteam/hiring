@@ -28,18 +28,18 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const DEGREE_OPTIONS = [
-  // "High School Diploma",
-  "Diploma",
-  // "Associate's Degree",
-  "Bachelor's Degree",
-  "B.Tech",
-  // "BSC",
-  "Master's Degree",
-  "M.Tech",
-  "Doctorate (PhD)",
-  "Professional Degree",
-  "Other",
-];
+  { label: "Diploma", value: "diploma" },
+  { label: "Bachelor's Degree", value: "bachelors_degree" },
+  { label: "B.Tech", value: "btech" },
+  { label: "Master's Degree", value: "masters_degree" },
+  { label: "M.Tech", value: "mtech" },
+  { label: "Doctorate (PhD)", value: "phd" },
+  { label: "Professional Degree", value: "professional_degree" },
+  { label: "Other", value: "other" },
+] as const;
+
+type DegreeOption = (typeof DEGREE_OPTIONS)[number];
+
 
 type ExperiencePoints = {
   demographics?: number;
@@ -197,7 +197,7 @@ export default function Education() {
 
   const userId = localStorage.getItem("userId");
   // local form state
-  const [degree, setDegree] = useState("");
+  const [degree, setDegree] = useState<string>("");
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [startYear, setStartYear] = useState("");
@@ -318,12 +318,13 @@ export default function Education() {
 
     // ✅ DUPLICATE CHECK (CORRECT PLACE)
     // ✅ HIERARCHICAL DUPLICATE CHECK (DEGREE → FIELD → SCHOOL)
-    const normalizedNew = {
-      degree: normalize(toTitleCase(degree)).trim(),
-      fieldOfStudy: normalize(toTitleCase(fieldOfStudy)).trim(),
-      schoolName: normalize(toTitleCase(schoolName)).trim(),
-      startYear,
-    };
+  const normalizedNew = {
+  degree: normalize(degree).trim(), // ✅ keep slug
+  fieldOfStudy: normalize(toTitleCase(fieldOfStudy)).trim(),
+  schoolName: normalize(toTitleCase(schoolName)).trim(),
+  startYear,
+};
+
 
     // 1️⃣ Check if degree already exists
     const degreeExists = educations.some(
@@ -369,7 +370,7 @@ export default function Education() {
     const payload = {
       educations: [
         {
-          degree: toTitleCase(degree),
+          degree,
           fieldOfStudy: toTitleCase(fieldOfStudy),
           schoolName: toTitleCase(schoolName),
           startYear: Number(startYear),
@@ -530,6 +531,12 @@ export default function Education() {
     }
   };
 
+  // Add this helper function near your other utility functions
+const getDegreeLabel = (degreeValue: string): string => {
+  const degreeOption = DEGREE_OPTIONS.find(option => option.value === degreeValue);
+  return degreeOption?.label || degreeValue; // fallback to the value if not found
+};
+
   return (
     <>
       <ToastContainer position="top-center" autoClose={3000} />
@@ -623,8 +630,7 @@ export default function Education() {
 
                         <div className="flex flex-col min-w-0">
                           <span className="text-sm font-semibold text-neutral-900 truncate">
-                            {ed.degree}
-                          </span>
+{getDegreeLabel(ed.degree)}                          </span>
                           <span className="text-xs text-neutral-500 truncate">
                             {ed.schoolName}
                           </span>
@@ -663,8 +669,7 @@ export default function Education() {
                         <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
                           <div>
                             <span className="font-medium">Degree:</span>{" "}
-                            {ed.degree}
-                          </div>
+{getDegreeLabel(ed.degree)}                          </div>
 
                           <div>
                             <span className="font-medium">Field of study:</span>{" "}
@@ -725,7 +730,7 @@ export default function Education() {
                               : "text-neutral-400 text-[12px]"
                           }
                         >
-                          {degree || "Select Degree"}
+{DEGREE_OPTIONS.find((d) => d.value === degree)?.label || "Select Degree"}
                         </span>
                         <FeatherChevronDown className="text-neutral-500" />
                       </div>
@@ -739,11 +744,11 @@ export default function Education() {
                       >
                         {DEGREE_OPTIONS.map((item) => (
                           <SubframeCore.DropdownMenu.Item
-                            key={item}
+                            key={item.value}
                             className="px-4 py-2 text-sm cursor-pointer hover:bg-neutral-100 outline-none"
-                            onSelect={() => setDegree(item)}
+                            onSelect={() => setDegree(item.value)}
                           >
-                            {item}
+                            {item.label}
                           </SubframeCore.DropdownMenu.Item>
                         ))}
                       </SubframeCore.DropdownMenu.Content>

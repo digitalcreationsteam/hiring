@@ -89,7 +89,7 @@ export default function Chat() {
   /** ✅ Student profile (logged-in user) */
   const [student, setStudent] = useState<Student>({
     name: "",
-    domain: "Professional",
+    domain: "",
     avatar: DEFAULT_AVATAR,
   });
 
@@ -149,7 +149,7 @@ export default function Chat() {
 const domain =
   typeof res?.jobdomain === "string"
     ? res.jobdomain
-    : res?.jobdomain?.domain || "Professional";
+    : res?.jobdomain?.domain || "";
 
         const profileFromServer = res?.documents?.profileUrl;
 
