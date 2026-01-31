@@ -863,11 +863,10 @@ export default function Education() {
                 className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
                 label={
                   <span className="text-[12px]">
-                    GPA (US System){" "}
-                    <span className="text-gray-500 text-xs">(Optional)</span>
+                    GPA 
                   </span>
                 }
-                helpText="Enter GPA on a 4.0 scale"
+                // helpText="Enter GPA on a 4.0 scale"
               >
                 <TextField.Input
                   className="rounded-full h-10 px-4 bg-white !border-none focus:ring-0"
@@ -893,11 +892,10 @@ export default function Education() {
                 className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
                 label={
                   <span className="text-[12px]">
-                    CGPA (Indian System){" "}
-                    <span className="text-gray-500 text-xs">(Optional)</span>
+                    CGPA 
                   </span>
                 }
-                helpText="Enter CGPA on a 10.0 scale"
+                // helpText="Enter CGPA on a 10.0 scale"
               >
                 <TextField.Input
                   className="rounded-full h-10 px-4 bg-white !border-none focus:ring-0"
