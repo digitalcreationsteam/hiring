@@ -1217,7 +1217,7 @@ setDomain(res?.jobdomain || "");
                     <Button
                       variant="brand-primary"
                       className="w-full sm:w-auto rounded-2xl bg-violet-700 hover:bg-violet-800 px-5 sm:px-6"
-                      onClick={() => handleNavigate("/cases")}
+                      onClick={() => handleNavigate("/case-assessments")}
                     >
                       Start Now
                     </Button>

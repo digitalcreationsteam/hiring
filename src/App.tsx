@@ -34,6 +34,8 @@ import ForgotPassword3 from "./screens/ForgotPassword3";
 import ForgotPassword4 from "./screens/ForgotPassword4";
 import EmailVerifiedSuccess from "./screens/EmailVerifiedSuccess";
 import ProtectedRoute from "./utils/ProtectedRoute"; // ✅ Import ProtectedRoute
+import CaseAssessmentsPage from "./screens/CaseAssessments";
+
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -157,6 +159,16 @@ const router = createBrowserRouter([
         path: "/dashboard", 
         element: <ProtectedRoute><Dashboard /></ProtectedRoute> 
       },
+
+      {
+  path: "/case-assessments",
+  element: (
+    <ProtectedRoute>
+      <CaseAssessmentsPage />
+    </ProtectedRoute>
+  ),
+},
+
       
       // ⭐ KEEP THIS as the catch-all 404
       {
