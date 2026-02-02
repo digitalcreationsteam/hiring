@@ -19,7 +19,6 @@ import { FeatherArrowLeft } from "@subframe/core";
 import { useNavigate, useLocation } from "react-router-dom";
 import API, { URL_PATH } from "src/common/API";
 // At the top of AssessmentResult.tsx, add this import:
-import { markProcessComplete } from "../utils/ProtectedRoute"; // ADD THIS LINE
 
 
 
