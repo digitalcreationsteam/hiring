@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar } from "../ui/components/Avatar";
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
@@ -211,6 +211,10 @@ function MonthYearPicker({
 
 export default function Certifications() {
   const navigate = useNavigate();
+  const location = useLocation();
+const source = location.state?.source;
+
+console.log("CERTIFICATIONS source:", source);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userId = localStorage.getItem("userId");
 
@@ -546,7 +550,10 @@ export default function Certifications() {
       return;
     }
 
-    navigate("/awards");
+   navigate("/awards", {
+  state: { source },
+});
+
   };
 
   const handleUploadKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar } from "../ui/components/Avatar";
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
@@ -190,6 +190,7 @@ function MonthYearPicker({
 
 export default function Experience() {
   const navigate = useNavigate();
+  
   const userId = localStorage.getItem("userId");
 
   const [isSubmitting, setIsSubmitting] = useState(false);

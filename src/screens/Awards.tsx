@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar } from "../ui/components/Avatar";
 import { Button } from "../ui/components/Button";
 import { IconButton } from "../ui/components/IconButton";
@@ -115,6 +115,10 @@ function EndYearPicker({
 
 export default function Awards() {
   const navigate = useNavigate();
+  const location = useLocation();
+const source = location.state?.source;
+
+console.log("AWARDS source:", source);
   const userId = localStorage.getItem("userId");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -352,7 +356,10 @@ export default function Awards() {
       toast.error("Please add at least one award to continue.");
       return;
     }
-    navigate("/projects");
+    navigate("/projects", {
+  state: { source },
+});
+
   };
 
   return (
