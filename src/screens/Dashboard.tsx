@@ -255,7 +255,7 @@ export default function Dashboard() {
           parsed.profileUrl = normalizedProfile;
           localStorage.setItem("user", JSON.stringify(parsed));
         }
-      } catch {}
+      } catch { }
 
       /* RANK */
       const rank = res?.rank;
@@ -320,7 +320,7 @@ export default function Dashboard() {
       setSkills((res?.skills?.list || []).map((s: string) => ({ name: s })));
 
       /* JOB DOMAIN */
-setDomain(res?.jobdomain || "Professional");
+      setDomain(res?.jobdomain || "Professional");
 
     } catch (err: any) {
       console.error("fetchDashboardData FAILED:", err);
@@ -489,11 +489,16 @@ setDomain(res?.jobdomain || "Professional");
       <div className="w-full " style={{ borderColor: colors.aqua }}>
         <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-end gap-4 px-4 sm:px-8 py-8 mb-8">
           <div className="space-y-1">
+            <img
+                className="h-8 w-24 object-cover"
+                src="/hiringLogo.png"
+                alt="hiringLogo"
+              />
             <h1
               className="text-3xl md:text-4xl font-bold tracking-tight"
               style={{ color: colors.primary }}
             >
-              Welcome back, {user.name} 👋
+                Welcome back, {user.name} 👋
             </h1>
             <p className="text-lg" style={{ color: colors.secondary }}>
               Track progress, discover opportunities, and level up your
@@ -501,18 +506,18 @@ setDomain(res?.jobdomain || "Professional");
             </p>
           </div>
           <div className="flex gap-3 items-center">
-            
+
             <Button
-  size="small"
-  className="rounded-full px-4 py-2 font-semibold shadow-sm"
-  style={{
-    backgroundColor: colors.primary,
-    color: "white",
-  }}
-  onClick={() => navigate(`/chat/$`)}
->
-  Message
-</Button>
+              size="small"
+              className="rounded-full px-4 py-2 font-semibold shadow-sm"
+              style={{
+                backgroundColor: colors.primary,
+                color: "white",
+              }}
+              onClick={() => navigate(`/chat/$`)}
+            >
+              Message
+            </Button>
 
 
             {/* PROFILE DROPDOWN */}
@@ -683,7 +688,7 @@ setDomain(res?.jobdomain || "Professional");
                     color: colors.secondary,
                     val: "1/2",
                   },
-                 
+
                 ].map((item, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-[11px] font-bold">
