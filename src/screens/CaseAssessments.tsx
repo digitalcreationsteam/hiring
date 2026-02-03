@@ -1,0 +1,460 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { colors } from "../common/Colors";
+import { Button } from "../ui/components/Button";
+import { Badge } from "../ui/components/Badge";
+import { Avatar } from "../ui/components/Avatar";
+import {
+  FeatherArrowLeft,
+  FeatherArrowRight,
+  FeatherBookOpen,
+  FeatherClock,
+  FeatherFileText,
+  FeatherGift,
+  FeatherGlobe,
+  FeatherMapPin,
+  FeatherRepeat,
+  FeatherTarget,
+  FeatherUsers,
+} from "@subframe/core";
+
+type Difficulty = "Easy" | "Medium" | "Hard";
+
+type CaseItem = {
+  id: string;
+  title: string;
+  desc: string;
+  difficulty: Difficulty;
+  points: number;
+  minutes: number;
+  icon: React.ReactNode;
+};
+
+const cases: CaseItem[] = [
+  {
+    id: "1",
+    title: "Product Metrics Analysis",
+    desc: "Analyze user engagement metrics for a mobile app and recommend improvements.",
+    difficulty: "Easy",
+    points: 15,
+    minutes: 45,
+    icon: (
+      <div
+        className="h-10 w-10 rounded-2xl grid place-items-center"
+        style={{ backgroundColor: colors.cream, color: colors.accent }}
+      >
+        ⌁
+      </div>
+    ),
+  },
+  {
+    id: "2",
+    title: "Feature Prioritization",
+    desc: "Prioritize a backlog of features with limited engineering resources.",
+    difficulty: "Medium",
+    points: 25,
+    minutes: 60,
+    icon: (
+      <div
+        className="h-10 w-10 rounded-2xl grid place-items-center"
+        style={{ backgroundColor: colors.mint, color: colors.secondary }}
+      >
+        ✦
+      </div>
+    ),
+  },
+  {
+    id: "3",
+    title: "Product Strategy & Vision",
+    desc: "Develop a 3-year product strategy for a declining B2B SaaS platform.",
+    difficulty: "Hard",
+    points: 40,
+    minutes: 90,
+    icon: (
+      <div
+        className="h-10 w-10 rounded-2xl grid place-items-center"
+        style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
+      >
+        ◈
+      </div>
+    ),
+  },
+  {
+    id: "4",
+    title: "User Research Synthesis",
+    desc: "Review interview transcripts and synthesize insights into actionable recommendations.",
+    difficulty: "Easy",
+    points: 18,
+    minutes: 50,
+    icon: (
+      <div
+        className="h-10 w-10 rounded-2xl grid place-items-center"
+        style={{ backgroundColor: colors.cream, color: colors.accent }}
+      >
+        ⟡
+      </div>
+    ),
+  },
+  {
+    id: "5",
+    title: "Go-to-Market Planning",
+    desc: "Create a GTM plan for a new feature, including positioning and launch tactics.",
+    difficulty: "Medium",
+    points: 28,
+    minutes: 75,
+    icon: (
+      <div
+        className="h-10 w-10 rounded-2xl grid place-items-center"
+        style={{ backgroundColor: colors.mint, color: colors.secondary }}
+      >
+        ⬣
+      </div>
+    ),
+  },
+  {
+    id: "6",
+    title: "Crisis Management",
+    desc: "Handle a critical incident affecting thousands of users. Coordinate comms and recovery.",
+    difficulty: "Hard",
+    points: 45,
+    minutes: 120,
+    icon: (
+      <div
+        className="h-10 w-10 rounded-2xl grid place-items-center"
+        style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
+      >
+        ⚑
+      </div>
+    ),
+  },
+];
+
+const difficultyBadge = (d: Difficulty) => {
+  if (d === "Easy") return { bg: colors.mint, text: colors.secondary };
+  if (d === "Medium") return { bg: colors.cream, text: colors.accent };
+  return { bg: "#FEE2E2", text: "#B91C1C" };
+};
+
+function DifficultyChip({ label }: { label: Difficulty }) {
+  const s = difficultyBadge(label);
+  return (
+    <span
+      className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+      style={{ backgroundColor: s.bg, color: s.text }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function StepCard({
+  title,
+  desc,
+  icon,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div
+      className="flex gap-3 rounded-[1.75rem] border shadow-sm px-5 py-4"
+      style={{ backgroundColor: colors.white, borderColor: colors.aqua }}
+    >
+      <div
+        className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: colors.cream, color: colors.accent }}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-extrabold" style={{ color: colors.primary }}>
+          {title}
+        </p>
+        <p className="mt-1 text-xs leading-relaxed" style={{ color: colors.secondary }}>
+          {desc}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CaseCard({
+  item,
+  onStart,
+}: {
+  item: CaseItem;
+  onStart: (id: string) => void;
+}) {
+  return (
+    <div
+      className="bg-white border p-5 sm:p-6 rounded-3xl sm:rounded-[2rem] shadow-sm hover:shadow-md transition-all"
+      style={{ borderColor: colors.aqua }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          {item.icon}
+          <div className="min-w-0">
+            <p
+              className="text-sm sm:text-base font-extrabold truncate"
+              style={{ color: colors.primary }}
+            >
+              {item.title}
+            </p>
+            <p
+              className="mt-1 text-xs leading-relaxed line-clamp-2"
+              style={{ color: colors.secondary }}
+            >
+              {item.desc}
+            </p>
+          </div>
+        </div>
+
+        <DifficultyChip label={item.difficulty} />
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <div
+          className="rounded-2xl border px-4 py-3"
+          style={{ backgroundColor: colors.cream, borderColor: colors.aqua }}
+        >
+          <p
+            className="text-[10px] font-black uppercase tracking-widest opacity-60"
+            style={{ color: colors.primary }}
+          >
+            Points Awarded
+          </p>
+          <p className="mt-1 text-sm font-extrabold" style={{ color: colors.accent }}>
+            +{item.points}
+          </p>
+        </div>
+
+        <div
+          className="rounded-2xl border px-4 py-3"
+          style={{ backgroundColor: colors.cream, borderColor: colors.aqua }}
+        >
+          <p
+            className="text-[10px] font-black uppercase tracking-widest opacity-60"
+            style={{ color: colors.primary }}
+          >
+            Time Required
+          </p>
+          <p className="mt-1 text-sm font-extrabold" style={{ color: colors.primary }}>
+            {item.minutes} min
+          </p>
+        </div>
+      </div>
+
+      <Button
+        variant="brand-primary"
+        className="mt-5 w-full rounded-2xl px-6 bg-violet-700 hover:bg-violet-800"
+        onClick={() => onStart(item.id)}
+      >
+        Start Case Study <FeatherArrowRight className="ml-2 w-4 h-4" />
+      </Button>
+
+      {/* accent strip */}
+      <div
+        className="mt-5 h-1.5 rounded-full"
+        style={{ backgroundColor: difficultyBadge(item.difficulty).bg }}
+      />
+    </div>
+  );
+}
+
+export default function CaseAssessmentsPage() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"All" | Difficulty>("All");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return cases.filter((c) => {
+      const okFilter = filter === "All" ? true : c.difficulty === filter;
+      const okQuery =
+        !q ||
+        c.title.toLowerCase().includes(q) ||
+        c.desc.toLowerCase().includes(q);
+      return okFilter && okQuery;
+    });
+  }, [query, filter]);
+
+  const onStart = (caseId: string) => {
+    // later: navigate(`/case-assessments/${caseId}`)
+    console.log("Start case:", caseId);
+  };
+
+  return (
+    <div className="min-h-screen w-full pb-12" style={{ backgroundColor: colors.white }}>
+      {/* Top bar */}
+      <div className="sticky top-0 z-20 border-b backdrop-blur bg-white/70" style={{ borderColor: colors.aqua }}>
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="h-10 w-10 rounded-2xl border flex items-center justify-center hover:shadow-sm transition"
+              style={{ backgroundColor: colors.white, borderColor: colors.aqua, color: colors.primary }}
+              title="Back"
+            >
+              <FeatherArrowLeft className="w-4 h-4" />
+            </button>
+
+            <div className="min-w-0">
+              <p
+                className="text-[10px] font-black uppercase tracking-widest opacity-60"
+                style={{ color: colors.primary }}
+              >
+                Case Studies
+              </p>
+              <h1 className="text-base sm:text-lg font-extrabold truncate" style={{ color: colors.primary }}>
+                Product Management Case Assessments
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div
+              className="hidden sm:flex items-center gap-2 rounded-full border px-4 py-2"
+              style={{ borderColor: colors.aqua, backgroundColor: colors.cream }}
+            >
+              <span className="text-xs font-bold" style={{ color: colors.secondary }}>
+                Search:
+              </span>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-56 bg-transparent text-sm outline-none placeholder:opacity-70"
+                style={{ color: colors.primary }}
+                placeholder="Try: strategy, metrics..."
+              />
+            </div>
+
+            <Button
+              size="small"
+              className="rounded-full px-4 py-2 font-semibold shadow-sm"
+              style={{ backgroundColor: colors.primary, color: "white" }}
+              onClick={() => navigate("/chat")}
+            >
+              Messages
+            </Button>
+
+            <Avatar size="large" image="" style={{ boxShadow: `0 0 0 2px ${colors.aqua}` }}>
+              A
+            </Avatar>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-8">
+        {/* Hero */}
+        <div
+          className="rounded-[2.5rem] border shadow-sm p-6 sm:p-8"
+          style={{ backgroundColor: colors.white, borderColor: colors.aqua }}
+        >
+         
+
+          <div className="mt-2 flex  justify-center">
+            <div className="max-w-3xl text-center ">
+              <h2 className="text-xl sm:text-2xl font-extrabold " style={{ color: colors.primary }}>
+                Product Management Case Assessments
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: colors.secondary }}>
+                Complete real-world product case studies to showcase your skills and boost your Hireability Index. 
+                Each case you complete adds points to your profile, making you more visible to recruiters and helping them understand your capabilities beyond your resume.
+              </p>
+            </div>
+          </div>
+
+          {/* How it works */}
+          <div className="mt-7 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StepCard
+              title="Complete the Case"
+              desc="Work through realistic scenarios that mirror actual PM challenges."
+              icon={<FeatherFileText className="w-5 h-5" />}
+            />
+            <StepCard
+              title="Get Evaluated"
+              desc="Receive a score on your approach and decision-making."
+              icon={<FeatherTarget className="w-5 h-5" />}
+            />
+            <StepCard
+              title="Boost Your Index"
+              desc="Points are added to your profile and visible to recruiters."
+              icon={<FeatherGlobe className="w-5 h-5" />}
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {(["All", "Easy", "Medium", "Hard"] as const).map((t) => {
+              const active = filter === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setFilter(t)}
+                  className="px-4 py-2 rounded-full text-[11px] font-extrabold border transition"
+                  style={{
+                    borderColor: colors.aqua,
+                    backgroundColor: active ? colors.primary : colors.white,
+                    color: active ? colors.white : colors.primary,
+                  }}
+                >
+                  {t}
+                </button>
+              );
+            })}
+
+            <div className="ml-auto hidden sm:flex items-center gap-2 text-xs font-bold" style={{ color: colors.neutral?.[400] ?? "#9CA3AF" }}>
+              <FeatherClock className="w-4 h-4" /> Choose a case & start
+            </div>
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg sm:text-xl font-bold" style={{ color: colors.primary }}>
+              Available Case Assessments
+            </h3>
+
+            <span className="text-xs font-bold flex items-center gap-2" style={{ color: colors.neutral?.[400] ?? "#9CA3AF" }}>
+              <FeatherMapPin className="w-4 h-4" /> Recommended for your domain
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((c) => (
+              <CaseCard key={c.id} item={c} onStart={onStart} />
+            ))}
+          </div>
+
+          {filtered.length === 0 && (
+            <div
+              className="mt-6 rounded-[2rem] border p-6 text-center"
+              style={{ backgroundColor: colors.white, borderColor: colors.aqua, color: colors.secondary }}
+            >
+              <p className="text-sm font-extrabold" style={{ color: colors.primary }}>
+                No cases found
+              </p>
+              <p className="mt-1 text-xs">
+                Try a different search or clear the difficulty filter.
+              </p>
+              <button
+                className="mt-4 px-4 py-2 rounded-full text-[11px] font-extrabold border"
+                style={{ borderColor: colors.aqua, color: colors.primary }}
+                onClick={() => {
+                  setQuery("");
+                  setFilter("All");
+                }}
+              >
+                Reset filters
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
