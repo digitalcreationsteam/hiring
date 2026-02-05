@@ -35,6 +35,7 @@ import ForgotPassword2 from "./screens/ForgotPassword2";
 import ForgotPassword3 from "./screens/ForgotPassword3";
 import ForgotPassword4 from "./screens/ForgotPassword4";
 import EmailVerifiedSuccess from "./screens/EmailVerifiedSuccess";
+//import PaymentSuccess from "./screens/PaymentSuccess";
 import ProtectedRoute from "./utils/ProtectedRoute"; // ✅ Import ProtectedRoute
 import CaseAssessmentsPage from "./screens/CaseAssessments";
 

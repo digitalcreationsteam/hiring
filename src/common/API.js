@@ -53,7 +53,7 @@ export const URL_PATH = {
   getUser: "/user",
   updateUser: "/user",
   uploadResume: "/user/resume",
-  getResume:"/user/resume",
+  getResume: "/user/resume",
   uploadProfile: "/user/profile",
 
   /* ---------- EXPERIENCE INDEX ---------- */
@@ -105,11 +105,14 @@ export const URL_PATH = {
   getUserDomainSkils: "/user/getUserDomainSkills",
 
   createSubscription: "/subscription/create",
+  initiateDodoPayment: "/subscription/payments/dodo/initiate",
   verifyPayment: "/subscription/verify",
   getSubscriptions: "/subscription",
   getCurrentSubscription: "/subscription/current",
   cancelSubscription: "/subscription",
   getPlans: "/subscription/plans",
+  subscriptionStatus: "/subscription/status/",
+  subscriptionMarkPaid: "/subscription/mark-paid",
 
   /* ---------- RESULTS ---------- */
   result: "/user/experience_index",

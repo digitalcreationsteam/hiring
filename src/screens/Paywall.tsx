@@ -108,7 +108,6 @@ function Paywall() {
         URL_PATH.createSubscription,
         {
           planId: selectedPlanId,
-          paymentMethod: "razorpay",
         },
       );
 
@@ -121,6 +120,34 @@ function Paywall() {
         setIsLoading(false);
         return;
       }
+
+      // ✅ Step 2: Initiate Dodo payment
+      const subscriptionId = subscriptionResponse.data.subscriptionId;
+
+      const paymentResponse = await API(
+        "POST",
+        URL_PATH.initiateDodoPayment,
+        {
+          subscriptionId,
+        },
+      );
+
+      console.log("💳 Dodo payment response:", paymentResponse);
+
+      if (!paymentResponse?.success || !paymentResponse?.paymentUrl) {
+        setError("Failed to initiate payment");
+        setIsLoading(false);
+        return;
+      }
+
+      // ✅ Step 3: Store subscriptionId in localStorage before redirect
+      localStorage.setItem("pendingSubscriptionId", subscriptionId);
+      console.log("💾 Stored subscriptionId in localStorage:", subscriptionId);
+
+      // ✅ Step 4: Redirect to Dodo payment page
+      window.location.href = paymentResponse.paymentUrl;
+      return; // ⛔ stop execution here
+
 
       // ✅ Step 2: Get updated navigation status (after subscription created)
       const statusResponse = await API("GET", URL_PATH.getUserStatus);
@@ -152,7 +179,7 @@ function Paywall() {
       // navigate(statusResponse.navigation.nextRoute);
       if (
         subscriptionResponse?.success
-        
+
       ) {
         navigate(statusResponse.navigation.nextRoute);
       } else {
@@ -172,11 +199,8 @@ function Paywall() {
 
     if (plan.price === 0) return "Free";
 
-    const price =
-      plan.currency === "INR" ? plan.price : Math.round(plan.price * 83); // Convert USD to INR approx
-
     const period = plan.billingPeriod === "yearly" ? "year" : "month";
-    return `₹${price}/${period}`;
+    return `₹${plan.price}/${period}`;
   };
 
   // Check if plan is popular
@@ -230,11 +254,10 @@ function Paywall() {
                   console.log("📌 Selected plan:", plan.name, plan._id);
                   setSelectedPlanId(plan._id);
                 }}
-                className={`cursor-pointer w-full max-w-[320px] rounded-3xl p-6 flex flex-col gap-6 shadow-sm border-2 transition-all duration-200 ${
-                  selectedPlanId === plan._id
-                    ? "border-violet-600 ring-2 ring-violet-200 bg-white transform scale-[1.02]"
-                    : "border-gray-200 bg-white hover:border-violet-300 hover:shadow-md"
-                }`}
+                className={`cursor-pointer w-full max-w-[320px] rounded-3xl p-6 flex flex-col gap-6 shadow-sm border-2 transition-all duration-200 ${selectedPlanId === plan._id
+                  ? "border-violet-600 ring-2 ring-violet-200 bg-white transform scale-[1.02]"
+                  : "border-gray-200 bg-white hover:border-violet-300 hover:shadow-md"
+                  }`}
               >
                 {/* Plan Header */}
                 <div>
@@ -274,18 +297,16 @@ function Paywall() {
                     (feature: string, index: number) => (
                       <div key={index} className="flex items-start gap-3">
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
-                            selectedPlanId === plan._id
-                              ? "bg-violet-100"
-                              : "bg-gray-100"
-                          }`}
+                          className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${selectedPlanId === plan._id
+                            ? "bg-violet-100"
+                            : "bg-gray-100"
+                            }`}
                         >
                           <FeatherCheck
-                            className={`w-3 h-3 ${
-                              selectedPlanId === plan._id
-                                ? "text-violet-600"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-3 h-3 ${selectedPlanId === plan._id
+                              ? "text-violet-600"
+                              : "text-gray-500"
+                              }`}
                           />
                         </div>
                         <span className="text-sm text-gray-800">{feature}</span>
@@ -329,13 +350,12 @@ function Paywall() {
         <Button
           disabled={isLoading || !selectedPlanId}
           onClick={handleContinue}
-          className={`w-full max-w-[820px] h-12 rounded-full font-semibold text-base transition ${
-            isLoading
-              ? "bg-violet-400 cursor-not-allowed text-white"
-              : selectedPlanId
-                ? "bg-violet-600 hover:bg-violet-700 text-white"
-                : "bg-gray-300 cursor-not-allowed text-gray-500"
-          }`}
+          className={`w-full max-w-[820px] h-12 rounded-full font-semibold text-base transition ${isLoading
+            ? "bg-violet-400 cursor-not-allowed text-white"
+            : selectedPlanId
+              ? "bg-violet-600 hover:bg-violet-700 text-white"
+              : "bg-gray-300 cursor-not-allowed text-gray-500"
+            }`}
         >
           {isLoading ? (
             <div className="flex items-center justify-center gap-2">
