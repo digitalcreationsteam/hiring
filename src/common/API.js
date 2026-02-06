@@ -123,6 +123,13 @@ export const URL_PATH = {
   markMessagesRead: "/chat/mark-read",
   getUnreadCount: "/chat/unread-count",
 
+  // Case Study
+  getAllCases: "/cases/",
+  startCase: (caseId) => `/cases/${caseId}/start`,
+  getCurrentQuestion: (attemptId) => `/cases/attempt/${attemptId}/question`,
+  submitAnswer: (attemptId) => `/cases/attempt/${attemptId}/answer`,
+  submitAttempt: (attemptId) => `cases/attempt/${attemptId}/submit`,
+  getCaseReveal: (caseId) => `/cases/${caseId}/reveal`
 };
 
 

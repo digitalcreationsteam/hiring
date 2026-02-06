@@ -40,6 +40,10 @@ import ProtectedRoute from "./utils/ProtectedRoute"; // ✅ Import ProtectedRout
 import CaseAssessmentsPage from "./screens/CaseAssessments";
 
 import "./App.css";
+import CaseAssessmentOpening from "./screens/CaseAssessmentOpening";
+import CaseAssessmentQuestions from "./screens/CaseAssessmentQuestions";
+import CaseAssessmentScore from "./screens/CaseAssessmentScore";
+import CaseAssessmentRevel from "./screens/CaseAssessmentRevel";
 
 const router = createBrowserRouter([
   {
@@ -276,6 +280,39 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <CaseAssessmentsPage />
+      </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: "/case-assessment-opening",
+    element: (
+      <ProtectedRoute requireIncomplete={true}>
+        <CaseAssessmentOpening />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/case-assessment-questions",
+    element: (
+      <ProtectedRoute requireIncomplete={true}>
+        <CaseAssessmentQuestions />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/case-assessment-score",
+    element: (
+      <ProtectedRoute requireIncomplete={true}>
+        <CaseAssessmentScore />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/case-assessment-revel/:caseId",
+    element: (
+      <ProtectedRoute requireIncomplete={true}>
+        <CaseAssessmentRevel />
       </ProtectedRoute>
     ),
   },
