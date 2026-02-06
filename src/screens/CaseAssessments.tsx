@@ -21,15 +21,36 @@ import {
 
 type Difficulty = "Easy" | "Medium" | "Hard";
 
-type CaseItem = {
-  id: string;
+// type CaseItem = {
+//   id: string;
+//   title: string;
+//   desc: string;
+//   difficulty: Difficulty;
+//   points: number;
+//   minutes: number;
+//   icon: React.ReactNode;
+// };
+
+type BackendCase = {
+  _id: string;
   title: string;
-  desc: string;
+  description?: string;
+  totalQuestions: number;
+  maxAttempts: number;
+  isActive: boolean;
+  createdAt: string;
+};
+
+type CaseItem = {
+  _id: string;
+  title: string;
+  description: string;
   difficulty: Difficulty;
   points: number;
   minutes: number;
   icon: React.ReactNode;
 };
+
 
 type StudentProfile = {
   name: string;
@@ -43,104 +64,104 @@ type StudentProfile = {
 const DEFAULT_AVATAR =
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400";
 
-const cases: CaseItem[] = [
-  {
-    id: "1",
-    title: "Product Metrics Analysis",
-    desc: "Analyze user engagement metrics for a mobile app and recommend improvements.",
-    difficulty: "Easy",
-    points: 15,
-    minutes: 45,
-    icon: (
-      <div
-        className="h-10 w-10 rounded-2xl grid place-items-center"
-        style={{ backgroundColor: colors.cream, color: colors.accent }}
-      >
-        ⌁
-      </div>
-    ),
-  },
-  {
-    id: "2",
-    title: "Feature Prioritization",
-    desc: "Prioritize a backlog of features with limited engineering resources.",
-    difficulty: "Medium",
-    points: 25,
-    minutes: 60,
-    icon: (
-      <div
-        className="h-10 w-10 rounded-2xl grid place-items-center"
-        style={{ backgroundColor: colors.mint, color: colors.secondary }}
-      >
-        ✦
-      </div>
-    ),
-  },
-  {
-    id: "3",
-    title: "Product Strategy & Vision",
-    desc: "Develop a 3-year product strategy for a declining B2B SaaS platform.",
-    difficulty: "Hard",
-    points: 40,
-    minutes: 90,
-    icon: (
-      <div
-        className="h-10 w-10 rounded-2xl grid place-items-center"
-        style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
-      >
-        ◈
-      </div>
-    ),
-  },
-  {
-    id: "4",
-    title: "User Research Synthesis",
-    desc: "Review interview transcripts and synthesize insights into actionable recommendations.",
-    difficulty: "Easy",
-    points: 18,
-    minutes: 50,
-    icon: (
-      <div
-        className="h-10 w-10 rounded-2xl grid place-items-center"
-        style={{ backgroundColor: colors.cream, color: colors.accent }}
-      >
-        ⟡
-      </div>
-    ),
-  },
-  {
-    id: "5",
-    title: "Go-to-Market Planning",
-    desc: "Create a GTM plan for a new feature, including positioning and launch tactics.",
-    difficulty: "Medium",
-    points: 28,
-    minutes: 75,
-    icon: (
-      <div
-        className="h-10 w-10 rounded-2xl grid place-items-center"
-        style={{ backgroundColor: colors.mint, color: colors.secondary }}
-      >
-        ⬣
-      </div>
-    ),
-  },
-  {
-    id: "6",
-    title: "Crisis Management",
-    desc: "Handle a critical incident affecting thousands of users. Coordinate comms and recovery.",
-    difficulty: "Hard",
-    points: 45,
-    minutes: 120,
-    icon: (
-      <div
-        className="h-10 w-10 rounded-2xl grid place-items-center"
-        style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
-      >
-        ⚑
-      </div>
-    ),
-  },
-];
+// const cases: CaseItem[] = [
+//   {
+//     id: "1",
+//     title: "Product Metrics Analysis",
+//     desc: "Analyze user engagement metrics for a mobile app and recommend improvements.",
+//     difficulty: "Easy",
+//     points: 15,
+//     minutes: 45,
+//     icon: (
+//       <div
+//         className="h-10 w-10 rounded-2xl grid place-items-center"
+//         style={{ backgroundColor: colors.cream, color: colors.accent }}
+//       >
+//         ⌁
+//       </div>
+//     ),
+//   },
+//   {
+//     id: "2",
+//     title: "Feature Prioritization",
+//     desc: "Prioritize a backlog of features with limited engineering resources.",
+//     difficulty: "Medium",
+//     points: 25,
+//     minutes: 60,
+//     icon: (
+//       <div
+//         className="h-10 w-10 rounded-2xl grid place-items-center"
+//         style={{ backgroundColor: colors.mint, color: colors.secondary }}
+//       >
+//         ✦
+//       </div>
+//     ),
+//   },
+//   {
+//     id: "3",
+//     title: "Product Strategy & Vision",
+//     desc: "Develop a 3-year product strategy for a declining B2B SaaS platform.",
+//     difficulty: "Hard",
+//     points: 40,
+//     minutes: 90,
+//     icon: (
+//       <div
+//         className="h-10 w-10 rounded-2xl grid place-items-center"
+//         style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
+//       >
+//         ◈
+//       </div>
+//     ),
+//   },
+//   {
+//     id: "4",
+//     title: "User Research Synthesis",
+//     desc: "Review interview transcripts and synthesize insights into actionable recommendations.",
+//     difficulty: "Easy",
+//     points: 18,
+//     minutes: 50,
+//     icon: (
+//       <div
+//         className="h-10 w-10 rounded-2xl grid place-items-center"
+//         style={{ backgroundColor: colors.cream, color: colors.accent }}
+//       >
+//         ⟡
+//       </div>
+//     ),
+//   },
+//   {
+//     id: "5",
+//     title: "Go-to-Market Planning",
+//     desc: "Create a GTM plan for a new feature, including positioning and launch tactics.",
+//     difficulty: "Medium",
+//     points: 28,
+//     minutes: 75,
+//     icon: (
+//       <div
+//         className="h-10 w-10 rounded-2xl grid place-items-center"
+//         style={{ backgroundColor: colors.mint, color: colors.secondary }}
+//       >
+//         ⬣
+//       </div>
+//     ),
+//   },
+//   {
+//     id: "6",
+//     title: "Crisis Management",
+//     desc: "Handle a critical incident affecting thousands of users. Coordinate comms and recovery.",
+//     difficulty: "Hard",
+//     points: 45,
+//     minutes: 120,
+//     icon: (
+//       <div
+//         className="h-10 w-10 rounded-2xl grid place-items-center"
+//         style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
+//       >
+//         ⚑
+//       </div>
+//     ),
+//   },
+// ];
 
 
 /* ==================== HELPERS ==================== */
@@ -235,7 +256,7 @@ function CaseCard({
               className="mt-1 text-xs leading-relaxed line-clamp-2"
               style={{ color: colors.secondary }}
             >
-              {item.desc}
+              {item.description}
             </p>
           </div>
         </div>
@@ -278,7 +299,8 @@ function CaseCard({
       <Button
         variant="brand-primary"
         className="mt-5 w-full rounded-2xl px-6 bg-violet-700 hover:bg-violet-800"
-        onClick={() => onStart(item.id)}
+        // onClick={() => onStart(item._id)}
+        onClick={() => onStart(item._id)}
       >
         Start Case Study <FeatherArrowRight className="ml-2 w-4 h-4" />
       </Button>
@@ -300,6 +322,9 @@ export default function CaseAssessmentsPage() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"All" | Difficulty>("All");
+  const [cases, setCases] = useState<BackendCase[]>([]);
+  const [loadingCases, setLoadingCases] = useState(true);
+
 
   const [student, setStudent] = useState<StudentProfile>({
     name: "",
@@ -337,29 +362,174 @@ export default function CaseAssessmentsPage() {
     }
   }, []);
 
+  const fetchCases = useCallback(async () => {
+  try {
+    setLoadingCases(true);
+
+    const res = await API("GET", URL_PATH.getAllCases, {
+      page: 1,
+      limit: 20
+    });
+    setCases(res?.data || []);
+  } catch (err) {
+    console.error("fetchCases failed:", err);
+  } finally {
+    setLoadingCases(false);
+  }
+}, []);
+
+
+  const handleAssessmentClick = (caseId: string) => {
+    navigate("/case-assessment-opening", {
+      state: {
+        source: "dashboard",
+        caseId,
+      },
+    });
+  };
+
+
+
   /* ==================== EFFECTS ==================== */
 
+  // useEffect(() => {
+  //   fetchStudentProfile();
+  // }, [fetchStudentProfile]);
+
   useEffect(() => {
-    fetchStudentProfile();
-  }, [fetchStudentProfile]);
+  fetchStudentProfile();
+  fetchCases();
+}, [fetchStudentProfile, fetchCases]);
+
+
+const mappedCases: CaseItem[] = useMemo(() => {
+  return cases.map((c) => {
+    let difficulty: Difficulty = "Easy";
+
+    if (c.totalQuestions > 10 && c.totalQuestions <= 20) difficulty = "Medium";
+    if (c.totalQuestions > 20) difficulty = "Hard";
+
+    return {
+      _id: c._id,
+      title: c.title,
+      description: c.description || "No description provided",
+      difficulty,
+      points: c.totalQuestions * 2,
+      minutes: c.totalQuestions * 5,
+      icon: (
+        <div
+          className="h-10 w-10 rounded-2xl grid place-items-center"
+          style={{ backgroundColor: colors.cream, color: colors.accent }}
+        >
+          ⌁
+        </div>
+      ),
+    };
+  });
+}, [cases]);
+
 
   /* ==================== MEMOS ==================== */
 
+  // const filteredCases = useMemo(() => {
+  //   const q = query.trim().toLowerCase();
+  //   return cases.filter((c) => {
+  //     const okFilter = filter === "All" ? true : c.difficulty === filter;
+  //     const okQuery = !q || c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q);
+  //     return okFilter && okQuery;
+  //   });
+  // }, [query, filter]);
   const filteredCases = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return cases.filter((c) => {
-      const okFilter = filter === "All" ? true : c.difficulty === filter;
-      const okQuery = !q || c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q);
-      return okFilter && okQuery;
-    });
-  }, [query, filter]);
+  const q = query.trim().toLowerCase();
+
+  return mappedCases.filter((c) => {
+    const okFilter = filter === "All" ? true : c.difficulty === filter;
+    const okQuery =
+      !q ||
+      c.title.toLowerCase().includes(q) ||
+      (c.description || "").toLowerCase().includes(q);
+
+    return okFilter && okQuery;
+  });
+}, [mappedCases, query, filter]);
 
   /* ==================== HANDLERS ==================== */
 
-  const onStart = (caseId: string) => {
-    console.log("Start case:", caseId);
-    // navigate(`/case-assessments/${caseId}`);
-  };
+//   const onStart = (caseId: string) => {
+//   navigate("/case-assessment-opening", {
+//     state: {
+//       source: "dashboard",
+//       caseId,
+//     },
+//   });
+// };
+
+//   const onStart = async (caseId: string) => {
+//   try {
+//     const res = await API(
+//       "POST",
+//       URL_PATH.startCase(caseId), {}
+//     );
+
+//     const { attemptId } = res.data;
+
+//     navigate("/case-assessment-opening", {
+//       state: {
+//         caseId,
+//         attemptId,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Start case failed:", err);
+//   }
+// };
+
+// const onStart = async (caseId: string) => {
+//   try {
+//     const res = await API(
+//       "POST",
+//       URL_PATH.startCase(caseId),
+//       {}
+//     );
+
+//     const { attemptId, opening } = res.data;
+//     console.log(attemptId, opening);
+
+//     navigate("/case-assessment-opening", {
+//       state: {
+//         caseId,
+//         attemptId,
+//         opening,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Start case failed:", err);
+//   }
+// };
+
+const onStart = async (caseId: string) => {
+  try {
+    const res = await API(
+      "POST",
+      URL_PATH.startCase(caseId),
+      {}
+    );
+
+    // ✅ res IS the payload
+    const { attemptId, opening } = res;
+
+    navigate("/case-assessment-opening", {
+      state: {
+        caseId,
+        attemptId,
+        opening,
+      },
+    });
+  } catch (err) {
+    console.error("Start case failed:", err);
+  }
+};
+
 
   const avatarLetter = (student.name?.trim()?.[0] || "S").toUpperCase();
 
@@ -480,7 +650,7 @@ export default function CaseAssessmentsPage() {
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCases.map((c) => (
-              <CaseCard key={c.id} item={c} onStart={onStart} />
+              <CaseCard key={c._id} item={c} onStart={onStart} />
             ))}
           </div>
         </div>
