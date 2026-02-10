@@ -168,7 +168,7 @@ const Footer = () => {
               ))}
             </div>
 
-            {/* Newsletter Signup */}
+            {/* Newsletter Signup 
             <div className="w-full md:w-auto">
               <div className="flex gap-2">
                 <input
@@ -198,6 +198,7 @@ const Footer = () => {
                 Stay updated with our latest news
               </p>
             </div>
+            */}
           </div>
         </div>
       </div>
