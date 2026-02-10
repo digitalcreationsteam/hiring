@@ -115,7 +115,7 @@ useEffect(() => {
       } catch (err) {
         console.error("Error checking verification:", err);
       }
-    }, 5000); // check every 5s
+    }, 2000); // check every 5s
   };
 
   pollVerification();

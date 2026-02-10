@@ -143,8 +143,6 @@ function Paywall() {
       // ✅ Step 3: Store subscriptionId in localStorage before redirect
       localStorage.setItem("pendingSubscriptionId", subscriptionId);
       console.log("💾 Stored subscriptionId in localStorage:", subscriptionId);
-
-      // ✅ Step 4: Redirect to Dodo payment page
       window.location.href = paymentResponse.paymentUrl;
       return; // ⛔ stop execution here
 

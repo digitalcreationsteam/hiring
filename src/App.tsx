@@ -36,24 +36,23 @@ import ForgotPassword2 from "./screens/ForgotPassword2";
 import ForgotPassword3 from "./screens/ForgotPassword3";
 import ForgotPassword4 from "./screens/ForgotPassword4";
 import EmailVerifiedSuccess from "./screens/EmailVerifiedSuccess";
-//import PaymentSuccess from "./screens/PaymentSuccess";
-import ProtectedRoute from "./utils/ProtectedRoute"; // ✅ Import ProtectedRoute
+import ProtectedRoute from "./utils/ProtectedRoute";
 import CaseAssessmentsPage from "./screens/CaseAssessments";
-
-import "./App.css";
 import CaseAssessmentOpening from "./screens/CaseAssessmentOpening";
 import CaseAssessmentQuestions from "./screens/CaseAssessmentQuestions";
 import CaseAssessmentScore from "./screens/CaseAssessmentScore";
 import CaseAssessmentRevel from "./screens/CaseAssessmentRevel";
+import PaymentProcessing from "./ui/components/PaymentProcessing";
+
+import "./App.css";
 
 const router = createBrowserRouter([
   {
-  index: true,
-  element: isAuthenticated()
-    ? <Navigate to="/dashboard" replace />
-    : <LandingPage />,
-},
- // Use "index: true" instead of "path: "/""
+    index: true,
+    element: isAuthenticated()
+      ? <Navigate to="/LandingPage" replace />
+      : <LandingPage />,
+  },
   { path: "/LandingPage", element: <LandingPage /> },
   { path: "/signup", element: <SignUp /> },
   { path: "/login", element: <LogIn /> },
@@ -66,6 +65,16 @@ const router = createBrowserRouter([
   { path: "/verify-email", element: <EmailVerification /> },
   { path: "/verify-email/:token", element: <EmailVerification /> },
   { path: "/email-verified", element: <EmailVerifiedSuccess /> },
+
+  // ✅ PAYMENT PROCESSING ROUTE (After Dodo redirect)
+  {
+    path: "/payment-processing",
+    element: (
+      <ProtectedRoute>
+        <PaymentProcessing />
+      </ProtectedRoute>
+    ),
+  },
 
   // ✅ PROTECTED ROUTES (Authentication required)
   {
@@ -244,14 +253,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/assessment",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <AssessmentPage />
-  //     </ProtectedRoute>
-  //   ),
-  // },
   {
     path: "/assessment-results",
     element: (
@@ -276,7 +277,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
   {
     path: "/case-assessments",
     element: (
@@ -285,7 +285,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
   {
     path: "/case-assessment-opening",
     element: (
@@ -319,22 +318,7 @@ const router = createBrowserRouter([
     ),
   },
 
-  // ⭐ KEEP THIS as the catch-all 404
-  {
-    path: "*",
-    element: (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <h1>404 - Page Not Found</h1>
-        <p>The page you're looking for doesn't exist.</p>
-        <a
-          href="/dashboard"
-          style={{ color: "blue", textDecoration: "underline" }}
-        >
-          Go to Dashboard
-        </a>
-      </div>
-    ),
-  },
+
 ]);
 
 export default function App() {
