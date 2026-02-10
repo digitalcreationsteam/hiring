@@ -1808,7 +1808,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-center gap-2">
                   <span
                     className="text-xl font-bold"
-                    style={{ color: colors.primary }}
+                    style={{ color: colors.accent }}
                   >
                     {user.name}
                   </span>
@@ -1997,8 +1997,9 @@ export default function Dashboard() {
                     key={i}
                     className="relative pl-4 pr-3 py-3 rounded-xl border transition hover:shadow-md"
                     style={{
-                      backgroundColor: colors.cream,
-                      borderColor: colors.aqua,
+                      backgroundColor: colors.primaryGlow,
+                      // borderColor: colors.aqua,
+                      color: colors.accent
                     }}
                   >
                     {/* Left accent bar */}
@@ -2017,14 +2018,14 @@ export default function Dashboard() {
 
                     <h4
                       className="text-[12px] font-bold leading-tight truncate"
-                      style={{ color: colors.primary }}
+                      style={{ color: colors.accent }}
                     >
                       {proj.title}
                     </h4>
 
                     <p
                       className="text-[10px] mt-1 leading-snug line-clamp-2"
-                      style={{ color: colors.secondary }}
+                      style={{ color: colors.accent }}
                     >
                       {proj.summary}
                     </p>
@@ -2046,8 +2047,8 @@ export default function Dashboard() {
                     key={i}
                     className="flex items-start gap-3 p-3 rounded-xl border shadow-sm"
                     style={{
-                      backgroundColor: colors.mint,
-                      borderColor: colors.aqua,
+                      backgroundColor: colors.primaryGlow,
+                      // borderColor: colors.aqua,
                     }}
                   >
                     {/* Icon */}
@@ -2062,14 +2063,14 @@ export default function Dashboard() {
                     <div className="flex-1 min-w-0">
                       <p
                         className="text-[11px] font-bold truncate"
-                        style={{ color: colors.primary }}
+                        style={{ color: colors.accent }}
                       >
                         {cert.name}
                       </p>
 
                       <p
                         className="text-[9px] mt-0.5 truncate"
-                        style={{ color: colors.secondary }}
+                        style={{ color: colors.accent }}
                       >
                         Issued by {cert.issuedBy}
                       </p>
@@ -2129,9 +2130,9 @@ export default function Dashboard() {
                       key={i}
                       className="px-2 py-1 border rounded-md text-[9px] font-bold uppercase"
                       style={{
-                        backgroundColor: colors.white,
-                        borderColor: colors.aqua,
-                        color: colors.primary,
+                        backgroundColor: colors.primary,
+                        // borderColor: colors.aqua,
+                        color: colors.accent,
                       }}
                     >
                       {typeof skill === "string" ? skill : skill.name}

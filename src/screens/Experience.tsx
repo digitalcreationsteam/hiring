@@ -967,7 +967,7 @@ export default function Experience() {
                 </div>
 
                 {/* Switch */}
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <Switch
                     checked={currentlyWorking}
                     onCheckedChange={setCurrentlyWorking}
@@ -983,7 +983,29 @@ export default function Experience() {
                   <span className="text-sm text-neutral-700">
                     I currently work here
                   </span>
-                </div>
+                </div> */}
+                <div className="flex items-center gap-3">
+  <Switch
+    checked={currentlyWorking}
+    onCheckedChange={setCurrentlyWorking}
+    className="
+      h-5 w-9
+      data-[state=unchecked]:bg-neutral-300
+      [&>span]:h-4 [&>span]:w-3
+      [&>span]:data-[state=checked]:translate-x-4
+      [&>span]:data-[state=unchecked]:translate-x-0
+    "
+    style={{
+      backgroundColor: currentlyWorking
+        ? colors.primary   // 👈 your primary color
+        : undefined,
+    }}
+  />
+  <span className="text-sm text-neutral-700">
+    I currently work here
+  </span>
+</div>
+
               </div>
 
               <TextField

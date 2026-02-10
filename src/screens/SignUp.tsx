@@ -9,6 +9,7 @@ import {
 } from "@subframe/core";
 import { IconWithBackground, OAuthSocialButton, TextField } from "../ui";
 import API, { URL_PATH } from "src/common/API";
+import { colors } from "src/common/Colors";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ const handleSubmit = async (e: any) => {
             <div className="flex flex-col gap-4">
               <img
                 className="h-8 w-fit"
-                src="/hiringLogo.png"
+                src="/hiringLogo2.png"
                 alt="logo"
               />
               <h1 className="text-3xl leading-snug inter-font-family">
@@ -145,8 +146,8 @@ const handleSubmit = async (e: any) => {
 
               <div className="flex flex-col gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100">
-                    <FeatherCheckCircle className="text-violet-600" />
+                  <div style={{backgroundColor: colors.primary}} className="flex items-center justify-center w-8 h-8 rounded-full">
+                    <FeatherCheckCircle className="" />
                   </div>
                   <div>
                     <p className="text-gray-900 text-sm">Verify your skills</p>
@@ -158,8 +159,8 @@ const handleSubmit = async (e: any) => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100">
-                    <FeatherBriefcase className="text-violet-600" />
+                  <div style={{backgroundColor: colors.primary}} className="flex items-center justify-center w-8 h-8 rounded-full">
+                    <FeatherBriefcase className="" />
                   </div>
                   <div>
                     <p className="text-gray-900 text-sm">
@@ -173,8 +174,8 @@ const handleSubmit = async (e: any) => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100">
-                    <FeatherMessageSquare className="text-violet-600" />
+                  <div style={{backgroundColor: colors.primary}} className="flex items-center justify-center w-8 h-8 rounded-full">
+                    <FeatherMessageSquare className="" />
                   </div>
                   <div>
                     <p className="text-gray-900 text-sm">
@@ -330,7 +331,7 @@ const handleSubmit = async (e: any) => {
 
 
               {/* Submit */}
-              <button
+              {/* <button
                 type="submit"
                 disabled={loading}
                 className={`w-full h-9 text-white font-semibold rounded-full transition ${
@@ -340,7 +341,20 @@ const handleSubmit = async (e: any) => {
                 }`}
               >
                 {loading ? "Creating..." : "Create account"}
-              </button>
+              </button> */}
+              <button
+  type="submit"
+  disabled={loading}
+  className={`w-full h-9 font-semibold rounded-full transition ${
+    loading ? "cursor-wait opacity-70" : "hover:opacity-90"
+  }`}
+  style={{
+    backgroundColor: colors.primary,
+    color: colors.accent,
+  }}
+>
+  {loading ? "Creating..." : "Create account"}
+</button>
             </form>
 
             <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
@@ -351,7 +365,7 @@ const handleSubmit = async (e: any) => {
               </span>
               <Link
                 to="/login"
-                className="text-violet-600 font-semibold hover:underline"
+                className="font-semibold hover:underline"
               >
                 Sign in
               </Link>
