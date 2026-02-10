@@ -8,7 +8,7 @@ import axios from "axios";
 ========================================= */
 export const BASE_URL = "http://localhost:5000/api";
 // export const BASE_URL = "http://localhost:5001/api";
-// export const BASE_URL = "https://unitalent.cloud/api";
+//export const BASE_URL = "https://unitalent.cloud/api";
 
 
 const isDev = process.env.NODE_ENV === "development";
@@ -106,6 +106,7 @@ export const URL_PATH = {
 
   createSubscription: "/subscription/create",
   initiateDodoPayment: "/subscription/payments/dodo/initiate",
+  checkSubsciptionStatus:"/subscription",
   verifyPayment: "/subscription/verify",
   getSubscriptions: "/subscription",
   getCurrentSubscription: "/subscription/current",
