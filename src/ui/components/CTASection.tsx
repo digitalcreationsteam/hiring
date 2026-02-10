@@ -90,7 +90,7 @@ const CTASection = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden">
+    <section id="contact" className="py-16 md:py-24 relative overflow-hidden">
       {/* Background with subtle pattern */}
       <div 
         style={{ backgroundColor: uniTalentColors.background }}
@@ -186,222 +186,23 @@ const CTASection = () => {
             </div>
           </div>
 
-          {/* Right Column - Form 
-          <div>
-            <div 
-              style={{ 
-                backgroundColor: uniTalentColors.background,
-                borderColor: uniTalentColors.lightGray
-              }}
-              className="rounded-2xl border p-6 md:p-8 shadow-xl"
+          {/* Right Column - Form */}
+          <div 
+            style={{ backgroundColor: uniTalentColors.background }}
+            className=" w-full h-auto"
             >
-              {isSubmitted ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6"
-                    style={{ 
-                      backgroundColor: `${uniTalentColors.primary}20`,
-                      color: uniTalentColors.primary
-                    }}
-                  >
-                    <CheckCircle className="w-8 h-8" />
-                  </div>
-                  <h3 
-                    style={{ color: uniTalentColors.text }}
-                    className="text-2xl font-bold mb-3"
-                  >
-                    Thank You!
-                  </h3>
-                  <p style={{ color: uniTalentColors.text }} className="opacity-80 mb-6">
-                    We've sent your free assessment link to {formData.email}. 
-                    Check your inbox in the next 5 minutes.
-                  </p>
-                  <div className="text-sm opacity-70">
-                    <p>Redirecting you to the assessment page...</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="text-center mb-8">
-                    <h3 
-                      style={{ color: uniTalentColors.text }}
-                      className="text-2xl font-bold mb-3"
-                    >
-                      Start Your Free Assessment
-                    </h3>
-                    <p style={{ color: uniTalentColors.text }} className="opacity-70">
-                      No credit card required. Get ranked in 15 minutes.
-                    </p>
-                  </div>
+              <div
+                 className="relative rounded-xl overflow-hidden shadow-2xl transform transition-all duration-300 hover:shadow-3xl hover:scale-[1.01]">
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {error && (
-                      <div 
-                        style={{ 
-                          backgroundColor: `${uniTalentColors.primary}10`,
-                          borderColor: uniTalentColors.primary,
-                          color: uniTalentColors.text
-                        }}
-                        className="p-3 rounded-lg border text-sm"
-                      >
-                        {error}
-                      </div>
-                    )}
-
-                    <div className="space-y-4">
-                      {/* Name Field }
-                      <div>
-                        <label 
-                          style={{ color: uniTalentColors.text }}
-                          className="block text-sm font-medium mb-2"
-                        >
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                          style={{ 
-                            backgroundColor: uniTalentColors.background,
-                            borderColor: uniTalentColors.lightGray,
-                            color: uniTalentColors.text
-                          }}
-                          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:border-#FFD85F transition-all duration-300"
-                          placeholder="John Doe"
-                        />
-                      </div>
-
-                      {/* Email Field }
-                      <div>
-                        <label 
-                          style={{ color: uniTalentColors.text }}
-                          className="block text-sm font-medium mb-2"
-                        >
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          style={{ 
-                            backgroundColor: uniTalentColors.background,
-                            borderColor: uniTalentColors.lightGray,
-                            color: uniTalentColors.text
-                          }}
-                          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:border-#FFD85F transition-all duration-300"
-                          placeholder="john@example.com"
-                        />
-                      </div>
-
-                      {/* Current Role }
-                      <div>
-                        <label 
-                          style={{ color: uniTalentColors.text }}
-                          className="block text-sm font-medium mb-2"
-                        >
-                          Current Role
-                        </label>
-                        <input
-                          type="text"
-                          name="currentRole"
-                          value={formData.currentRole}
-                          onChange={handleChange}
-                          style={{ 
-                            backgroundColor: uniTalentColors.background,
-                            borderColor: uniTalentColors.lightGray,
-                            color: uniTalentColors.text
-                          }}
-                          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:border-#FFD85F transition-all duration-300"
-                          placeholder="Product Manager, Associate PM, etc."
-                        />
-                      </div>
-
-                      {/* Years of Experience }
-                      <div>
-                        <label 
-                          style={{ color: uniTalentColors.text }}
-                          className="block text-sm font-medium mb-2"
-                        >
-                          Years of Experience
-                        </label>
-                        <select
-                          name="yearsExperience"
-                          value={formData.yearsExperience}
-                          onChange={handleChange}
-                          style={{ 
-                            backgroundColor: uniTalentColors.background,
-                            borderColor: uniTalentColors.lightGray,
-                            color: uniTalentColors.text
-                          }}
-                          className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:border-#FFD85F transition-all duration-300 appearance-none"
-                        >
-                          {experienceOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Submit Button }
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      style={{ 
-                        backgroundColor: uniTalentColors.primary,
-                        color: uniTalentColors.text
-                      }}
-                      className="w-full py-4 rounded-lg font-bold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <span className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          Start Free Assessment
-                          <Send className="w-5 h-5" />
-                        </>
-                      )}
-                    </button>
-
-                    {/* Privacy Notice }
-                    <p 
-                      style={{ color: uniTalentColors.text }}
-                      className="text-xs opacity-60 text-center"
-                    >
-                      By submitting, you agree to our{' '}
-                      <a href="#" className="underline hover:opacity-80">Terms</a> and{' '}
-                      <a href="#" className="underline hover:opacity-80">Privacy Policy</a>. 
-                      We'll send you assessment details and occasional updates.
-                    </p>
-                  </form>
-                </>
-              )}
+              </div>
+              <img 
+                style={{ height: window.innerWidth < 768 ? '300px' : '550px' }}
+                src="/studentImg.jpg" 
+                alt="Student Image" 
+                className="w-full rounded-xl shadow-lg object-cover object-center"
+              />
             </div>
-
-            {/* Trust Indicators }
-            <div className="mt-8 grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div style={{ color: uniTalentColors.text }} className="text-xl font-bold">100%</div>
-                <div style={{ color: uniTalentColors.text }} className="text-xs opacity-70">Free</div>
-              </div>
-              <div className="text-center">
-                <div style={{ color: uniTalentColors.text }} className="text-xl font-bold">15min</div>
-                <div style={{ color: uniTalentColors.text }} className="text-xs opacity-70">Assessment</div>
-              </div>
-              <div className="text-center">
-                <div style={{ color: uniTalentColors.text }} className="text-xl font-bold">24h</div>
-                <div style={{ color: uniTalentColors.text }} className="text-xs opacity-70">Results</div>
-              </div>
-            </div>
-          </div>
-          */}
+         
 
         </div>
       </div>

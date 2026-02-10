@@ -64,15 +64,6 @@ const FeaturesSection = () => {
   return (
     <section className="py-20 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 style={{ color: uniTalentColors.text }} className="text-3xl md:text-4xl font-bold mb-4">
-            Here's how it works:
-          </h2>
-          <p style={{ color: uniTalentColors.text }} className="text-xl opacity-80 max-w-3xl mx-auto">
-            Instead of sending another resume into the void, you demonstrate real PM skills through verified assessments.
-          </p>
-        </div>
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-0">
