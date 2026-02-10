@@ -14,6 +14,7 @@ import { useAppDispatch } from "src/store/hooks";
 import { setToken } from "src/store/slices/authSlice";
 import { setUserProfile } from "src/store/slices/userSlice";
 import { setNavigation } from "src/store/slices/onboardingSlice"; // ✅ NEW
+import { colors } from "src/common/Colors";
 
 function Login() {
   const navigate = useNavigate();
@@ -140,8 +141,8 @@ function Login() {
               <div className="w-full h-[1px] bg-gray-400 my-4 flex-shrink-0" />
               <div className="flex flex-col gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100">
-                    <FeatherCheckCircle className="text-violet-600" />
+                  <div style={{backgroundColor: colors.primary}} className="flex items-center justify-center w-8 h-8 rounded-full">
+                    <FeatherCheckCircle className="" />
                   </div>
                   <div>
                     <p className="text-gray-900 text-sm">Access your profile</p>
@@ -153,8 +154,8 @@ function Login() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100">
-                    <FeatherBriefcase className="text-violet-600" />
+                  <div style={{backgroundColor: colors.primary}}  className="flex items-center justify-center w-8 h-8 rounded-full">
+                    <FeatherBriefcase className="" />
                   </div>
                   <div>
                     <p className="text-gray-900 text-sm">Manage applications</p>
@@ -166,8 +167,8 @@ function Login() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-100">
-                    <FeatherMessageSquare className="text-violet-600" />
+                  <div style={{backgroundColor: colors.primary}}  className="flex items-center justify-center w-8 h-8 rounded-full">
+                    <FeatherMessageSquare className="" />
                   </div>
                   <div>
                     <p className="text-gray-900 text-sm">Check messages</p>
@@ -263,7 +264,7 @@ function Login() {
                 <div />
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-violet-600 hover:underline"
+                  className="text-xs hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -277,7 +278,7 @@ function Login() {
                 {error}
               </div>
 
-              <button
+              {/* <button
                 type="submit"
                 disabled={loading}
                 className={`w-full h-9 text-white font-semibold rounded-full transition ${
@@ -287,7 +288,21 @@ function Login() {
                 }`}
               >
                 {loading ? "Signing in..." : "Log in"}
-              </button>
+              </button> */}
+              <button
+  type="submit"
+  disabled={loading}
+  className={`w-full h-9 font-semibold rounded-full transition ${
+    loading ? "cursor-wait opacity-70" : "hover:opacity-90"
+  }`}
+  style={{
+    backgroundColor: colors.primary,
+    color: colors.accent,
+  }}
+>
+  {loading ? "Signing in..." : "Log in"}
+</button>
+
             </form>
 
             <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
@@ -296,7 +311,7 @@ function Login() {
               <span className="text-subtext-color">Don't have an account?</span>
               <Link
                 to="/signup"
-                className="text-violet-600 font-semibold hover:underline"
+                className="font-semibold hover:underline"
               >
                 Sign up
               </Link>

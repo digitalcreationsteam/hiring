@@ -1808,7 +1808,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-center gap-2">
                   <span
                     className="text-xl font-bold"
-                    style={{ color: colors.primary }}
+                    style={{ color: colors.accent }}
                   >
                     {user.name}
                   </span>
