@@ -110,7 +110,7 @@ const TestimonialsSection = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden">
+    <section id="testimonials" className="py-16 md:py-24 relative overflow-hidden">
       {/* Background with subtle pattern */}
       <div 
         style={{ backgroundColor: uniTalentColors.background }}
@@ -239,7 +239,7 @@ const TestimonialsSection = () => {
                   backgroundColor: uniTalentColors.background,
                   borderColor: uniTalentColors.lightGray
                 }}
-                className="group p-6 md:p-8 rounded-2xl border hover:border-#FFD85F hover:shadow-xl transition-all duration-500 relative overflow-hidden h-full"
+                className="group p-6 md:p-8 rounded-2xl border hover:border-#FFD85F hover:shadow-xl transition-all duration-500 relative overflow-hidden h-full "
               >
                 {/* Quote Icon */}
                 <div 
@@ -374,7 +374,7 @@ const TestimonialsSection = () => {
           </div>
         </div>
 
-        {/* Call to Action */}
+        {/* Call to Action 
         <div className="text-center mt-16">
           <p 
             style={{ color: uniTalentColors.text }}
@@ -400,6 +400,7 @@ const TestimonialsSection = () => {
             Join 5,000+ Product Managers who've transformed their careers with UniTalent
           </p>
         </div>
+        */}
       </div>
     </section>
   );

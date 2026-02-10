@@ -4,6 +4,7 @@ import FeaturesSection from 'src/ui/components/FeaturesSection';
 import StatsSection from 'src/ui/components/StatsSection';
 import Navbar from "src/ui/components/Navbar";
 import TrustSection from 'src/ui/components/TrustSection';
+import LinkedInGallery from 'src/ui/components/LinkedInGallery';
 import TestimonialsSection from 'src/ui/components/TestimonialsSection';
 import CTASection from 'src/ui/components/CTASection';
 import Footer from 'src/ui/components/Footer';
@@ -14,8 +15,9 @@ const LandingPage = () => {
       <Navbar />
       <HeroSection />
       <StatsSection />
-      <TrustSection />
       <FeaturesSection />
+      <TrustSection />
+      <LinkedInGallery />
       <TestimonialsSection />
       <CTASection/>
       <Footer />
