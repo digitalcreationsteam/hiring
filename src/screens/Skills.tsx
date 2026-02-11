@@ -184,6 +184,7 @@ export default function Skills() {
       </div>
 
       {/* Main content */}
+<<<<<<< HEAD
     <div className="flex justify-center items-center px-4 sm:px-6 md:px-8 py-6 sm:py-8 relative z-10">
   <main
     className="w-full max-w-[720px] rounded-3xl shadow-xl border px-6 sm:px-8 md:px-10 py-6 sm:py-8 backdrop-blur-md"
@@ -240,6 +241,24 @@ export default function Skills() {
     match you with relevant opportunities
   </p>
 </div>
+=======
+      <div className="flex justify-center items-center px-6 py-0 relative z-10">
+        <main className="w-full max-w-[720px] bg-white rounded-3xl shadow-[0_10px_30px_rgba(40,0,60,0.06)] border border-gray-300 px-10 py-8">
+          {/* top row - back + progress */}
+          <div className="flex items-center gap-4">
+            <IconButton
+  size="small"
+  icon={<FeatherArrowLeft />}
+  onClick={() => {
+    if (source === "dashboard") {
+      navigate("/dashboard");
+    } else {
+      navigate(-1);
+    }
+  }}
+/>
+
+>>>>>>> 013cc151c8d4b14cc33cec8e3f624dab17d7e965
 
 
           {/* Your Skills */}
