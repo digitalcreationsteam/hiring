@@ -184,41 +184,63 @@ export default function Skills() {
       </div>
 
       {/* Main content */}
-      <div className="flex justify-center items-center px-6 py-0 relative z-10">
-        <main className="w-full max-w-[720px] bg-white rounded-3xl shadow-[0_10px_30px_rgba(40,0,60,0.06)] border border-gray-300 px-10 py-8">
-          {/* top row - back + progress */}
-          <div className="flex items-center gap-4">
-            <IconButton
-              size="small"
-              icon={<FeatherArrowLeft />}
-              onClick={() => navigate(-1)}
-            />
+    <div className="flex justify-center items-center px-4 sm:px-6 md:px-8 py-6 sm:py-8 relative z-10">
+  <main
+    className="w-full max-w-[720px] rounded-3xl shadow-xl border px-6 sm:px-8 md:px-10 py-6 sm:py-8 backdrop-blur-md"
+    style={{
+      backgroundColor: `${colors.white}CC`, // glass effect
+      borderColor: colors.neutral[200],
+    }}
+  >
 
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={`p-${i}`}
-                    style={{ height: 6, backgroundColor: colors.primary }}
-                    className="flex-1 rounded-full"
-                  />
-                ))}
-                {[...Array(2)].map((_, i) => (
-                  <div
-                    key={`n-${i}`}
-                    style={{ height: 6 }}
-                    className="flex-1 rounded-full bg-gray-300"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* Header */}
-          <h2 className="mt-8 text-[22px]">Add your skills</h2>
-          <p className="text-xs text-neutral-500">
-            Add your key skills to help recruiters discover your profile and
-            match you with relevant opportunities
-          </p>
+
+{/* top row - back + progress */}
+<div className="flex items-center gap-3 sm:gap-4">
+  <IconButton
+    size="small"
+    icon={<FeatherArrowLeft />}
+    onClick={() => navigate(-1)}
+  />
+
+  <div className="flex-1">
+    <div className="flex items-center gap-2 sm:gap-3">
+      {[...Array(3)].map((_, i) => (
+        <div
+          key={`p-${i}`}
+          className="flex-1 rounded-full h-1.5 sm:h-2"
+          style={{ backgroundColor: colors.primary }}
+        />
+      ))}
+
+      {[...Array(2)].map((_, i) => (
+        <div
+          key={`n-${i}`}
+          className="flex-1 rounded-full h-1.5 sm:h-2"
+          style={{ backgroundColor: colors.neutral[200] }}
+        />
+      ))}
+    </div>
+  </div>
+</div>
+
+{/* Header */}
+<div className="mt-6 sm:mt-8 flex flex-col gap-1">
+  <h2
+    className="text-[20px] sm:text-[22px] md:text-[26px] font-semibold"
+    style={{ color: colors.neutral[800] }}
+  >
+    Add your skills
+  </h2>
+
+  <p
+    className="text-xs sm:text-sm leading-relaxed"
+    style={{ color: colors.neutral[600] }}
+  >
+    Add your key skills to help recruiters discover your profile and
+    match you with relevant opportunities
+  </p>
+</div>
+
 
           {/* Your Skills */}
           <div className="mt-8 flex flex-col gap-2">
@@ -292,17 +314,27 @@ export default function Skills() {
           </div>
 
           {/* Divider */}
-          <div className="w-full h-px bg-neutral-200 my-8" />
+          <div className="w-full h-px  my-8" 
+          style={{background: colors.secondary}}
+          />
 
           <footer>
-            <Button
-              style={{ backgroundColor: colors.primary, color: "black" }}
-              className="w-full h-10 rounded-full from-violet-600 to-violet-600  shadow-[0_6px_18px_rgba(99,52,237,0.18)]"
-              onClick={handleContinue}
-              disabled={skills.length === 0 || isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : "Continue"}
-            </Button>
+           <Button
+  onClick={handleContinue}
+  disabled={skills.length === 0 || isSubmitting}
+  className="w-full h-10 sm:h-11 rounded-full text-sm sm:text-base font-semibold transition active:scale-[0.99]"
+  style={{
+    backgroundColor:
+      skills.length === 0 || isSubmitting ? colors.neutral[200] : colors.accent,
+    color: colors.background,
+    cursor: skills.length === 0 || isSubmitting ? "not-allowed" : "pointer",
+    opacity: skills.length === 0 || isSubmitting ? 0.75 : 1,
+    boxShadow: skills.length === 0 || isSubmitting ? "none" : "0 10px 24px rgba(0,0,0,0.08)",
+  }}
+>
+  {isSubmitting ? "Saving..." : "Continue"}
+</Button>
+
           </footer>
         </main>
       </div>

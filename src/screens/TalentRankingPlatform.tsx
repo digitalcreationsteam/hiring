@@ -981,27 +981,25 @@ Just genuine, deserving, hardworking talent rising to the top — exactly where 
         Be part of a new, merit-first way of showcasing talent
       </span>
     </div>
+<Button
+  size="large"
+  onClick={() => navigate("/paywall")}
+  className="w-full h-11 sm:h-12 rounded-3xl text-[15px] sm:text-[16px] font-semibold transition active:scale-[0.99]"
+  style={{
+    backgroundColor: colors.primary,
+    color: colors.accent,
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.filter = "brightness(0.95)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.filter = "brightness(1)";
+  }}
+>
+  Finish Profile Setup
+</Button>
 
-    <Button
-      className="w-full max-w-full h-11 rounded-3xl text-[16px] font-semibold transition"
-      style={{
-        backgroundColor: colors.primary,
-        color: colors.accent,
-      }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.backgroundColor = colors.accent)
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = colors.primary)
-      }
-      size="large"
-      onClick={() => navigate("/paywall")}
-    >
-      <span 
-      style={{color: colors.background}}>
-      Finish Profile Setup
-      </span>
-    </Button>
+
   </div>
 </div>
 
