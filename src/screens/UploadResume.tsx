@@ -472,24 +472,29 @@ useEffect(() => {
 )}
 
         </div>
-
-      {/* Continue Button */}
-<div className="flex w-full justify-center sm:justify-end border-t border-neutral-border pt-4">
+{/* Continue Button */}
+<div
+  className="flex w-full justify-center sm:justify-end border-t pt-4"
+  style={{ borderColor: colors.neutral[200] }}
+>
   <Button
-    className={`h-10 w-full sm:max-w-[520px] rounded-full font-semibold shadow-md transition ${
+    className={`w-full sm:max-w-[520px] h-10 sm:h-11 rounded-full text-sm sm:text-base font-semibold shadow-md transition active:scale-[0.99] ${
       uploading ? "pointer-events-none opacity-70" : ""
     }`}
     style={{
-      backgroundColor: colors.primary,
+      backgroundColor: (!file && !existingResume) || uploading ? colors.neutral[200] : colors.primary,
       color: colors.accent, // ✅ text color accent
+      cursor: uploading ? "not-allowed" : "pointer",
     }}
     onMouseEnter={(e) => {
+      if ((!file && !existingResume) || uploading) return;
       e.currentTarget.style.backgroundColor = colors.secondary;
-      e.currentTarget.style.color = colors.accent; // keep accent on hover
+      e.currentTarget.style.color = colors.accent;
     }}
     onMouseLeave={(e) => {
+      if ((!file && !existingResume) || uploading) return;
       e.currentTarget.style.backgroundColor = colors.primary;
-      e.currentTarget.style.color = colors.accent; // keep accent after hover
+      e.currentTarget.style.color = colors.accent;
     }}
     onClick={uploadResume}
     disabled={(!file && !existingResume) || uploading}
@@ -497,6 +502,7 @@ useEffect(() => {
     {uploading ? "Uploading..." : "Continue"}
   </Button>
 </div>
+
 
       </div>
     </div>
