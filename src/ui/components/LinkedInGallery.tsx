@@ -3,14 +3,14 @@ import { uniTalentColors } from 'src/common/Colors'; // Adjust path as needed
 
 const LinkedInGallery: React.FC = () => {
 const [images] = useState([
-    { id: 1, src: '/1stScreenShot.jpeg', alt: 'Image 1' },
-    { id: 2, src: '/2ndScreenShot.jpeg', alt: 'Image 2' },
-    { id: 3, src: '/3rdScreenShot.jpeg', alt: 'Image 3' },
-    { id: 4, src: '/4thScreenShot.jpeg', alt: 'Image 4' },
-    { id: 5, src: '/5thScreenShot.jpeg', alt: 'Image 5' },
-    { id: 6, src: '/6thScreenShot.jpeg', alt: 'Image 6' },
-    { id: 7, src: '/7thScreenShot.jpeg', alt: 'Image 7' },
-    { id: 8, src: '/8thScreenShot.jpeg', alt: 'Image 8' },
+    { id: 1, src: '/1stScreenshot.jpeg', alt: 'Image 1' },
+    { id: 2, src: '/2ndScreenshot.jpeg', alt: 'Image 2' },
+    { id: 3, src: '/3rdScreenshot.jpeg', alt: 'Image 3' },
+    { id: 4, src: '/4thScreenshot.jpeg', alt: 'Image 4' },
+    { id: 5, src: '/5thScreenshot.jpeg', alt: 'Image 5' },
+    { id: 6, src: '/6thScreenshot.jpeg', alt: 'Image 6' },
+    { id: 7, src: '/7thScreenshot.jpeg', alt: 'Image 7' },
+    { id: 8, src: '/8thScreenshot.jpeg', alt: 'Image 8' },
   ]);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
