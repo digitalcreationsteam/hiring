@@ -1198,11 +1198,12 @@ export default function Awards() {
               </div>
             </aside>
           </div>
+
           {deleteAwardId && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div
                 className="w-[360px] rounded-2xl p-6 shadow-xl"
-                style={{ backgroundColor: colors.background }}
+                style={{ backgroundColor: colors.white }}
               >
                 <div className="flex justify-between items-center mb-4">
                   <h3
@@ -1236,9 +1237,19 @@ export default function Awards() {
 
                 <div className="flex gap-3">
                   <Button
-                    variant="neutral-secondary"
+                    variant="brand-tertiary"
                     className="flex-1 !rounded-3xl" // ✅ force same rounding
                     onClick={() => setDeleteAwardId(null)}
+                    style={{backgroundColor: colors.primary, color: colors.white}}
+                                         onMouseEnter={(e) => {
+                                          if (!isSubmitting)
+                                            e.currentTarget.style.backgroundColor =
+                                              colors.secondary;
+                                        }}
+                                          onMouseLeave={(e) => {
+                                          if (!isSubmitting)
+                                            e.currentTarget.style.backgroundColor = colors.primary;
+                                        }}
                   >
                     Cancel
                   </Button>

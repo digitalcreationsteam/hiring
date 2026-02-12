@@ -97,6 +97,9 @@ export default function Demographics() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
+
+
+  
   useEffect(() => {
     const hydrateNavigation = async () => {
       if (currentStep) {
@@ -213,6 +216,15 @@ export default function Demographics() {
 
     return null;
   };
+    // ✅ Controls when Continue button becomes enabled
+  const canContinue =
+    form.fullName.trim() !== "" &&
+    form.email.trim() !== "" &&
+    (form.phoneNumber?.trim() || "") !== "" &&
+    form.country.trim() !== "" &&
+    form.state.trim() !== "" &&
+    form.city.trim() !== "";
+
 
   /* ============================================
      FORM HANDLERS
@@ -390,6 +402,8 @@ export default function Demographics() {
     { label: "Awards", icon: <FeatherAward key="award" /> },
     { label: "Projects", icon: <FeatherPackage key="proj" /> },
   ];
+
+
 
   return (
     <div className="min-h-screen bg-neutral-50 relative overflow-hidden">
@@ -649,25 +663,50 @@ export default function Demographics() {
               <div className="w-full h-px bg-neutral-200 my-5" />
 
               {/* Submit Button */}
-              <Button
-                onClick={handleContinue}
-                disabled={isSubmitting || isLoading}
-                style={{
-                  backgroundColor: colors.accent,
-                  color: "white",
-                }}
-                className={`w-full h-10 rounded-full font-semibold transition ${
-                  isSubmitting || isLoading
-                    ? "cursor-not-allowed opacity-70"
-                    : "hover:opacity-90 shadow-lg"
-                }`}
-              >
-                {isLoading
-                  ? "Loading..."
-                  : isSubmitting
-                    ? "Submitting..."
-                    : "Continue"}
-              </Button>
+<Button
+  onClick={handleContinue}
+  disabled={!canContinue || isSubmitting || isLoading}
+  className="w-full h-10 sm:h-11 rounded-full text-sm sm:text-base font-semibold transition-all duration-200"
+  style={{
+    backgroundColor:
+      !canContinue || isSubmitting || isLoading
+        ? colors.neutral[200]   // faded background
+        : colors.accent,
+
+    color:
+      !canContinue || isSubmitting || isLoading
+        ? colors.neutral[400]   // faded text instead of full color
+        : colors.background,
+
+    cursor:
+      !canContinue || isSubmitting || isLoading
+        ? "not-allowed"
+        : "pointer",
+
+    boxShadow:
+      !canContinue || isSubmitting || isLoading
+        ? "none"
+        : "0 6px 16px rgba(0,0,0,0.10)",
+
+    transform:
+      !canContinue || isSubmitting || isLoading
+        ? "none"
+        : "translateY(0)",
+
+    opacity:
+      !canContinue || isSubmitting || isLoading ? 0.7 : 1,
+  }}
+>
+  {!canContinue
+    ? " continue"
+    : isLoading
+    ? "Loading..."
+    : isSubmitting
+    ? "Submitting..."
+    : "Continue"}
+</Button>
+
+
             </main>
 
             {/* RIGHT PANEL */}

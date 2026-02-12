@@ -431,7 +431,7 @@ function Paywall() {
   style={{
     backgroundColor:
       isLoading || !selectedPlanId ? colors.neutral[200] : colors.primary,
-    color: colors.accent,
+    color: colors.white,
     boxShadow:
       isLoading || !selectedPlanId ? "none" : `0 10px 25px ${colors.primary}30`,
     cursor: isLoading || !selectedPlanId ? "not-allowed" : "pointer",

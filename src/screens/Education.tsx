@@ -1700,7 +1700,7 @@ export default function Education() {
                     style={{
                       backgroundColor: currentlyStudying
                         ? colors.primary // ON color
-                        : colors.neutral?.[200] || "#D1D5DB", // OFF color fallback
+                        : colors.neutral?.[400] || "#374151", // OFF color fallback
                     }}
                   />
 
@@ -1730,6 +1730,15 @@ export default function Education() {
                     }}
                   />
                 </TextField>
+
+                              {/* ✅ OR Divider (ADD THIS) */}
+              <div className="flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-neutral-300" />
+                <span className="text-[11px] text-neutral-500 font-medium tracking-wide">
+                  OR
+                </span>
+                <div className="flex-1 h-px bg-neutral-300" />
+              </div>
 
                 {/* CGPA Field - Indian 10-point scale */}
                 <TextField
@@ -1917,6 +1926,7 @@ export default function Education() {
               </div>
             </aside>
           </div>
+
           {deleteId && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div
@@ -1956,9 +1966,19 @@ export default function Education() {
                 <div className="flex gap-3">
                   {/* Cancel */}
                   <Button
-                    variant="neutral-secondary"
+                    variant="brand-tertiary"
                     className="flex-1 rounded-3xl"
                     onClick={() => setDeleteId(null)}
+                    style={{backgroundColor: colors.primary, color: colors.white}}
+                     onMouseEnter={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor =
+                          colors.secondary;
+                    }}
+                      onMouseLeave={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor = colors.primary;
+                    }}
                   >
                     Cancel
                   </Button>
