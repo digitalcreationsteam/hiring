@@ -6,10 +6,10 @@ export const colors = {
   primary: "#1A2C42", 
 
   // The soft, buttery yellow used for the background 'glow' effect
-  primaryGlow: "#FBF3D5",
+  primaryGlow: "#BFC7CA",
 
   // Replaced #F8F8F8 with the soft atmospheric grey from the image
-  background: "#E9EAE9", 
+  background: "#D5D6D8", 
 
   // Pure white for the 'glass' base (usually used with opacity: white/30)
   white: "#FFFFFF",
@@ -18,7 +18,7 @@ export const colors = {
   accent: "#1F2937", 
 
   // Borders should be semi-transparent white, but for solid fallbacks:
-  secondary: "#D1D5DB", 
+  secondary: "#2E4056", 
 
   neutral: {
     50: "#FAFAFA",

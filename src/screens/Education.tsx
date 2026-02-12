@@ -1837,7 +1837,7 @@ export default function Education() {
 
                   {/* 🟣 Active — Education */}
                   <button
-                    style={{ backgroundColor: colors.primary }}
+                    style={{ backgroundColor: colors.primary,  }}
                     type="button"
                     className="w-full flex items-center gap-3 rounded-2xl px-4 py-2 mb-3 hover:shadow-sm"
                   >
@@ -1847,7 +1847,10 @@ export default function Education() {
                         icon={<FeatherGraduationCap />}
                       />
                     </div>
-                    <span className="text-sm font-semibold text-neutral-900">
+                    
+                    <span className="text-sm font-medium text-neutral-900"
+                    style={{color: colors.white}}
+                    >
                       Education
                     </span>
                   </button>
