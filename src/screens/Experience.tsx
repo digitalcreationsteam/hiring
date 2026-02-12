@@ -27,6 +27,7 @@ import "react-toastify/dist/ReactToastify.css";
 import * as SubframeCore from "@subframe/core";
 import { FeatherChevronDown } from "@subframe/core";
 import { colors } from "src/common/Colors";
+import Navbar from "src/ui/components/Navbar";
 
 const ROLE_TITLES = [
   { label: "Internship", value: "internship" },
@@ -667,27 +668,28 @@ export default function Experience() {
         />
       </div>
 
-      {/* Header and content with z-index to stay above background */}
-      <div className="relative z-10">
-        <HeaderLogo />
-        <ToastContainer position="top-center" autoClose={3000} />
-        <div className="flex justify-center px-4 sm:px-6 py-0 sm:py-0">
-          <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
-            {/* Left card */}
-            <main className="w-full md:max-w-[480px] bg-white rounded-3xl border border-neutral-300 px-4 sm:px-6 md:px-8 py-6">
-              {/* top row - back + progress */}
-              <div className="flex items-center gap-4">
-                <IconButton
-                  size="small"
-                  icon={<FeatherArrowLeft />}
-                  onClick={() => {
-                    if (source === "dashboard") {
-                      navigate("/dashboard");
-                    } else {
-                      navigate(-1);
-                    }
-                  }}
-                />
+    {/* Header and content with z-index to stay above background */}
+    <div className="relative z-10">
+      <Navbar />
+      <ToastContainer position="top-center" autoClose={3000} />
+      <div className="flex justify-center px-4 sm:px-6 py-0 sm:py-0">
+        <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
+          {/* Left card */}
+          <main className="w-full md:max-w-[480px] bg-white rounded-3xl border border-neutral-300 px-4 sm:px-6 md:px-8 py-6">
+            {/* top row - back + progress */}
+            <div className="flex items-center gap-4">
+              <IconButton
+  size="small"
+  icon={<FeatherArrowLeft />}
+  onClick={() => {
+    if (source === "dashboard") {
+      navigate("/dashboard");
+    } else {
+      navigate(-1);
+    }
+  }}
+/>
+
 
                 <div className="flex-1 w-full max-w-full md:max-w-[420px]">
                   <div className="flex items-center gap-3">
