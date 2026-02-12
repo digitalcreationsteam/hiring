@@ -1,24 +1,59 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> shreya
 // src/common/Colors.js
 
+// export const colors = {
+//   // The vibrant yellow used for the 'Hired' bar and active highlights
+//   primary: "#1A2C42", 
+//   secondary: "#2E4056", 
+
+//   // The soft, buttery yellow used for the background 'glow' effect
+//   primaryGlow: "#D5D6DB",
+
+//   // Replaced #F8F8F8 with the soft atmospheric grey from the image
+//   background: "#E9EAE9", 
+
+//   // Pure white for the 'glass' base (usually used with opacity: white/30)
+//   white: "#FFFFFF",
+
+//   // Deep charcoal for high-readability text (instead of pure black)
+//   accent: "#1F2937", 
+
+//   // Borders should be semi-transparent white, but for solid fallbacks:
+  
+
+//   neutral: {
+//     50: "#FAFAFA",
+//     100: "#F2F2F2", // Very light grey for subtle backgrounds
+//     200: "#E5E5E5", // Border/Divider color
+//     400: "#9CA3AF", // Placeholder text / Secondary text
+//     600: "#4B5563", // Muted text
+//     800: "#1F2937", // Primary heading text
+//   },
+
+//   // Semantic colors for the status badges seen in your UI
+//   status: {
+//     invited: "#DCFCE7", // Light green background
+//     invitedText: "#15803D", 
+//     absent: "#F3F4F6",  // Light grey background
+//     absentText: "#4B5563",
+//   },
+
+//   aqua: "#97D3CD",       // Light Aqua
+//   cream: "#FFFAE6",      // Main Background
+//   mint: "#E4F2EA",
+// };
+
 export const colors = {
-  // The vibrant yellow used for the 'Hired' bar and active highlights
-  primary: "#1A2C42", 
-
-  // The soft, buttery yellow used for the background 'glow' effect
+  primary: "#1A2C42",
+  secondary: "#2E4056",
+  slate: "#AAB5B7",
   primaryGlow: "#BFC7CA",
-
-  // Replaced #F8F8F8 with the soft atmospheric grey from the image
-  background: "#D5D6D8", 
-
-  // Pure white for the 'glass' base (usually used with opacity: white/30)
+  background: "#D5D6D8",
+  accent: "#1F2937",
   white: "#FFFFFF",
-
-  // Deep charcoal for high-readability text (instead of pure black)
-  accent: "#1F2937", 
-
-  // Borders should be semi-transparent white, but for solid fallbacks:
-  secondary: "#2E4056", 
 
   neutral: {
     50: "#FAFAFA",
@@ -29,7 +64,6 @@ export const colors = {
     800: "#1F2937", // Primary heading text
   },
 
-  // Semantic colors for the status badges seen in your UI
   status: {
     invited: "#DCFCE7", // Light green background
     invitedText: "#15803D", 
@@ -37,10 +71,13 @@ export const colors = {
     absentText: "#4B5563",
   },
 
-  aqua: "#97D3CD",       // Light Aqua
+aqua: "#97D3CD",       // Light Aqua
   cream: "#FFFAE6",      // Main Background
   mint: "#E4F2EA",
+
+  
 };
+
 
 // NEW UNITALENT COLOR PALETTE - Added separately without modifying existing colors
 export const uniTalentColors = {
