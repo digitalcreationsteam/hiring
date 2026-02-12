@@ -160,41 +160,41 @@ function MonthYearPicker({
               const formatted = `${String(idx + 1).padStart(2, "0")}/${year}`;
 
               return (
-              <button
-  key={m}
-  type="button"
-  disabled={disabledMonth}
-  onClick={() => {
-    onChange(formatted);
-    setOpen(false);
-  }}
-  className="py-2 px-3 rounded-lg transition text-sm sm:text-base"
-  style={{
-    backgroundColor:
-      value === formatted ? colors.accent : "transparent",
-    color:
-      value === formatted
-        ? colors.background
-        : disabledMonth
-        ? colors.neutral[400]
-        : colors.neutral[800],
-    cursor: disabledMonth ? "not-allowed" : "pointer",
-    opacity: disabledMonth ? 0.7 : 1,
-  }}
-  onMouseEnter={(e) => {
-    if (!disabledMonth && value !== formatted) {
-      e.currentTarget.style.backgroundColor = colors.primaryGlow;
-    }
-  }}
-  onMouseLeave={(e) => {
-    if (!disabledMonth && value !== formatted) {
-      e.currentTarget.style.backgroundColor = "transparent";
-    }
-  }}
->
-  {m}
-</button>
-
+                <button
+                  key={m}
+                  type="button"
+                  disabled={disabledMonth}
+                  onClick={() => {
+                    onChange(formatted);
+                    setOpen(false);
+                  }}
+                  className="py-2 px-3 rounded-lg transition text-sm sm:text-base"
+                  style={{
+                    backgroundColor:
+                      value === formatted ? colors.accent : "transparent",
+                    color:
+                      value === formatted
+                        ? colors.background
+                        : disabledMonth
+                          ? colors.neutral[400]
+                          : colors.neutral[800],
+                    cursor: disabledMonth ? "not-allowed" : "pointer",
+                    opacity: disabledMonth ? 0.7 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!disabledMonth && value !== formatted) {
+                      e.currentTarget.style.backgroundColor =
+                        colors.primaryGlow;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!disabledMonth && value !== formatted) {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                >
+                  {m}
+                </button>
               );
             })}
           </div>
@@ -616,9 +616,9 @@ export default function Experience() {
       toast.error("Please add at least one experience to continue.");
       return;
     }
-    if(source==="dashboard"){
+    if (source === "dashboard") {
       navigate("/dashboard");
-    }else{
+    } else {
       navigate("/certifications", { state: { source } });
     }
   };
@@ -637,576 +637,607 @@ export default function Experience() {
   }, [currentlyWorking]);
 
   return (
-  <div className="min-h-screen bg-neutral-50 relative overflow-hidden">
-    {/* Blended background - Covers entire page */}
-    <div className="pointer-events-none absolute inset-0">
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: colors.background }}
-      />
+    <div className="min-h-screen bg-neutral-50 relative overflow-hidden">
+      {/* Blended background - Covers entire page */}
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0"
+          style={{ backgroundColor: colors.background }}
+        />
 
-      <div
-        className="absolute -top-40 -left-40 h-[560px] w-[560px] rounded-full blur-3xl opacity-55"
-        style={{
-          background: `radial-gradient(circle at 60% 60%, ${colors.primary}AA, transparent 52%)`,
-        }}
-      />
+        <div
+          className="absolute -top-40 -left-40 h-[560px] w-[560px] rounded-full blur-3xl opacity-55"
+          style={{
+            background: `radial-gradient(circle at 60% 60%, ${colors.primary}AA, transparent 52%)`,
+          }}
+        />
 
-      <div
-        className="absolute -top-48 right-[-220px] h-[680px] w-[680px] rounded-full blur-3xl opacity-35"
-        style={{
-          background: `radial-gradient(circle at 50% 30%, ${colors.secondary}99, transparent 62%)`,
-        }}
-      />
+        <div
+          className="absolute -top-48 right-[-220px] h-[680px] w-[680px] rounded-full blur-3xl opacity-35"
+          style={{
+            background: `radial-gradient(circle at 50% 30%, ${colors.secondary}99, transparent 62%)`,
+          }}
+        />
 
-      <div
-        className="absolute bottom-[-260px] left-[15%] h-[760px] w-[760px] rounded-full blur-3xl opacity-20"
-        style={{
-          background: `radial-gradient(circle at 50% 50%, ${colors.accent}44, transparent 62%)`,
-        }}
-      />
-    </div>
+        <div
+          className="absolute bottom-[-260px] left-[15%] h-[760px] w-[760px] rounded-full blur-3xl opacity-20"
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${colors.accent}44, transparent 62%)`,
+          }}
+        />
+      </div>
 
-    {/* Header and content with z-index to stay above background */}
-    <div className="relative z-10">
-      <HeaderLogo />
-      <ToastContainer position="top-center" autoClose={3000} />
-      <div className="flex justify-center px-4 sm:px-6 py-0 sm:py-0">
-        <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
-          {/* Left card */}
-          <main className="w-full md:max-w-[480px] bg-white rounded-3xl border border-neutral-300 px-4 sm:px-6 md:px-8 py-6">
-            {/* top row - back + progress */}
-            <div className="flex items-center gap-4">
-              <IconButton
-  size="small"
-  icon={<FeatherArrowLeft />}
-  onClick={() => {
-    if (source === "dashboard") {
-      navigate("/dashboard");
-    } else {
-      navigate(-1);
-    }
-  }}
-/>
+      {/* Header and content with z-index to stay above background */}
+      <div className="relative z-10">
+        <HeaderLogo />
+        <ToastContainer position="top-center" autoClose={3000} />
+        <div className="flex justify-center px-4 sm:px-6 py-0 sm:py-0">
+          <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
+            {/* Left card */}
+            <main className="w-full md:max-w-[480px] bg-white rounded-3xl border border-neutral-300 px-4 sm:px-6 md:px-8 py-6">
+              {/* top row - back + progress */}
+              <div className="flex items-center gap-4">
+                <IconButton
+                  size="small"
+                  icon={<FeatherArrowLeft />}
+                  onClick={() => {
+                    if (source === "dashboard") {
+                      navigate("/dashboard");
+                    } else {
+                      navigate(-1);
+                    }
+                  }}
+                />
 
-
-              <div className="flex-1 w-full max-w-full md:max-w-[420px]">
-                <div className="flex items-center gap-3">
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={`p-${i}`}
-                      style={{ height: 6, backgroundColor: colors.primary }}
-                      className="flex-1 rounded-full"
-                    />
-                  ))}
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={`n-${i}`}
-                      style={{ height: 6 }}
-                      className="flex-1 rounded-full bg-neutral-300"
-                    />
-                  ))}
+                <div className="flex-1 w-full max-w-full md:max-w-[420px]">
+                  <div className="flex items-center gap-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={`p-${i}`}
+                        style={{ height: 6, backgroundColor: colors.primary }}
+                        className="flex-1 rounded-full"
+                      />
+                    ))}
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={`n-${i}`}
+                        style={{ height: 6 }}
+                        className="flex-1 rounded-full bg-neutral-300"
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* header */}
-            <div className="mt-6">
-              <h2 className="text-[22px] text-neutral-900">
-                Add your experience
-              </h2>
-              <p className="mt-1 text-sm text-neutral-500">
-                Internships, roles, and other work count toward your Experience
-                Index
-              </p>
-            </div>
+              {/* header */}
+              <div className="mt-6">
+                <h2 className="text-[22px] text-neutral-900">
+                  Add your experience
+                </h2>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Internships, roles, and other work count toward your
+                  Experience Index
+                </p>
+              </div>
 
-            {/* Selected experience preview list */}
-            <section className="mt-6 flex w-full flex-col gap-3">
-              {experiences.map((exp) => {
-                const isSelected = selectedExperience?.id === exp.id;
+              {/* Selected experience preview list */}
+              <section className="mt-6 flex w-full flex-col gap-3">
+                {experiences.map((exp) => {
+                  const isSelected = selectedExperience?.id === exp.id;
 
-                return (
-                  <div
-                    key={exp.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() =>
-                      setSelectedExperience(isSelected ? null : exp)
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedExperience(isSelected ? null : exp);
+                  return (
+                    <div
+                      key={exp.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() =>
+                        setSelectedExperience(isSelected ? null : exp)
                       }
-                    }}
-              className="rounded-3xl px-4 py-3 cursor-pointer transition-all duration-200 focus:outline-none"
-style={{
-  backgroundColor: isSelected ? `${colors.primary}10` : colors.white,
-  border: `1px solid ${
-    isSelected ? colors.primary : colors.neutral[400]
-  }`,
-  boxShadow: isSelected
-    ? `0 4px 14px ${colors.primary}22`
-    : "0 1px 3px rgba(0,0,0,0.04)",
-}}
-                  >
-                    {/* 🔹 TOP ROW */}
-                    <div className="flex items-center justify-between">
-                      {/* Left */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Avatar
-  size="large"
-  square
-  className="!rounded-3xl shadow-sm"
-  style={{
-    backgroundColor: colors.primaryGlow,
-    color: colors.neutral[800],
-  }}
->
-  {(exp.company || "")
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")}
-</Avatar>
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedExperience(isSelected ? null : exp);
+                        }
+                      }}
+                      className="rounded-3xl px-4 py-3 cursor-pointer transition-all duration-200 focus:outline-none"
+                      style={{
+                        backgroundColor: isSelected
+                          ? `${colors.primary}10`
+                          : colors.white,
+                        border: `1px solid ${
+                          isSelected ? colors.primary : colors.neutral[400]
+                        }`,
+                        boxShadow: isSelected
+                          ? `0 4px 14px ${colors.primary}22`
+                          : "0 1px 3px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      {/* 🔹 TOP ROW */}
+                      <div className="flex items-center justify-between">
+                        {/* Left */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar
+                            size="large"
+                            square
+                            className="!rounded-3xl shadow-sm"
+                            style={{
+                              backgroundColor: colors.primaryGlow,
+                              color: colors.neutral[800],
+                            }}
+                          >
+                            {(exp.company || "")
+                              .split(" ")
+                              .slice(0, 2)
+                              .map((w) => w[0])
+                              .join("")}
+                          </Avatar>
 
-
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-neutral-900 truncate">
-                            {exp.roleTitle}
-                          </span>
-                          <span className="text-xs text-neutral-500 truncate">
-                            {exp.company}
-                          </span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-semibold text-neutral-900 truncate">
+                              {exp.roleTitle}
+                            </span>
+                            <span className="text-xs text-neutral-500 truncate">
+                              {exp.company}
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Right */}
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <IconButton
-                          size="small"
-                          icon={<FeatherX />}
-                          aria-label={`Delete experience ${exp.roleTitle}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteId(exp.id);
-                          }}
-                          className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                        />
+                        {/* Right */}
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <IconButton
+                            size="small"
+                            icon={<FeatherX />}
+                            aria-label={`Delete experience ${exp.roleTitle}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(exp.id);
+                            }}
+                            className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                          />
 
-                        <span className="text-xs text-neutral-500">
-                          {exp.startDate || "—"}
-                          {exp.currentlyWorking
-                            ? " - Present"
-                            : exp.endDate
-                              ? ` - ${exp.endDate}`
-                              : ""}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 🔹 DETAILS (same card, same border) */}
-                    {isSelected && (
-                      <>
-                        <div className="my-4 border-t border-neutral-200" />
-
-                        <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
-                          <div>
-                            <span className="font-medium">Role:</span>{" "}
-                            {exp.roleTitle}
-                          </div>
-
-                          <div>
-                            <span className="font-medium">Type Of Roll:</span>{" "}
-                            {exp.typeOfRole}
-                          </div>
-
-                          <div>
-                            <span className="font-medium">Company:</span>{" "}
-                            {exp.company}
-                          </div>
-
-                          <div>
-                            <span className="font-medium">Duration:</span>{" "}
+                          <span className="text-xs text-neutral-500">
                             {exp.startDate || "—"}
                             {exp.currentlyWorking
                               ? " - Present"
                               : exp.endDate
                                 ? ` - ${exp.endDate}`
                                 : ""}
-                          </div>
-
-                          {exp.description && (
-                            <div>
-                              <span className="font-medium">Description:</span>{" "}
-                              {exp.description}
-                            </div>
-                          )}
+                          </span>
                         </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </section>
+                      </div>
 
-            {/* form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAddExperience();
-              }}
-              className="mt-6 flex flex-col gap-4"
-            >
-              <TextField
-                className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
-                label={
-                  <span className="text-[12px]">
-                    Role Title <span className="text-red-500">*</span>{" "}
-                  </span>
-                }
-                helpText=""
+                      {/* 🔹 DETAILS (same card, same border) */}
+                      {isSelected && (
+                        <>
+                          <div className="my-4 border-t border-neutral-200" />
+
+                          <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+                            <div>
+                              <span className="font-medium">Role:</span>{" "}
+                              {exp.roleTitle}
+                            </div>
+
+                            <div>
+                              <span className="font-medium">Type Of Roll:</span>{" "}
+                              {exp.typeOfRole}
+                            </div>
+
+                            <div>
+                              <span className="font-medium">Company:</span>{" "}
+                              {exp.company}
+                            </div>
+
+                            <div>
+                              <span className="font-medium">Duration:</span>{" "}
+                              {exp.startDate || "—"}
+                              {exp.currentlyWorking
+                                ? " - Present"
+                                : exp.endDate
+                                  ? ` - ${exp.endDate}`
+                                  : ""}
+                            </div>
+
+                            {exp.description && (
+                              <div>
+                                <span className="font-medium">
+                                  Description:
+                                </span>{" "}
+                                {exp.description}
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </section>
+
+              {/* form */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAddExperience();
+                }}
+                className="mt-6 flex flex-col gap-4"
               >
-                <TextField.Input
-                  className="h-20 text-[12px]"
-                  placeholder="Name of Role"
-                  value={roleTitle}
-                  onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
-                    setRoleTitle(ev.target.value)
+                <TextField
+                  className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
+                  label={
+                    <span className="text-[12px]">
+                      Role Title <span className="text-red-500">*</span>{" "}
+                    </span>
                   }
-                />
-              </TextField>
+                  helpText=""
+                >
+                  <TextField.Input
+                    className="h-20 text-[12px]"
+                    placeholder="Name of Role"
+                    value={roleTitle}
+                    onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
+                      setRoleTitle(ev.target.value)
+                    }
+                  />
+                </TextField>
 
-<div className="flex flex-col gap-1">
-  <label className="text-[12px] font-medium text-neutral-900">
-    Type of Role <span className="text-red-500">*</span>
-  </label>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[12px] font-medium text-neutral-900">
+                    Type of Role <span className="text-red-500">*</span>
+                  </label>
 
-  <SubframeCore.DropdownMenu.Root>
-    <SubframeCore.DropdownMenu.Trigger asChild>
-      <button
-        type="button"
-        className="flex h-9 w-full items-center justify-between rounded-full border border-neutral-300 bg-white px-3 cursor-pointer"
-      >
-        <span
-          className={
-            typeOfRole
-              ? "text-neutral-900 text-[12px]"
-              : "text-neutral-400 text-[12px]"
-          }
-        >
-          {typeOfRole ? typeOfRoleLabel : "Select type of role"}
-        </span>
-        <FeatherChevronDown className="text-neutral-500" />
-      </button>
-    </SubframeCore.DropdownMenu.Trigger>
+                  <SubframeCore.DropdownMenu.Root>
+                    <SubframeCore.DropdownMenu.Trigger asChild>
+                      <button
+                        type="button"
+                        className="flex h-9 w-full items-center justify-between rounded-full border border-neutral-300 bg-white px-3 cursor-pointer"
+                      >
+                        <span
+                          className={
+                            typeOfRole
+                              ? "text-neutral-900 text-[12px]"
+                              : "text-neutral-400 text-[12px]"
+                          }
+                        >
+                          {typeOfRole ? typeOfRoleLabel : "Select type of role"}
+                        </span>
+                        <FeatherChevronDown className="text-neutral-500" />
+                      </button>
+                    </SubframeCore.DropdownMenu.Trigger>
 
-    <SubframeCore.DropdownMenu.Portal>
-      <SubframeCore.DropdownMenu.Content
-        align="start"
-        sideOffset={6}
-        className="z-[9999] bg-white rounded-2xl shadow-lg py-1 border border-neutral-300 min-w-[220px]"
-      >
-        {ROLE_TITLES.map((item) => (
-          <SubframeCore.DropdownMenu.Item
-            key={item.value}
-            onSelect={() => setTypeOfRole(item.value)}
-            className="px-4 py-2 text-sm cursor-pointer hover:bg-neutral-100 outline-none"
-          >
-            {item.label}
-          </SubframeCore.DropdownMenu.Item>
-        ))}
-      </SubframeCore.DropdownMenu.Content>
-    </SubframeCore.DropdownMenu.Portal>
-  </SubframeCore.DropdownMenu.Root>
-</div>
-
-
-              <TextField
-                label={
-                  <span className="text-[12px]">
-                    Company <span className="text-red-500">*</span>
-                  </span>
-                }
-                helpText=""
-                className={`${scTextFieldClass}`}
-              >
-                <TextField.Input
-                  placeholder="Company name"
-                  value={company}
-                  onChange={(e) =>
-                    setCompany(e.target.value.replace(/[^A-Za-z\s.&-]/g, ""))
-                  }
-                  onBlur={() => setCompany(toTitleCase(company))}
-                  className={scInputClass}
-                />
-              </TextField>
-
-              {/* // date------------------------- */}
-              <div className="flex flex-col gap-6 max-w-lg">
-                {/* Dates */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="startdate"
-                      className="text-[12px] font-medium text-neutral-700"
-                    >
-                      Start Date <span className="text-red-500">*</span>
-                    </label>
-                    <MonthYearPicker
-                      value={startDate}
-                      onChange={setStartDate}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="startdate"
-                      className="text-[12px] font-medium text-neutral-700"
-                    >
-                      End Date <span className="text-red-500">*</span>
-                    </label>
-                    <MonthYearPicker
-                      value={endDate}
-                      onChange={setEndDate}
-                      disabled={currentlyWorking}
-                    />
-                  </div>
+                    <SubframeCore.DropdownMenu.Portal>
+                      <SubframeCore.DropdownMenu.Content
+                        align="start"
+                        sideOffset={6}
+                        className="z-[9999] bg-white rounded-2xl shadow-lg py-1 border border-neutral-300 min-w-[220px]"
+                      >
+                        {ROLE_TITLES.map((item) => (
+                          <SubframeCore.DropdownMenu.Item
+                            key={item.value}
+                            onSelect={() => setTypeOfRole(item.value)}
+                            className="px-4 py-2 text-sm cursor-pointer hover:bg-neutral-100 outline-none"
+                          >
+                            {item.label}
+                          </SubframeCore.DropdownMenu.Item>
+                        ))}
+                      </SubframeCore.DropdownMenu.Content>
+                    </SubframeCore.DropdownMenu.Portal>
+                  </SubframeCore.DropdownMenu.Root>
                 </div>
 
-              {/* Switch */}
-<div className="flex items-center gap-3">
-  <Switch
-    checked={currentlyWorking}
-    onCheckedChange={setCurrentlyWorking}
-    className="
+                <TextField
+                  label={
+                    <span className="text-[12px]">
+                      Company <span className="text-red-500">*</span>
+                    </span>
+                  }
+                  helpText=""
+                  className={`${scTextFieldClass}`}
+                >
+                  <TextField.Input
+                    placeholder="Company name"
+                    value={company}
+                    onChange={(e) =>
+                      setCompany(e.target.value.replace(/[^A-Za-z\s.&-]/g, ""))
+                    }
+                    onBlur={() => setCompany(toTitleCase(company))}
+                    className={scInputClass}
+                  />
+                </TextField>
+
+                {/* // date------------------------- */}
+                <div className="flex flex-col gap-6 max-w-lg">
+                  {/* Dates */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="startdate"
+                        className="text-[12px] font-medium text-neutral-700"
+                      >
+                        Start Date <span className="text-red-500">*</span>
+                      </label>
+                      <MonthYearPicker
+                        value={startDate}
+                        onChange={setStartDate}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="startdate"
+                        className="text-[12px] font-medium text-neutral-700"
+                      >
+                        End Date <span className="text-red-500">*</span>
+                      </label>
+                      <MonthYearPicker
+                        value={endDate}
+                        onChange={setEndDate}
+                        disabled={currentlyWorking}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Switch */}
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={currentlyWorking}
+                      onCheckedChange={setCurrentlyWorking}
+                      className="
       h-5 w-9
       [&>span]:h-4 [&>span]:w-3
       [&>span]:data-[state=checked]:translate-x-4
       [&>span]:data-[state=unchecked]:translate-x-0
     "
-    style={{
-      backgroundColor: currentlyWorking ? colors.primary : colors.neutral[400],
-    }}
-  />
-  <span className="text-sm" style={{ color: colors.neutral[600] ?? "#374151" }}>
-    I currently work here
-  </span>
-</div>
-</div>
+                      style={{
+                        backgroundColor: currentlyWorking
+                          ? colors.primary
+                          : colors.neutral[400],
+                      }}
+                    />
+                    <span
+                      className="text-sm"
+                      style={{ color: colors.neutral[600] ?? "#374151" }}
+                    >
+                      I currently work here
+                    </span>
+                  </div>
+                </div>
 
+                <TextField
+                  label={<span className="text-[12px]">Description </span>}
+                  helpText=""
+                  className={`${scTextFieldClass}`}
+                >
+                  <TextField.Input
+                    placeholder="Describe your key responsibilities and achievements"
+                    value={description}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 500) {
+                        setDescription(e.target.value);
+                      }
+                    }}
+                    onBlur={() => setDescription(toSentenceCase(description))}
+                    className={scInputClass}
+                  />
+                </TextField>
 
-              <TextField
-                label={<span className="text-[12px]">Description </span>}
-                helpText=""
-                className={`${scTextFieldClass}`}
-              >
-                <TextField.Input
-                  placeholder="Describe your key responsibilities and achievements"
-                  value={description}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 500) {
-                      setDescription(e.target.value);
-                    }
-                  }}
-                  onBlur={() => setDescription(toSentenceCase(description))}
-                  className={scInputClass}
-                />
-              </TextField>
+                <div className="mt-2 flex flex-col sm:flex-row gap-3">
+                  <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    variant="neutral-secondary"
+                    icon={<FeatherPlus />}
+                    className="w-full rounded-full h-10 px-4 border-neutral-300"
+                    onClick={handleAddExperience}
+                  >
+                    {isSubmitting ? "Adding..." : "Add another experience"}
+                  </Button>
 
-              <div className="mt-2 flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1" />
+                </div>
+              </form>
+              {/* Top form horizontal line */}
+              <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
+              <footer>
                 <Button
-                  type="button"
-                  disabled={isSubmitting}
-                  variant="neutral-secondary"
-                  icon={<FeatherPlus />}
-                  className="w-full rounded-full h-10 px-4 border-neutral-300"
-                  onClick={handleAddExperience}
+                  onClick={handleContinue}
+                  disabled={!canContinue || isSubmitting}
+                  className="w-full h-10 sm:h-11 rounded-full text-sm sm:text-base font-semibold transition-all active:scale-[0.99]"
+                  style={{
+                    backgroundColor:
+                      !canContinue || isSubmitting
+                        ? colors.neutral[200]
+                        : colors.accent,
+                    color: colors.background,
+                    cursor:
+                      !canContinue || isSubmitting ? "not-allowed" : "pointer",
+                    opacity: !canContinue || isSubmitting ? 0.75 : 1,
+                    boxShadow:
+                      !canContinue || isSubmitting
+                        ? "none"
+                        : "0 10px 24px rgba(0,0,0,0.08)",
+                  }}
                 >
-                  {isSubmitting ? "Adding..." : "Add another experience"}
+                  {isSubmitting ? "Saving..." : "Continue"}
                 </Button>
+              </footer>
+            </main>
 
-                <div className="flex-1" />
-              </div>
-            </form>
-            {/* Top form horizontal line */}
-            <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
-            <footer>
-<Button
-  onClick={handleContinue}
-  disabled={!canContinue || isSubmitting}
-  className="w-full h-10 sm:h-11 rounded-full text-sm sm:text-base font-semibold transition-all active:scale-[0.99]"
-  style={{
-    backgroundColor:
-      !canContinue || isSubmitting ? colors.neutral[200] : colors.accent,
-    color: colors.background,
-    cursor: !canContinue || isSubmitting ? "not-allowed" : "pointer",
-    opacity: !canContinue || isSubmitting ? 0.75 : 1,
-    boxShadow:
-      !canContinue || isSubmitting
-        ? "none"
-        : "0 10px 24px rgba(0,0,0,0.08)",
-  }}
->
-  {isSubmitting ? "Saving..." : "Continue"}
-</Button>
+            {/* Right panel */}
+            <aside className="w-full md:w-72 shrink-0 mt-6 md:mt-0">
+              <div className="md:sticky md:top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-300">
+                <h3 className="text-[22px] text-neutral-900">
+                  Your Experience Index
+                </h3>
 
-            </footer>
-          </main>
-
-          {/* Right panel */}
-          <aside className="w-full md:w-72 shrink-0 mt-6 md:mt-0">
-            <div className="md:sticky md:top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-300">
-              <h3 className="text-[22px] text-neutral-900">
-                Your Experience Index
-              </h3>
-
-              <div className="flex items-center justify-center py-6">
-                <span
-                  aria-live="polite"
-                  className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
-                >
-                  {displayedIndex ?? 0}
-                </span>
-              </div>
-
-              <div className="h-px bg-neutral-300" />
-
-              <div className="mt-4">
-                <div className="text-[16px] text-neutral-800 mb-3">
-                  Progress Steps
+                <div className="flex items-center justify-center py-6">
+                  <span
+                    aria-live="polite"
+                    className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
+                  >
+                    {displayedIndex ?? 0}
+                  </span>
                 </div>
 
-                {/* ⚪ Completed — Demographics */}
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3"
-                >
-                  <IconWithBackground
-                    size="small"
-                    icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
-                    className="!bg-green-100 !rounded-full !p-3"
-                  />
-                  <span className="text-sm text-neutral-700">Demographics</span>
-                </button>
+                <div className="h-px bg-neutral-300" />
 
-                {/* ✔ Education — Completed */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
-                  <IconWithBackground
-                    size="small"
-                    icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
-                    className="!bg-green-100 !rounded-full !p-3"
-                  />
-                  <span className="text-sm text-neutral-700">Education</span>
-                </div>
+                <div className="mt-4">
+                  <div className="text-[16px] text-neutral-800 mb-3">
+                    Progress Steps
+                  </div>
 
-                {/* 🟣 Experience — Active */}
-                <div style={{backgroundColor: colors.primary}} className="flex items-center gap-3 rounded-2xl px-4 py-2 mb-3">
-                  <div className="flex items-center justify-center h-8 w-8 rounded-2xl bg-white shadow-sm">
+                  {/* ⚪ Completed — Demographics */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3"
+                  >
+                    <IconWithBackground
+                      size="small"
+                      icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
+                      className="!bg-green-100 !rounded-full !p-3"
+                    />
+                    <span className="text-sm text-neutral-700">
+                      Demographics
+                    </span>
+                  </button>
+
+                  {/* ✔ Education — Completed */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
+                    <IconWithBackground
+                      size="small"
+                      icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
+                      className="!bg-green-100 !rounded-full !p-3"
+                    />
+                    <span className="text-sm text-neutral-700">Education</span>
+                  </div>
+
+                  {/* 🟣 Experience — Active */}
+                  <div
+                    style={{ backgroundColor: colors.primary }}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-2 mb-3"
+                  >
+                    <div className="flex items-center justify-center h-8 w-8 rounded-2xl bg-white shadow-sm">
+                      <IconWithBackground
+                        size="small"
+                        variant="neutral"
+                        className="!bg-white !text-neutral-700"
+                        icon={
+                          <FeatherBriefcase className="!text-neutral-700" />
+                        }
+                      />
+                    </div>
+                    <span
+                      className="text-sm font-medium text-neutral-900"
+                      style={{ color: colors.white }}
+                    >
+                      Experience
+                    </span>
+                  </div>
+
+                  {/* Certifications — Inactive */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
                     <IconWithBackground
                       size="small"
                       variant="neutral"
-                      className="!bg-white !text-neutral-700"
-                      icon={<FeatherBriefcase className="!text-neutral-700" />}
+                      className="!bg-grey !text-neutral-600"
+                      icon={<FeatherFileCheck />}
                     />
+                    <span className="text-sm text-neutral-500">
+                      Certifications
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-neutral-900"
-                   style={{color: colors.white}}
+
+                  {/* Awards — Inactive */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
+                    <IconWithBackground
+                      size="small"
+                      variant="neutral"
+                      className="!bg-grey !text-neutral-600"
+                      icon={<FeatherAward />}
+                    />
+                    <span className="text-sm text-neutral-500">Awards</span>
+                  </div>
+
+                  {/* Projects — Inactive */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2">
+                    <IconWithBackground
+                      size="small"
+                      variant="neutral"
+                      className="!bg-grey !text-neutral-600"
+                      icon={<FeatherPackage />}
+                    />
+                    <span className="text-sm text-neutral-500">Projects</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          {deleteId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Are you sure?
+                  </h3>
+                  <button
+                    onClick={() => setDeleteId(null)}
+                    className="text-neutral-400 hover:text-neutral-600"
                   >
-                    Experience
-                  </span>
+                    ✕
+                  </button>
                 </div>
 
-                {/* Certifications — Inactive */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
-                  <IconWithBackground
-                    size="small"
-                    variant="neutral"
-                    className="!bg-grey !text-neutral-600"
-                    icon={<FeatherFileCheck />}
-                  />
-                  <span className="text-sm text-neutral-500">
-                    Certifications
-                  </span>
-                </div>
+                <p className="text-sm text-neutral-600 mb-6">
+                  Do you really want to delete this experience?
+                </p>
 
-                {/* Awards — Inactive */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
-                  <IconWithBackground
-                    size="small"
-                    variant="neutral"
-                    className="!bg-grey !text-neutral-600"
-                    icon={<FeatherAward />}
-                  />
-                  <span className="text-sm text-neutral-500">Awards</span>
-                </div>
+                <div className="flex gap-3">
+                  {/* ✅ Cancel - same shape */}
+                  <Button
+                    variant="brand-tertiary"
+                                       className="flex-1 rounded-3xl"
+                                       onClick={() => setDeleteId(null)}
+                                       style={{backgroundColor: colors.primary, color: colors.white}}
+                                        onMouseEnter={(e) => {
+                                         if (!isSubmitting)
+                                           e.currentTarget.style.backgroundColor =
+                                             colors.secondary;
+                                       }}
+                                         onMouseLeave={(e) => {
+                                         if (!isSubmitting)
+                                           e.currentTarget.style.backgroundColor = colors.primary;
+                                       }}
+                  >
+                    Cancel
+                  </Button>
 
-                {/* Projects — Inactive */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2">
-                  <IconWithBackground
-                    size="small"
-                    variant="neutral"
-                    className="!bg-grey !text-neutral-600"
-                    icon={<FeatherPackage />}
-                  />
-                  <span className="text-sm text-neutral-500">Projects</span>
+                  {/* ✅ Yes - same shape */}
+                  <Button
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                    }}
+                    className="flex-1 rounded-3xl transition"
+                    onMouseEnter={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor =
+                          colors.secondary;
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor = colors.primary;
+                    }}
+                    onClick={handleRemove}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Deleting..." : "Yes"}
+                  </Button>
                 </div>
               </div>
             </div>
-          </aside>
+          )}
         </div>
-        {deleteId && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div className="w-[360px] rounded-2xl bg-white p-6 shadow-xl">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-neutral-900">
-          Are you sure?
-        </h3>
-        <button
-          onClick={() => setDeleteId(null)}
-          className="text-neutral-400 hover:text-neutral-600"
-        >
-          ✕
-        </button>
-      </div>
-
-      <p className="text-sm text-neutral-600 mb-6">
-        Do you really want to delete this experience?
-      </p>
-
-      <div className="flex gap-3">
-        {/* ✅ Cancel - same shape */}
-        <Button
-          variant="neutral-secondary"
-          className="flex-1 rounded-3xl"
-          onClick={() => setDeleteId(null)}
-        >
-          Cancel
-        </Button>
-
-        {/* ✅ Yes - same shape */}
-        <Button
-          style={{ backgroundColor: colors.primary, color: colors.white }}
-          className="flex-1 rounded-3xl transition"
-          onMouseEnter={(e) => {
-            if (!isSubmitting) e.currentTarget.style.backgroundColor = colors.secondary;
-          }}
-          onMouseLeave={(e) => {
-            if (!isSubmitting) e.currentTarget.style.backgroundColor = colors.primary;
-          }}
-          onClick={handleRemove}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Deleting..." : "Yes"}
-        </Button>
       </div>
     </div>
-  </div>
-)}
-
-      </div>
-    </div>
-  </div>
-);
+  );
 }

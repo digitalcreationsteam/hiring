@@ -481,19 +481,19 @@ useEffect(() => {
     }`}
     style={{
       backgroundColor: (!file && !existingResume) || uploading ? colors.neutral[200] : colors.primary,
-      color: colors.accent, // ✅ text color accent
+      color: colors.white, // ✅ text color accent
       border: "none",
       outline: "none",
     }}
     onMouseEnter={(e) => {
       if ((!file && !existingResume) || uploading) return;
       e.currentTarget.style.backgroundColor = colors.secondary;
-      e.currentTarget.style.color = colors.accent;
+      e.currentTarget.style.color = colors.white;
     }}
     onMouseLeave={(e) => {
       if ((!file && !existingResume) || uploading) return;
       e.currentTarget.style.backgroundColor = colors.primary;
-      e.currentTarget.style.color = colors.accent;
+      e.currentTarget.style.color = colors.white;
     }}
     onClick={uploadResume}
     disabled={(!file && !existingResume) || uploading}
