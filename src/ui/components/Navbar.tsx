@@ -518,7 +518,7 @@ const Navbar = () => {
         <button
           onClick={toggleMenu}
           className="md:hidden p-2 rounded-lg"
-          style={{ color: uniTalentColors.text }}
+          style={{ color: uniTalentColors.white }}
         >
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
@@ -528,7 +528,7 @@ const Navbar = () => {
       {isOpen && (
         <div
           className="md:hidden border-t"
-          style={{ backgroundColor: uniTalentColors.background }}
+          style={{ backgroundColor: uniTalentColors.primary }}
         >
           <div className="px-4 py-4 space-y-4">
             {isLandingPage &&
@@ -536,8 +536,8 @@ const Navbar = () => {
                 <button
                   key={item}
                   onClick={() => handleScroll(item)}
-                  className="block w-full text-left py-3 font-bold"
-                  style={{ color: uniTalentColors.text }}
+                  className="block w-full text-center py-3 font-bold"
+                  style={{ color: uniTalentColors.white }}
                 >
                   {item}
                 </button>
@@ -545,14 +545,20 @@ const Navbar = () => {
 
             <div className="pt-4 border-t space-y-3">
               {!isLoggedIn ? (
-                <>
-                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                <div className="flex flex-col items-center gap-3">
+                  <Link 
+                  className="px-6 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+                  style={{backgroundColor:colors.white, color:colors.primary}}
+                  to="/login" onClick={() => setIsOpen(false)}>
                     Login
                   </Link>
-                  <Link to="/signup" onClick={() => setIsOpen(false)}>
+                  <Link
+                  className="px-6 py-2 m-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+                  style={{backgroundColor:colors.white, color:colors.primary}}
+                  to="/signup" onClick={() => setIsOpen(false)}>
                     Sign Up
                   </Link>
-                </>
+                </div>
               ) : (
                 <button
                   onClick={handleLogout}
