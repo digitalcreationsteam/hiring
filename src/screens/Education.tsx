@@ -62,11 +62,8 @@ type EducationEntry = {
 type UniversityEntry = {
   id: string;
   name: string;
-  country: string;
-  state?: string;
-  city?: string;
-  website?: string;
 };
+
 
 function useDebouncedValue<T>(value: T, delay = 250) {
   const [debounced, setDebounced] = React.useState(value);
@@ -250,6 +247,32 @@ const [items, setItems] = React.useState<UniversityEntry[]>([]);
 
   const wrapRef = React.useRef<HTMLDivElement>(null);
 
+    // ✅ Fetch universities function
+  const fetchUniversities = React.useCallback(async (q: string) => {
+    try {
+      const res = await API(
+        "GET",
+        `${URL_PATH.getunivercitylist}?query=${encodeURIComponent(q)}&limit=30`
+      );
+
+      const list = (res?.data || []) as any[];
+
+      // ✅ map to only {id, name}
+      const mapped: UniversityEntry[] = list
+        .map((u) => ({
+          id: u._id,
+          name: u.name,
+        }))
+        .filter((x) => x.id && x.name);
+
+      return mapped;
+    } catch (e: any) {
+      console.error("fetchUniversities error:", e);
+      throw new Error(e?.message || "Could not load universities");
+    }
+  }, []);
+
+
   // close on outside click
   React.useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -266,48 +289,32 @@ const [items, setItems] = React.useState<UniversityEntry[]>([]);
     setQuery(value || "");
   }, [value]);
 
-  // fetch results when open + typing
-React.useEffect(() => {
-  if (!open) return;
-
-  const q = debouncedQuery.trim();
-  if (q.length < 2) {
-    setItems([]);
-    setError(null);
-    return;
-  }
-
-  (async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // ✅ CALL YOUR BACKEND (MongoDB)
-      const res = await API(
-        "GET",
-        `${URL_PATH.getunivercitylist}?query=${encodeURIComponent(q)}&limit=30`
-      );
-
-      const list = (res?.data || []) as any[];
-
-      const mapped: UniversityEntry[] = list.map((u) => ({
-        id: u._id,
-        name: u.name,
-        country: u.country,
-        state: u.state,
-        city: u.city,
-        website: u.website,
-      }));
-
-      setItems(mapped);
-    } catch (e: any) {
+  // ✅ fetch results when query changes (with debounce)
+  React.useEffect(() => {
+    const q = debouncedQuery.trim();
+    
+    if (q.length < 2) {
       setItems([]);
-      setError(e?.message || "Could not load universities");
-    } finally {
-      setLoading(false);
+      setError(null);
+      return;
     }
-  })();
-}, [debouncedQuery, open]);
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await fetchUniversities(q);
+        setItems(data);
+      } catch (e: any) {
+        setItems([]);
+        setError(e?.message || "Could not load universities");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [debouncedQuery, fetchUniversities]);
+
 
 
   return (
@@ -363,27 +370,24 @@ React.useEffect(() => {
               </div>
             )}
 
-            {items.map((u) => (
-              <button
-                key={u.id}
-                type="button"
-                className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100"
-                onClick={() => {
-                  onChange(u.name);
-                  setQuery(u.name);
-                  setOpen(false);
-                }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="truncate" style={{ color: colors.accent }}>
-                    {u.name}
-                  </span>
-                  <span className="shrink-0 text-xs" style={{ color: colors.neutral[400] }}>
-                    {u.country}
-                  </span>
-                </div>
-              </button>
-            ))}
+{items.map((u) => (
+  <button
+    key={u.id}
+    type="button"
+    className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100"
+    onClick={() => {
+      onChange(u.name);
+      setQuery(u.name);
+      setOpen(false);
+    }}
+  >
+    <span className="truncate" style={{ color: colors.accent }}>
+      {u.name}
+    </span>
+  </button>
+))}
+
+
           </div>
         </div>
       )}
@@ -403,6 +407,7 @@ export default function Education() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const userId = localStorage.getItem("userId");
+
   // local form state
   const [degree, setDegree] = useState<string>("");
   const [fieldOfStudy, setFieldOfStudy] = useState("");
@@ -1341,6 +1346,8 @@ export default function Education() {
   //     </div>
   //   </>
   // );
+
+  
   return (
     <div className="min-h-screen bg-neutral-50 relative overflow-hidden">
       {/* Blended background - Covers entire page */}
