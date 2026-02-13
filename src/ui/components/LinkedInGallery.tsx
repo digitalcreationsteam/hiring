@@ -152,7 +152,7 @@ const [images] = useState([
               className="absolute top-4 right-4 z-10 p-2 rounded-full transition-all duration-300 hover:scale-110"
               style={{
                 backgroundColor: uniTalentColors.primary,
-                color: uniTalentColors.text,
+                color: uniTalentColors.white,
               }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
