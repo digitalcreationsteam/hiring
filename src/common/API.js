@@ -6,9 +6,15 @@ import axios from "axios";
 /* =========================================
    🌐 BASE URL
 ========================================= */
+<<<<<<< HEAD
 // export const BASE_URL = "http://localhost:5000/dev-api";
 export const BASE_URL = "http://localhost:5000/api";
 //  export const BASE_URL = "https://unitalent.cloud/api";
+=======
+// export const BASE_URL = "http://localhost:5000/api";
+// export const BASE_URL = "http://localhost:5001/api";
+ export const BASE_URL = "https://unitalent.cloud/api";
+>>>>>>> 69430d8ed3a98d243d03454bb98f7ebb3b550311
 // export const BASE_URL = "https://unitalent.cloud/dev-api";
 
 
@@ -134,7 +140,9 @@ export const URL_PATH = {
   getCurrentQuestion: (attemptId) => `/cases/attempt/${attemptId}/question`,
   submitAnswer: (attemptId) => `/cases/attempt/${attemptId}/answer`,
   submitAttempt: (attemptId) => `cases/attempt/${attemptId}/submit`,
-  getCaseReveal: (caseId) => `/cases/${caseId}/reveal`
+  getCaseReveal: (caseId) => `/cases/${caseId}/reveal`,
+
+  getStudentsBySchool: "/user/students"
 };
 
 

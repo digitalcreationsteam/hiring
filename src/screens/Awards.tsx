@@ -16,6 +16,7 @@ import {
   FeatherPlus,
   FeatherX,
   FeatherCheck,
+  FeatherEdit2,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { toast, ToastContainer } from "react-toastify";
@@ -145,6 +146,8 @@ export default function Awards() {
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
   const [selectedAward, setSelectedAward] = useState<any | null>(null);
   const [deleteAwardId, setDeleteAwardId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const isEditing = !!editingId;
 
   type ExperiencePoints = {
     demographics?: number;
@@ -225,6 +228,7 @@ export default function Awards() {
     setName("");
     setDescription("");
     setEndYear("");
+    setEditingId(null);
   };
 
   const validateAward = (
@@ -352,6 +356,16 @@ export default function Awards() {
     } else {
       navigate("/projects", { state: { source } });
     }
+  };
+
+  const fillFormForEdit = (a: AwardEntry) => {
+    setEditingId(a.id);
+
+    setName(a.name || "");
+    setDescription(a.description || "");
+    setEndYear(a.year || "");
+
+    setSelectedAward(a);
   };
 
   return (
@@ -598,19 +612,40 @@ export default function Awards() {
                   />
                 </TextField>
 
-                <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                <div className="mt-2 flex flex-col sm:flex-row gap-3 items-center">
                   <Button
                     type="button"
+                    disabled={isSubmitting}
                     variant="neutral-secondary"
                     icon={<FeatherPlus />}
                     className="w-full rounded-full border border-neutral-300 h-10 px-4 flex items-center gap-2"
-                    onClick={handleAddAward}
-                    disabled={isSubmitting}
+                    onClick={() =>
+                      isEditing ? handleUpdateAward() : handleAddAward()
+                    }
                   >
-                    {isSubmitting ? "Adding..." : "Add another award"}
+                    {isSubmitting
+                      ? isEditing
+                        ? "Updating..."
+                        : "Adding..."
+                      : isEditing
+                        ? "Update award"
+                        : "Add another award"}
                   </Button>
 
                   <div className="flex-1" />
+
+                  {/* ✅ Cancel edit */}
+                  {isEditing && (
+                    <Button
+                      onClick={resetForm}
+                      type="button"
+                      className="w-full rounded-full h-10 mt-2 sm:mt-0"
+                      variant="brand-tertiary"
+                      style={{ backgroundColor: colors.primaryGlow }}
+                    >
+                      Cancel edit
+                    </Button>
+                  )}
                 </div>
               </form>
 
