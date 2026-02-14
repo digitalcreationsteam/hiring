@@ -15,6 +15,7 @@ import {
   FeatherPlus,
   FeatherX,
   FeatherCheck,
+  FeatherEdit2,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { toast, ToastContainer } from "react-toastify";
@@ -73,6 +74,9 @@ export default function Projects() {
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+const isEditing = !!editingId;
+
 
   type ExperiencePoints = {
     demographics?: number;
@@ -171,6 +175,8 @@ export default function Projects() {
     setSummary("");
     setOutcome("");
     setLink("");
+      setEditingId(null);
+
   };
 
   const handleAddProject = async () => {
@@ -261,6 +267,52 @@ export default function Projects() {
       setIsSubmitting(false);
     }
   };
+
+  // -------------------- EDIT PROJECT --------------------
+  const handleUpdateProject = async () => {
+  if (!editingId || isSubmitting) return;
+
+  if (!name.trim()) return toast.error("Project name is required.");
+  if (!role.trim()) return toast.error("Role is required.");
+  if (!link.trim()) return toast.error("Project link is required.");
+  if (!isValidUrl(link)) return toast.error("Project link must be a valid URL (https://...)");
+
+  if (!userId) {
+    toast.error("Session expired. Please login again.");
+    navigate("/login");
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+
+    await API(
+      "PUT",
+      `${URL_PATH.projects}/${editingId}`, // ✅ update endpoint (change if your backend route differs)
+      {
+        projectName: toTitleCase(normalizeSpaces(name)),
+        role: role ? toTitleCase(normalizeSpaces(role)) : null,
+        summary: summary ? toSentenceCase(normalizeSpaces(summary.trim())) : null,
+        outcome: outcome ? toSentenceCase(normalizeSpaces(outcome.trim())) : null,
+        link: link ? normalizeSpaces(link) : null,
+      },
+      { "user-id": userId }
+    );
+
+    toast.success("Project updated successfully");
+
+    await fetchProjects();
+    await fetchExperienceIndex();
+    resetForm();
+    setSelectedProject(null);
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || "Failed to update project");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
 
   // -------------------- DELETE PROJECT --------------------
   const handleRemove = async () => {
@@ -840,6 +892,21 @@ export default function Projects() {
   //     </div>
   //   </>
   // );
+
+const fillFormForEdit = (p: ProjectEntry) => {
+  setEditingId(p.id);
+
+  setName(p.name || "");
+  setRole(p.role || "");
+  setSummary(p.summary || "");
+  setOutcome(p.outcome || "");
+  setLink(p.link || "");
+
+  setSelectedProject(p);
+};
+
+
+
   return (
     <>
       <Navbar />
@@ -975,16 +1042,36 @@ export default function Projects() {
                         </div>
                       </div>
 
-                      <IconButton
-                        size="small"
-                        icon={<FeatherX />}
-                        aria-label={`Delete project ${p.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteProjectId(p.id);
-                        }}
-                        className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                      />
+                    <div className="flex items-center gap-2">
+  {/* ✅ Edit */}
+  <IconButton
+    size="small"
+    icon={<FeatherEdit2 />}
+    aria-label={`Edit project ${p.name}`}
+    onClick={(e) => {
+      e.stopPropagation();
+      if (p.isDemo) {
+        toast.error("Demo project cannot be edited.");
+        return;
+      }
+      fillFormForEdit(p);
+    }}
+    className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+  />
+
+  {/* ✅ Delete */}
+  <IconButton
+    size="small"
+    icon={<FeatherX />}
+    aria-label={`Delete project ${p.name}`}
+    onClick={(e) => {
+      e.stopPropagation();
+      setDeleteProjectId(p.id);
+    }}
+    className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+  />
+</div>
+
                     </div>
 
                     {/* 🔹 EXPANDED DETAILS */}
@@ -1039,10 +1126,10 @@ export default function Projects() {
 
             {/* Form */}
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAddProject();
-              }}
+  onSubmit={(e) => {
+    e.preventDefault();
+    isEditing ? handleUpdateProject() : handleAddProject();
+  }}
               className="flex flex-col gap-4"
             >
               <TextField
@@ -1129,20 +1216,41 @@ export default function Projects() {
                 />
               </TextField>
 
-              <div className="flex gap-3 mt-2">
-                <Button
-                  type="button"
-                  variant="neutral-secondary"
-                  icon={<FeatherPlus />}
-                  className="w-full rounded-full border border-neutral-300 h-10 px-4 flex items-center gap-2"
-                  onClick={handleAddProject}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Adding..." : "Add another project"}
-                </Button>
+             <div className="mt-2 flex flex-col sm:flex-row gap-3 items-center">
+  <Button
+    type="button"
+    disabled={isSubmitting}
+    variant="neutral-secondary"
+    icon={<FeatherPlus />}
+    className="w-full rounded-full border border-neutral-300 h-10 px-4 flex items-center gap-2"
+    onClick={() => (isEditing ? handleUpdateProject() : handleAddProject())}
+  >
+    {isSubmitting
+      ? isEditing
+        ? "Updating..."
+        : "Adding..."
+      : isEditing
+      ? "Update project"
+      : "Add another project"}
+  </Button>
 
-                <div className="flex-1" />
-              </div>
+  <div className="flex-1" />
+
+  {/* ✅ Cancel edit */}
+  {isEditing && (
+    <Button
+      onClick={resetForm}
+      type="button"
+      className="w-full rounded-full h-10 mt-2 sm:mt-0"
+      variant="brand-tertiary"
+      style={{ backgroundColor: colors.primaryGlow }}
+    >
+      Cancel edit
+    </Button>
+  )}
+</div>
+
+
             </form>
 
             <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />

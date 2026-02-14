@@ -19,6 +19,7 @@ import {
   FeatherPlus,
   FeatherX,
   FeatherCheck,
+  FeatherEdit2,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { toast, ToastContainer } from "react-toastify";
@@ -218,6 +219,8 @@ export default function Experience() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+const [editingId, setEditingId] = useState<string | null>(null);
+const isEditing = !!editingId;
 
   // form state
   const [roleTitle, setRoleTitle] = useState("");
@@ -347,6 +350,7 @@ export default function Experience() {
     setEndDate("");
     setCurrentlyWorking(false);
     setDescription("");
+     setEditingId(null);
   };
 
   const calculateDurationInMonths = (
@@ -511,6 +515,84 @@ export default function Experience() {
     }
   };
 
+
+    // -------------------- EDIT EXPERIENCE --------------------
+const handleUpdateExperience = async () => {
+  if (!isAddable()) return;
+  if (!editingId || !userId) return;
+
+  const [startMonthNum, startYearNum] = startDate.split("/").map(Number);
+  const now = new Date();
+
+  const [endMonthNum, endYearNum] = currentlyWorking
+    ? [now.getMonth() + 1, now.getFullYear()]
+    : endDate.split("/").map(Number);
+
+  const duration = calculateDurationInMonths(
+    startMonthNum,
+    startYearNum,
+    endMonthNum,
+    endYearNum
+  );
+
+  const payload = {
+    jobTitle: toTitleCase(roleTitle.trim()),
+    companyName: toTitleCase(company.trim()),
+    startYear: startYearNum,
+    startMonth: startMonthNum,
+    endYear: endYearNum,
+    endMonth: endMonthNum,
+    currentlyWorking,
+    duration,
+    description: description.trim() || "",
+    typeOfRole: typeOfRole ? toTitleCase(typeOfRole.trim()) : undefined,
+  };
+
+  try {
+    setIsSubmitting(true);
+
+    await API(
+      "PUT",
+      `${URL_PATH.experience}/${editingId}`, // ✅ make sure backend matches
+      payload,
+      { "user-id": userId }
+    );
+
+    toast.success("Experience updated");
+
+    setExperiences((prev) =>
+      prev.map((e) =>
+        e.id !== editingId
+          ? e
+          : {
+              ...e,
+              roleTitle: payload.jobTitle,
+              company: payload.companyName,
+              typeOfRole: payload.typeOfRole,
+              startDate: `${String(payload.startMonth).padStart(2, "0")}/${payload.startYear}`,
+              endDate: currentlyWorking
+                ? undefined
+                : `${String(payload.endMonth).padStart(2, "0")}/${payload.endYear}`,
+              currentlyWorking: payload.currentlyWorking,
+              description: payload.description || undefined,
+            }
+      )
+    );
+
+    await fetchExperienceIndex();
+    resetForm();
+  } catch (err: any) {
+    toast.error(err?.message || "Failed to update experience");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+
+
+
+
   // DELETE EXPERIENCE
   const handleRemove = async () => {
     if (!deleteId) return;
@@ -638,6 +720,34 @@ export default function Experience() {
       setEndDate("");
     }
   }, [currentlyWorking]);
+
+
+// edit your profile 
+const fillFormForEdit = (exp: ExperienceEntry) => {
+  setEditingId(exp.id);
+
+  setRoleTitle(exp.roleTitle || "");
+
+  // typeOfRole in state expects enum value (internship/full_time...)
+  // your stored exp.typeOfRole may be label or value. handle both:
+  const found =
+    ROLE_TITLES.find((r) => r.value === exp.typeOfRole) ||
+    ROLE_TITLES.find(
+      (r) => r.label.toLowerCase() === String(exp.typeOfRole || "").toLowerCase()
+    );
+
+  setTypeOfRole((found?.value as any) || "");
+
+  setCompany(exp.company || "");
+  setStartDate(exp.startDate || "");
+  setEndDate(exp.currentlyWorking ? "" : exp.endDate || "");
+  setCurrentlyWorking(!!exp.currentlyWorking);
+  setDescription(exp.description || "");
+
+  setSelectedExperience(exp);
+};
+
+
 
   return (
     <div className="min-h-screen  relative overflow-hidden">
@@ -774,27 +884,39 @@ export default function Experience() {
                         </div>
 
                         {/* Right */}
-                        <div className="flex flex-col items-end gap-2 shrink-0">
-                          <IconButton
-                            size="small"
-                            icon={<FeatherX />}
-                            aria-label={`Delete experience ${exp.roleTitle}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteId(exp.id);
-                            }}
-                            className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                          />
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+  <div className="flex items-center gap-1">
+    {/* ✅ EDIT */}
+    <IconButton
+      size="small"
+      icon={<FeatherEdit2 />}
+      aria-label={`Edit experience ${exp.roleTitle}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        fillFormForEdit(exp);
+      }}
+      className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+    />
 
-                          <span className="text-xs text-neutral-500">
-                            {exp.startDate || "—"}
-                            {exp.currentlyWorking
-                              ? " - Present"
-                              : exp.endDate
-                                ? ` - ${exp.endDate}`
-                                : ""}
-                          </span>
-                        </div>
+    {/* ✅ DELETE */}
+    <IconButton
+      size="small"
+      icon={<FeatherX />}
+      aria-label={`Delete experience ${exp.roleTitle}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        setDeleteId(exp.id);
+      }}
+      className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+    />
+  </div>
+
+  <span className="text-xs text-neutral-500">
+    {exp.startDate || "—"}
+    {exp.currentlyWorking ? " - Present" : exp.endDate ? ` - ${exp.endDate}` : ""}
+  </span>
+</div>
+
                       </div>
 
                       {/* 🔹 DETAILS (same card, same border) */}
@@ -846,10 +968,11 @@ export default function Experience() {
 
               {/* form */}
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleAddExperience();
-                }}
+               onSubmit={(e) => {
+  e.preventDefault();
+  isEditing ? handleUpdateExperience() : handleAddExperience();
+}}
+
                 className="mt-6 flex flex-col gap-4"
               >
                 <TextField
@@ -1018,14 +1141,36 @@ export default function Experience() {
                     variant="neutral-secondary"
                     icon={<FeatherPlus />}
                     className="w-full rounded-full h-10 px-4 border-neutral-300"
-                    onClick={handleAddExperience}
-                  >
-                    {isSubmitting ? "Adding..." : "Add another experience"}
-                  </Button>
+  onClick={() =>
+      isEditing ? handleUpdateExperience() : handleAddExperience()
+    }                  >
+{isSubmitting
+                      ? isEditing
+                        ? "Updating..."
+                        : "Adding..."
+                      : isEditing
+                        ? "Update experience"
+                        : "Add another experience"}                  </Button>
 
                   <div className="flex-1" />
+                   {/* ✅ Cancle Edit */}
+                                   {isEditing && (
+                                    <Button
+                                      onClick={resetForm}
+                                      type="button"
+                                      className="w-full rounded-full h-10 mt-2"
+                                      variant="brand-tertiary"
+                                      style={{backgroundColor: colors.primaryGlow}}
+                                    >
+                                      Cancel edit
+                                    </Button>
+                                    )}
                 </div>
+
+                
               </form>
+
+              
               {/* Top form horizontal line */}
               <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
               <footer>
