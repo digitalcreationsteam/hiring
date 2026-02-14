@@ -2,8 +2,11 @@
 'use client';
 
 import { uniTalentColors } from 'src/common/Colors';
+import { useInView } from 'src/hooks/useInView';
 
 const FeaturesSection = () => {
+  const { ref, isInView } = useInView({ threshold: 0.2 }); // use with threshold
+
   const features = [
     {
       title: 'Skills-Based Assessments',
@@ -64,14 +67,22 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section id="features" className="relative w-full py-16 sm:py-20 lg:py-28 overflow-hidden">
-      {/* Background */}
-      <div 
+    <section
+      id="features"
+      ref={ref}
+      className={`relative w-full py-16 sm:py-20 lg:py-28 overflow-hidden ${
+        isInView ? 'is-visible' : ''
+      }`}
+    >
+      {/* Background with opacity transition */}
+      <div
         style={{ backgroundColor: uniTalentColors.background }}
-        className="absolute inset-0"
+        className={`absolute inset-0 transition-opacity duration-700 ${
+          isInView ? 'opacity-100' : 'opacity-0'
+        }`}
       >
         {/* Subtle Grid Background */}
-        <div 
+        <div
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `
@@ -86,15 +97,19 @@ const FeaturesSection = () => {
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="mb-12 sm:mb-16 lg:mb-20">
-          <span 
+        {/* Section Label (separated for stagger) */}
+        <div className="stagger-item mb-4">
+          <span
             style={{ color: uniTalentColors.primary }}
-            className="text-xs sm:text-sm font-semibold uppercase tracking-widest block mb-4"
+            className="text-xs sm:text-sm font-semibold uppercase tracking-widest"
           >
             How It Works
           </span>
-          <h2 
+        </div>
+
+        {/* Heading (separated) */}
+        <div className="stagger-item mb-12 sm:mb-16 lg:mb-20">
+          <h2
             style={{ color: uniTalentColors.text }}
             className="text-3xl xs:text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight max-w-4xl"
           >
@@ -102,12 +117,12 @@ const FeaturesSection = () => {
           </h2>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-16 sm:mb-20 lg:mb-24">
+        {/* Features Grid - appears as one block */}
+        <div className="stagger-item grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-16 sm:mb-20 lg:mb-24">
           {features.map((feature, index) => (
-            <div 
-              key={index} 
-              style={{ 
+            <div
+              key={index}
+              style={{
                 backgroundColor: uniTalentColors.background,
                 borderColor: uniTalentColors.primary,
               }}
@@ -115,8 +130,8 @@ const FeaturesSection = () => {
             >
               {/* Icon Container with Hover Effect */}
               <div className="mb-5 sm:mb-6 relative z-10">
-                <div 
-                  style={{ 
+                <div
+                  style={{
                     backgroundColor: `${uniTalentColors.primary}20`,
                     borderColor: uniTalentColors.primary,
                   }}
@@ -127,31 +142,31 @@ const FeaturesSection = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Feature Content */}
               <div className="relative z-10 flex-1">
-                <h3 
-                  style={{ color: uniTalentColors.text }} 
+                <h3
+                  style={{ color: uniTalentColors.text }}
                   className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 leading-tight"
                 >
                   {feature.title}
                 </h3>
-                
-                <p 
-                  style={{ color: uniTalentColors.text }} 
+
+                <p
+                  style={{ color: uniTalentColors.text }}
                   className="text-sm sm:text-base opacity-75 leading-relaxed"
                 >
                   {feature.description}
                 </p>
               </div>
-              
+
               {/* Animated Bottom Border */}
               <div className="relative z-10 mt-6 sm:mt-7 lg:mt-8">
-                <div 
+                <div
                   style={{ borderColor: `${uniTalentColors.primary}40` }}
                   className="pt-6 border-t"
                 >
-                  <div 
+                  <div
                     style={{ backgroundColor: uniTalentColors.primary }}
                     className="h-1 w-0 group-hover:w-full transition-all duration-500 ease-out rounded-full"
                   />
@@ -159,7 +174,7 @@ const FeaturesSection = () => {
               </div>
 
               {/* Subtle Background Pattern on Hover */}
-              <div 
+              <div
                 style={{ backgroundColor: uniTalentColors.primary }}
                 className="absolute inset-0 opacity-0 group-hover:opacity-3 transition-opacity duration-300"
               />
@@ -167,37 +182,42 @@ const FeaturesSection = () => {
           ))}
         </div>
 
-        {/* Comparison Section */}
+        {/* Comparison Section - two columns, each staggered separately */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 mb-16 sm:mb-20 lg:mb-24 items-center">
-          {/* Left Side - The Problem */}
-          <div>
-            <h3 
+          {/* Left Side - The Old Way */}
+          <div className="stagger-item">
+            <h3
               style={{ color: uniTalentColors.text }}
               className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8"
             >
               The Old Way
             </h3>
-            
+
             <ul className="space-y-4 sm:space-y-5">
               {[
                 'Resumes disappear into ATS black holes',
                 'Identical-looking applications',
                 'Filtered by keywords, not skills',
                 'Referrals matter more than talent',
-                'No idea where you stand'
+                'No idea where you stand',
               ].map((item, idx) => (
-                <li 
+                <li
                   key={idx}
                   style={{ color: uniTalentColors.text }}
                   className="flex items-start text-sm sm:text-base opacity-75"
                 >
-                  <svg 
-                    className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 opacity-40" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 opacity-40"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                   {item}
                 </li>
@@ -205,36 +225,41 @@ const FeaturesSection = () => {
             </ul>
           </div>
 
-          {/* Right Side - UniTalent */}
-          <div>
-            <h3 
+          {/* Right Side - UniTalent Way */}
+          <div className="stagger-item">
+            <h3
               style={{ color: uniTalentColors.text }}
               className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8"
             >
               <span style={{ color: uniTalentColors.primary }}>UniTalent</span> Way
             </h3>
-            
+
             <ul className="space-y-4 sm:space-y-5">
               {[
                 'Your profile is immediately visible',
                 'Ranked based on proven skills',
                 'Filtered by actual capabilities',
                 'Merit matters—not connections',
-                'Clear visibility into your ranking'
+                'Clear visibility into your ranking',
               ].map((item, idx) => (
-                <li 
+                <li
                   key={idx}
                   style={{ color: uniTalentColors.text }}
                   className="flex items-start text-sm sm:text-base opacity-85"
                 >
-                  <svg 
+                  <svg
                     className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0"
                     style={{ color: uniTalentColors.primary }}
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   {item}
                 </li>
@@ -242,10 +267,28 @@ const FeaturesSection = () => {
             </ul>
           </div>
         </div>
-
       </div>
 
+      {/* Stagger animation styles */}
       <style>{`
+        .stagger-item {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        section.is-visible .stagger-item {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        /* Stagger delays – adjust timing as desired */
+        section.is-visible .stagger-item:nth-child(1) { transition-delay: 0.1s; } /* How It Works */
+        section.is-visible .stagger-item:nth-child(2) { transition-delay: 0.3s; } /* Here's the difference. */
+        section.is-visible .stagger-item:nth-child(3) { transition-delay: 0.5s; } /* Features grid */
+        section.is-visible .stagger-item:nth-child(4) { transition-delay: 0.7s; } /* Old Way column */
+        section.is-visible .stagger-item:nth-child(5) { transition-delay: 0.9s; } /* UniTalent Way column */
+
         * {
           scroll-behavior: smooth;
         }
