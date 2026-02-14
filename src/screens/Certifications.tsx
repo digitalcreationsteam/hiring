@@ -19,6 +19,7 @@ import {
   FeatherUpload,
   FeatherX,
   FeatherCheck,
+  FeatherEdit2,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { toast, ToastContainer } from "react-toastify";
@@ -26,7 +27,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { colors } from "src/common/Colors";
 import Navbar from "src/ui/components/Navbar";
 import Footer from "../ui/components/Footer";
-
 
 type CertEntry = {
   id: string;
@@ -186,41 +186,41 @@ function MonthYearPicker({
               const formatted = `${String(index + 1).padStart(2, "0")}/${year}`;
 
               return (
-               <button
-  key={month}
-  type="button"
-  disabled={disabledMonth}
-  onClick={() => {
-    onChange(formatted);
-    setOpen(false);
-  }}
-  className="py-2 px-3 rounded-lg transition text-sm sm:text-base"
-  style={{
-    backgroundColor:
-      value === formatted ? colors.accent : "transparent",
-    color:
-      value === formatted
-        ? colors.background
-        : disabledMonth
-        ? colors.neutral[400]
-        : colors.neutral[800],
-    cursor: disabledMonth ? "not-allowed" : "pointer",
-    opacity: disabledMonth ? 0.7 : 1,
-  }}
-  onMouseEnter={(e) => {
-    if (!disabledMonth && value !== formatted) {
-      e.currentTarget.style.backgroundColor = colors.primaryGlow;
-    }
-  }}
-  onMouseLeave={(e) => {
-    if (!disabledMonth && value !== formatted) {
-      e.currentTarget.style.backgroundColor = "transparent";
-    }
-  }}
->
-  {month}
-</button>
-
+                <button
+                  key={month}
+                  type="button"
+                  disabled={disabledMonth}
+                  onClick={() => {
+                    onChange(formatted);
+                    setOpen(false);
+                  }}
+                  className="py-2 px-3 rounded-lg transition text-sm sm:text-base"
+                  style={{
+                    backgroundColor:
+                      value === formatted ? colors.accent : "transparent",
+                    color:
+                      value === formatted
+                        ? colors.background
+                        : disabledMonth
+                          ? colors.neutral[400]
+                          : colors.neutral[800],
+                    cursor: disabledMonth ? "not-allowed" : "pointer",
+                    opacity: disabledMonth ? 0.7 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!disabledMonth && value !== formatted) {
+                      e.currentTarget.style.backgroundColor =
+                        colors.primaryGlow;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!disabledMonth && value !== formatted) {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                >
+                  {month}
+                </button>
               );
             })}
           </div>
@@ -250,6 +250,8 @@ export default function Certifications() {
   const [experiencePoints, setExperiencePoints] = useState<any>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedCert, setSelectedCert] = useState<CertEntry | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const isEditing = !!editingId;
 
   const displayedIndex =
     (experiencePoints?.demographics ?? 0) +
@@ -421,6 +423,8 @@ export default function Certifications() {
     setIssueDate("");
     setCredentialLink("");
     setFile(null);
+    setEditingId(null);
+
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -481,6 +485,51 @@ export default function Certifications() {
       resetForm();
     } catch (err: any) {
       notify(err?.response?.data?.message || "Error creating certifications");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------- EDIT CERTIFICATION --------------------
+  const handleUpdate = async () => {
+    if (isSubmitting) return;
+    if (!isAddable()) return;
+    if (!userId || !editingId) return;
+
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+
+    formData.append("certificationName", toTitleCase(normalizeSpaces(name)));
+    formData.append("issuer", toTitleCase(normalizeSpaces(issuer)));
+
+    const [mm, yyyy] = issueDate.split("/");
+    formData.append("issueDate", `${yyyy}-${mm}-01`);
+
+    if (credentialLink) {
+      formData.append("credentialLink", credentialLink.trim());
+    }
+
+    // optional file replace
+    if (file) {
+      formData.append("certificateFiles", file);
+    }
+
+    try {
+      await API(
+        "PUT",
+        `${URL_PATH.certification}/${editingId}`, // ✅ confirm your backend route
+        formData,
+        { "user-id": userId },
+      );
+
+      toast.success("Certification updated successfully");
+
+      await fetchCertifications();
+      await fetchExperienceIndex();
+      resetForm();
+    } catch (err: any) {
+      notify(err?.response?.data?.message || "Failed to update certification");
     } finally {
       setIsSubmitting(false);
     }
@@ -575,19 +624,18 @@ export default function Certifications() {
   //   });
   // };
 
-const handleContinue = () => {
-  if (!certs.length) {
-    toast.error("Please add at least one certification to continue.");
-    return;
-  }
+  const handleContinue = () => {
+    if (!certs.length) {
+      toast.error("Please add at least one certification to continue.");
+      return;
+    }
 
-  if (source === "dashboard") {
-    navigate("/dashboard");
-  } else {
-    navigate("/awards", { state: { source } });
-  }
-};
-
+    if (source === "dashboard") {
+      navigate("/dashboard");
+    } else {
+      navigate("/awards", { state: { source } });
+    }
+  };
 
   const handleUploadKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -600,601 +648,677 @@ const handleContinue = () => {
       removeFile();
     }
   };
+
+  const fillFormForEdit = (c: CertEntry) => {
+    setEditingId(c.id);
+
+    setName(c.name || "");
+    setIssuer(c.issuer || "");
+    setIssueDate(c.issueDate || "");
+    setCredentialLink(c.credentialLink || "");
+    setFile(null);
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setSelectedCert(c);
+  };
+
   return (
-  <div className="min-h-screen relative overflow-hidden">
-    {/* 🎨 Linear gradient background - fixed behind everything */}
-    <div 
-      className="pointer-events-none fixed inset-0 -z-10"
-      style={{
-        background: `linear-gradient(
+    <div className="min-h-screen relative overflow-hidden">
+      {/* 🎨 Linear gradient background - fixed behind everything */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background: `linear-gradient(
           to bottom,
           #d9d9d9 0%,
           #cfd3d6 25%,
           #9aa6b2 55%,
           #2E4056 100%
         )`,
-        width: "100%",
-      }}
-    />
+          width: "100%",
+        }}
+      />
 
-    {/* Header and content with z-index to stay above background */}
-    <div className="relative z-10">
-      <Navbar />
-      <ToastContainer position="top-center" autoClose={3000} />
-      
-      <div className="flex justify-center sm:px-6 py-0 sm:py-0">
-        <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
-          {/* Left card */}
-          <main className="w-full md:max-w-[448px] flex flex-col gap-6 rounded-3xl border border-neutral-300 bg-white px-4 sm:px-6 md:px-8 py-6 sm:py-8">
-            {/* top - back + progress */}
-            <div className="flex w-full items-center justify-center gap-4">
-              <IconButton
-  size="small"
-  icon={<FeatherArrowLeft />}
-  onClick={() => {
-    if (source === "dashboard") {
-      navigate("/dashboard");
-    } else {
-      navigate(-1);
-    }
-  }}
-/>
+      {/* Header and content with z-index to stay above background */}
+      <div className="relative z-10">
+        <Navbar />
+        <ToastContainer position="top-center" autoClose={3000} />
 
-              <div className="flex-1 w-full max-w-full md:max-w-[420px]">
-                <div className="flex items-center gap-3">
-                  {[...Array(4)].map((_, i) => (
-                    <div
-                      key={`p-${i}`}
-                      style={{ height: 6, backgroundColor: colors.primary }}
-                      className="flex-1 rounded-full"
-                    />
-                  ))}
-                  {[...Array(2)].map((_, i) => (
-                    <div
-                      key={`n-${i}`}
-                      style={{ height: 6 }}
-                      className="flex-1 rounded-full bg-neutral-300"
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Header */}
-            <header className="mt-1 w-full">
-              <h2 className="text-[22px] text-neutral-900">
-                Add your certifications
-              </h2>
-              <p className="mt-1 text-xs text-neutral-500">
-                Professional certifications help boost your Experience Index
-              </p>
-            </header>
-
-            {/* selected cert preview list */}
-            <section className="flex w-full flex-col gap-3">
-              {certs.map((c) => {
-                const isSelected = selectedCert?.id === c.id;
-
-                return (
-                  <div
-                    key={c.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedCert(isSelected ? null : c)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedCert(isSelected ? null : c);
-                      }
-                    }}
-                  className="rounded-3xl px-4 py-3 cursor-pointer transition-all duration-200 focus:outline-none"
-style={{
-  backgroundColor: isSelected ? `${colors.primary}10` : colors.white,
-  border: `1px solid ${
-    isSelected ? colors.primary : colors.neutral[400]
-  }`,
-  boxShadow: isSelected
-    ? `0 4px 14px ${colors.primary}22`
-    : "0 1px 3px rgba(0,0,0,0.04)",
-}}
-                  >
-                    {/* 🔹 TOP ROW */}
-                    <div className="flex items-center justify-between">
-                      {/* Left */}
-                      <div className="flex items-center gap-3 min-w-0">
-<Avatar
-  size="large"
-  square
-  className="!rounded-3xl shadow-sm"
-  style={{
-    backgroundColor: colors.primaryGlow,
-    color: colors.neutral[800],
-  }}
->
-  {c.issuer
-    ? c.issuer
-        .split(" ")
-        .slice(0, 2)
-        .map((s) => s[0])
-        .join("")
-    : "C"}
-</Avatar>
-
-
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-neutral-900 truncate">
-                            {c.name}
-                          </span>
-                          <span className="text-xs text-neutral-500 truncate">
-                            {c.issuer}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right */}
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <IconButton
-                          size="small"
-                          icon={<FeatherX />}
-                          aria-label={`Delete certificate ${c.name}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteId(c.id);
-                          }}
-                          className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                        />
-
-                        <span className="text-xs text-neutral-500">
-                          {c.issueDate}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 🔹 DETAILS (INSIDE SAME BORDER) */}
-                    {isSelected && (
-                      <>
-                        <div className="my-4 border-t border-neutral-200" />
-
-                        <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
-                          <div>
-                            <span className="font-medium">Name:</span> {c.name}
-                          </div>
-
-                          {c.issuer && (
-                            <div>
-                              <span className="font-medium">Issuer:</span>{" "}
-                              {c.issuer}
-                            </div>
-                          )}
-
-                          {c.issueDate && (
-                            <div>
-                              <span className="font-medium">Issue date:</span>{" "}
-                              {c.issueDate}
-                            </div>
-                          )}
-
-                          {c.credentialLink && (
-<div>
-  <span style={{ color: colors.neutral[800] }} className="font-medium">
-    Credential:
-  </span>{" "}
-  <a
-    href={c.credentialLink}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => e.stopPropagation()}
-    className="underline transition"
-    style={{ color: colors.accent }}
-    onMouseEnter={(e) => (e.currentTarget.style.color = colors.neutral[800])}
-    onMouseLeave={(e) => (e.currentTarget.style.color = colors.accent)}
-  >
-    View
-  </a>
-</div>
-
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </section>
-
-            {/* form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAdd();
-              }}
-              className="flex w-full flex-col gap-4"
-            >
-              <TextField
-                label={
-                  <span className="text-[12px]">
-                    Certification Name <span className="text-red-500">*</span>
-                  </span>
-                }
-                helpText=""
-                className={scTextFieldClass}
-              >
-                <TextField.Input
-                  placeholder="e.g., Certified Product Manager"
-                  value={name}
-                  onChange={(e) =>
-                    setName(e.target.value.replace(/[^A-Za-z\s.&-]/g, ""))
-                  }
-                  onBlur={() => setName(toTitleCase(name))}
-                  className={scInputClass}
-                />
-              </TextField>
-
-              <TextField
-                label={
-                  <span className="text-[12px]">
-                    Issuer <span className="text-red-500">*</span>{" "}
-                  </span>
-                }
-                className={scTextFieldClass}
-              >
-                <TextField.Input
-                  placeholder="Issuing organization"
-                  value={issuer}
-                  onChange={(e) =>
-                    setIssuer(e.target.value.replace(/[^A-Za-z\s.&-]/g, ""))
-                  }
-                  onBlur={() => setIssuer(toTitleCase(issuer))}
-                  className={scInputClass}
-                />
-              </TextField>
-              {/* ------------Date------------------ */}
-
-              {/* // date------------------------- */}
-              <div className="flex flex-col gap-6 max-w-lg">
-                {/* Issue Month & Year */}
-                <div className="flex flex-col gap-1">
-                  <label
-                    htmlFor="issueDate"
-                    className="text-[12px] font-medium text-neutral-700"
-                  >
-                    Issue Month & Year <span className="text-red-500">*</span>
-                  </label>
-
-                  <MonthYearPicker value={issueDate} onChange={setIssueDate} />
-                </div>
-              </div>
-
-              {/* ---------------End Date-------------- */}
-
-              <TextField
-                label={<span className="text-[12px]">Credential Link </span>}
-                helpText=""
-                className={scTextFieldClass}
-              >
-                <TextField.Input
-                  placeholder="https://"
-                  value={credentialLink}
-                  onChange={(e) =>
-                    setCredentialLink(e.target.value.replace(/\s/g, ""))
-                  }
-                  onBlur={() => {
-                    if (!credentialLink) return;
-                    if (!credentialLink.startsWith("http")) {
-                      setCredentialLink("https://" + credentialLink);
+        <div className="flex justify-center sm:px-6 py-0 sm:py-0">
+          <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
+            {/* Left card */}
+            <main className="w-full md:max-w-[448px] flex flex-col gap-6 rounded-3xl border border-neutral-300 bg-white px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+              {/* top - back + progress */}
+              <div className="flex w-full items-center justify-center gap-4">
+                <IconButton
+                  size="small"
+                  icon={<FeatherArrowLeft />}
+                  onClick={() => {
+                    if (source === "dashboard") {
+                      navigate("/dashboard");
+                    } else {
+                      navigate(-1);
                     }
                   }}
-                  className={scInputClass}
                 />
-              </TextField>
 
-              {/* ✅ OR Divider (ADD THIS) */}
-              <div className="flex items-center gap-3 my-1">
-                <div className="flex-1 h-px bg-neutral-300" />
-                <span className="text-[11px] text-neutral-500 font-medium tracking-wide">
-                  OR
-                </span>
-                <div className="flex-1 h-px bg-neutral-300" />
+                <div className="flex-1 w-full max-w-full md:max-w-[420px]">
+                  <div className="flex items-center gap-3">
+                    {[...Array(4)].map((_, i) => (
+                      <div
+                        key={`p-${i}`}
+                        style={{ height: 6, backgroundColor: colors.primary }}
+                        className="flex-1 rounded-full"
+                      />
+                    ))}
+                    {[...Array(2)].map((_, i) => (
+                      <div
+                        key={`n-${i}`}
+                        style={{ height: 6 }}
+                        className="flex-1 rounded-full bg-neutral-300"
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {/* Upload */}
-              <div className="w-full">
-                <div className="text-[12px] text-neutral-800 mb-2">
-                  Upload Certificate
-                </div>
+              {/* Header */}
+              <header className="mt-1 w-full">
+                <h2 className="text-[22px] text-neutral-900">
+                  Add your certifications
+                </h2>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Professional certifications help boost your Experience Index
+                </p>
+              </header>
 
-                <div
-                  role="button"
-                  tabIndex={0}
-                  aria-label="Upload certificate PDF. Click or press Enter to browse files. Drag and drop is supported. Press Escape to remove the selected file."
-                  onClick={handleBrowseFile}
-                  onKeyDown={handleUploadKeyDown}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  className="w-full rounded-2xl border-2 border-dashed border-neutral-300 bg-gray-50 px-6 py-4 flex flex-col items-center justify-center cursor-pointer"
-                >
-                  <IconWithBackground
-                    size="large"
-                    icon={
-                      <FeatherUpload className="w-5 h-5 text-neutral-600" />
-                    }
-                    className="!bg-neutral-200 !rounded-full !p-3 shadow-s"
-                  />
+              {/* selected cert preview list */}
+              <section className="flex w-full flex-col gap-3">
+                {certs.map((c) => {
+                  const isSelected = selectedCert?.id === c.id;
 
-                  <div className="mt-3 text-xm text-neutral-600 text-center">
-                    Click to select file or drag to upload
-                  </div>
-                  <div className="text-xs text-neutral-400 mt-1 text-center">
-                    PDF format only, max file size 5MB
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    className="hidden"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                  />
-                </div>
-
-                {/* file preview */}
-                {file && (
-                  <div className="mt-4 rounded-2xl border border-neutral-300 bg-gray-50 px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
-                    <div className="flex items-center gap-3">
-                      <IconWithBackground
-                        size="medium"
-                        icon={
-                          <FeatherFileText className="w-4 h-4 text-red-800" />
+                  return (
+                    <div
+                      key={c.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedCert(isSelected ? null : c)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedCert(isSelected ? null : c);
                         }
-                        className="!bg-red-100 !rounded-full !p-3"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm text-neutral-900">
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-neutral-500">
-                          {(file.size / (1024 * 1024)).toFixed(1)} MB
-                        </span>
+                      }}
+                      className="rounded-3xl px-4 py-3 cursor-pointer transition-all duration-200 focus:outline-none"
+                      style={{
+                        backgroundColor: isSelected
+                          ? `${colors.primary}10`
+                          : colors.white,
+                        border: `1px solid ${
+                          isSelected ? colors.primary : colors.neutral[400]
+                        }`,
+                        boxShadow: isSelected
+                          ? `0 4px 14px ${colors.primary}22`
+                          : "0 1px 3px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      {/* 🔹 TOP ROW */}
+                      <div className="flex items-center justify-between">
+                        {/* Left */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Avatar
+                            size="large"
+                            square
+                            className="!rounded-3xl shadow-sm"
+                            style={{
+                              backgroundColor: colors.primaryGlow,
+                              color: colors.neutral[800],
+                            }}
+                          >
+                            {c.issuer
+                              ? c.issuer
+                                  .split(" ")
+                                  .slice(0, 2)
+                                  .map((s) => s[0])
+                                  .join("")
+                              : "C"}
+                          </Avatar>
+
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-semibold text-neutral-900 truncate">
+                              {c.name}
+                            </span>
+                            <span className="text-xs text-neutral-500 truncate">
+                              {c.issuer}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Right */}
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <div className="flex items-center gap-2">
+                            {/* ✅ Edit */}
+                            <IconButton
+                              size="small"
+                              icon={<FeatherEdit2 />}
+                              aria-label={`Edit certificate ${c.name}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                fillFormForEdit(c);
+                              }}
+                              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                            />
+
+                            {/* ✅ Delete */}
+                            <IconButton
+                              size="small"
+                              icon={<FeatherX />}
+                              aria-label={`Delete certificate ${c.name}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteId(c.id);
+                              }}
+                              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                            />
+                          </div>
+
+                          <span className="text-xs text-neutral-500">
+                            {c.issueDate}
+                          </span>
+                        </div>
                       </div>
+
+                      {/* 🔹 DETAILS (INSIDE SAME BORDER) */}
+                      {isSelected && (
+                        <>
+                          <div className="my-4 border-t border-neutral-200" />
+
+                          <div className="flex flex-col gap-3 text-sm text-neutral-800 px-1">
+                            <div>
+                              <span className="font-medium">Name:</span>{" "}
+                              {c.name}
+                            </div>
+
+                            {c.issuer && (
+                              <div>
+                                <span className="font-medium">Issuer:</span>{" "}
+                                {c.issuer}
+                              </div>
+                            )}
+
+                            {c.issueDate && (
+                              <div>
+                                <span className="font-medium">Issue date:</span>{" "}
+                                {c.issueDate}
+                              </div>
+                            )}
+
+                            {c.credentialLink && (
+                              <div>
+                                <span
+                                  style={{ color: colors.neutral[800] }}
+                                  className="font-medium"
+                                >
+                                  Credential:
+                                </span>{" "}
+                                <a
+                                  href={c.credentialLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="underline transition"
+                                  style={{ color: colors.accent }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.color =
+                                      colors.neutral[800])
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.color =
+                                      colors.accent)
+                                  }
+                                >
+                                  View
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <IconButton
-                      size="small"
-                      icon={<FeatherX />}
-                      onClick={removeFile}
-                      className="!bg-transparent !text-neutral-500"
+                  );
+                })}
+              </section>
+
+              {/* form */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAdd();
+                }}
+                className="flex w-full flex-col gap-4"
+              >
+                <TextField
+                  label={
+                    <span className="text-[12px]">
+                      Certification Name <span className="text-red-500">*</span>
+                    </span>
+                  }
+                  helpText=""
+                  className={scTextFieldClass}
+                >
+                  <TextField.Input
+                    placeholder="e.g., Certified Product Manager"
+                    value={name}
+                    onChange={(e) =>
+                      setName(e.target.value.replace(/[^A-Za-z\s.&-]/g, ""))
+                    }
+                    onBlur={() => setName(toTitleCase(name))}
+                    className={scInputClass}
+                  />
+                </TextField>
+
+                <TextField
+                  label={
+                    <span className="text-[12px]">
+                      Issuer <span className="text-red-500">*</span>{" "}
+                    </span>
+                  }
+                  className={scTextFieldClass}
+                >
+                  <TextField.Input
+                    placeholder="Issuing organization"
+                    value={issuer}
+                    onChange={(e) =>
+                      setIssuer(e.target.value.replace(/[^A-Za-z\s.&-]/g, ""))
+                    }
+                    onBlur={() => setIssuer(toTitleCase(issuer))}
+                    className={scInputClass}
+                  />
+                </TextField>
+                {/* ------------Date------------------ */}
+
+                {/* // date------------------------- */}
+                <div className="flex flex-col gap-6 max-w-lg">
+                  {/* Issue Month & Year */}
+                  <div className="flex flex-col gap-1">
+                    <label
+                      htmlFor="issueDate"
+                      className="text-[12px] font-medium text-neutral-700"
+                    >
+                      Issue Month & Year <span className="text-red-500">*</span>
+                    </label>
+
+                    <MonthYearPicker
+                      value={issueDate}
+                      onChange={setIssueDate}
                     />
                   </div>
-                )}
-              </div>
+                </div>
 
-              <div className="flex flex-col sm:flex-row w-full gap-3 mt-2">
-                <Button
-                  type="button"
-                  variant="neutral-secondary"
-                  icon={<FeatherPlus />}
-                  className="w-full rounded-full border-neutral-300 h-10 px-4 flex items-center gap-2"
-                  onClick={handleAdd}
-                  disabled={isSubmitting}
+                {/* ---------------End Date-------------- */}
+
+                <TextField
+                  label={<span className="text-[12px]">Credential Link </span>}
+                  helpText=""
+                  className={scTextFieldClass}
                 >
-                  {isSubmitting ? "Adding..." : "Add another certification"}
-                </Button>
+                  <TextField.Input
+                    placeholder="https://"
+                    value={credentialLink}
+                    onChange={(e) =>
+                      setCredentialLink(e.target.value.replace(/\s/g, ""))
+                    }
+                    onBlur={() => {
+                      if (!credentialLink) return;
+                      if (!credentialLink.startsWith("http")) {
+                        setCredentialLink("https://" + credentialLink);
+                      }
+                    }}
+                    className={scInputClass}
+                  />
+                </TextField>
 
-                <div className="flex-1" />
-              </div>
-            </form>
+                {/* ✅ OR Divider (ADD THIS) */}
+                <div className="flex items-center gap-3 my-1">
+                  <div className="flex-1 h-px bg-neutral-300" />
+                  <span className="text-[11px] text-neutral-500 font-medium tracking-wide">
+                    OR
+                  </span>
+                  <div className="flex-1 h-px bg-neutral-300" />
+                </div>
 
-           {/* divider */}
-<div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
+                {/* Upload */}
+                <div className="w-full">
+                  <div className="text-[12px] text-neutral-800 mb-2">
+                    Upload Certificate
+                  </div>
 
-<footer>
-  <Button
-    onClick={handleContinue}
-    disabled={!canContinue || isSubmitting}
-    className="w-full h-10 rounded-full transition-all duration-200"
-    style={{
-      backgroundColor:
-        !canContinue || isSubmitting
-          ? `${colors.accent}55`   // faded primary when disabled
-          : colors.accent,
-      color: !canContinue || isSubmitting
-        ? `${colors.background}AA`      // soft white text
-        : colors.background,
-      boxShadow:
-        !canContinue || isSubmitting
-          ? "none"
-          : "0 6px 18px rgba(99,52,237,0.18)",
-      cursor: !canContinue || isSubmitting ? "not-allowed" : "pointer",
-    }}
-  >
-    {isSubmitting ? "Saving..." : "Continue"}
-  </Button>
-</footer>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Upload certificate PDF. Click or press Enter to browse files. Drag and drop is supported. Press Escape to remove the selected file."
+                    onClick={handleBrowseFile}
+                    onKeyDown={handleUploadKeyDown}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    className="w-full rounded-2xl border-2 border-dashed border-neutral-300 bg-gray-50 px-6 py-4 flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <IconWithBackground
+                      size="large"
+                      icon={
+                        <FeatherUpload className="w-5 h-5 text-neutral-600" />
+                      }
+                      className="!bg-neutral-200 !rounded-full !p-3 shadow-s"
+                    />
 
-          </main>
+                    <div className="mt-3 text-xm text-neutral-600 text-center">
+                      Click to select file or drag to upload
+                    </div>
+                    <div className="text-xs text-neutral-400 mt-1 text-center">
+                      PDF format only, max file size 5MB
+                    </div>
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      className="hidden"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                    />
+                  </div>
 
-          {/* Right panel */}
-          <aside className="w-full md:w-72 shrink-0 mt-6 md:mt-0">
-            <div className="md:sticky md:top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-300">
-              <h3 className="text-[22px] text-neutral-900">
-                Your Experience Index
-              </h3>
+                  {/* file preview */}
+                  {file && (
+                    <div className="mt-4 rounded-2xl border border-neutral-300 bg-gray-50 px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
+                      <div className="flex items-center gap-3">
+                        <IconWithBackground
+                          size="medium"
+                          icon={
+                            <FeatherFileText className="w-4 h-4 text-red-800" />
+                          }
+                          className="!bg-red-100 !rounded-full !p-3"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm text-neutral-900">
+                            {file.name}
+                          </span>
+                          <span className="text-xs text-neutral-500">
+                            {(file.size / (1024 * 1024)).toFixed(1)} MB
+                          </span>
+                        </div>
+                      </div>
+                      <IconButton
+                        size="small"
+                        icon={<FeatherX />}
+                        onClick={removeFile}
+                        className="!bg-transparent !text-neutral-500"
+                      />
+                    </div>
+                  )}
+                </div>
 
-              <div className="flex items-center justify-center py-6">
-                <span
-                  aria-live="polite"
-                  className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
-                >
-                  {displayedIndex ?? 0}
-                </span>
-              </div>
+                <div className="mt-2 flex flex-col sm:flex-row gap-3 items-center">
+                  <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    variant="neutral-secondary"
+                    icon={<FeatherPlus />}
+                    className="w-full rounded-full h-10 px-4 border-neutral-300"
+                    onClick={() => (isEditing ? handleUpdate() : handleAdd())}
+                  >
+                    {isSubmitting
+                      ? isEditing
+                        ? "Updating..."
+                        : "Adding..."
+                      : isEditing
+                        ? "Update education"
+                        : "Add another education"}
+                  </Button>
 
-              {/* Top form horizontal line */}
+
+                  <div className="flex-1" />
+                 {/* ✅ Cancle Edit */}
+                 {isEditing && (
+                  <Button
+                    onClick={resetForm}
+                    type="button"
+                    className="w-full rounded-full h-10 mt-2"
+                    variant="brand-tertiary"
+                    style={{backgroundColor: colors.primaryGlow}}
+                  >
+                    Cancel edit
+                  </Button>
+                  )}
+                </div>
+
+
+              </form>
+
+              {/* divider */}
               <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
 
-              <div className="mt-4">
-                <div className="text-[16px] text-neutral-800 mb-3">
-                  Progress Steps
-                </div>
-
-                {/* ⚪ Completed — Demographics */}
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3 hover:bg-neutral-50"
+              <footer>
+                <Button
+                  onClick={handleContinue}
+                  disabled={!canContinue || isSubmitting}
+                  className="w-full h-10 rounded-full transition-all duration-200"
+                  style={{
+                    backgroundColor:
+                      !canContinue || isSubmitting
+                        ? `${colors.accent}55` // faded primary when disabled
+                        : colors.accent,
+                    color:
+                      !canContinue || isSubmitting
+                        ? `${colors.background}AA` // soft white text
+                        : colors.background,
+                    boxShadow:
+                      !canContinue || isSubmitting
+                        ? "none"
+                        : "0 6px 18px rgba(99,52,237,0.18)",
+                    cursor:
+                      !canContinue || isSubmitting ? "not-allowed" : "pointer",
+                  }}
                 >
-                  <IconWithBackground
-                    size="small"
-                    icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
-                    className="!bg-green-100 !rounded-full !p-3"
-                  />
-                  <span className="text-sm text-neutral-700">Demographics</span>
-                </button>
+                  {isSubmitting ? "Saving..." : "Continue"}
+                </Button>
+              </footer>
+            </main>
 
-                {/* ⚪ Completed — Education */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
-                  <IconWithBackground
-                    size="small"
-                    icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
-                    className="!bg-green-100 !rounded-full !p-3"
-                  />
-                  <span className="text-sm text-neutral-700">Education</span>
+            {/* Right panel */}
+            <aside className="w-full md:w-72 shrink-0 mt-6 md:mt-0">
+              <div className="md:sticky md:top-6 bg-white rounded-[20px] px-6 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.04)] border border-neutral-300">
+                <h3 className="text-[22px] text-neutral-900">
+                  Your Experience Index
+                </h3>
+
+                <div className="flex items-center justify-center py-6">
+                  <span
+                    aria-live="polite"
+                    className="font-['Afacad_Flux'] text-[32px] sm:text-[40px] md:text-[48px] font-[500] leading-[56px] text-neutral-300"
+                  >
+                    {displayedIndex ?? 0}
+                  </span>
                 </div>
 
-                {/* Experience — completed (green) */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
-                  <IconWithBackground
-                    size="small"
-                    icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
-                    className="!bg-green-100 !rounded-full !p-3"
-                  />
-                  <span className="text-sm text-neutral-700">Experience</span>
+                {/* Top form horizontal line */}
+                <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
+
+                <div className="mt-4">
+                  <div className="text-[16px] text-neutral-800 mb-3">
+                    Progress Steps
+                  </div>
+
+                  {/* ⚪ Completed — Demographics */}
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3 hover:bg-neutral-50"
+                  >
+                    <IconWithBackground
+                      size="small"
+                      icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
+                      className="!bg-green-100 !rounded-full !p-3"
+                    />
+                    <span className="text-sm text-neutral-700">
+                      Demographics
+                    </span>
+                  </button>
+
+                  {/* ⚪ Completed — Education */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
+                    <IconWithBackground
+                      size="small"
+                      icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
+                      className="!bg-green-100 !rounded-full !p-3"
+                    />
+                    <span className="text-sm text-neutral-700">Education</span>
+                  </div>
+
+                  {/* Experience — completed (green) */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
+                    <IconWithBackground
+                      size="small"
+                      icon={<FeatherCheck className="w-4 h-4 text-green-900" />}
+                      className="!bg-green-100 !rounded-full !p-3"
+                    />
+                    <span className="text-sm text-neutral-700">Experience</span>
+                  </div>
+
+                  {/* Certifications — active (purple) */}
+                  <div
+                    style={{ backgroundColor: colors.primary }}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-2 mb-3"
+                  >
+                    <div
+                      className="flex items-center justify-center h-8 w-8 rounded-2xl shadow-sm"
+                      style={{ backgroundColor: colors.white }}
+                    >
+                      <IconWithBackground
+                        size="small"
+                        variant="neutral"
+                        className="!bg-transparent"
+                        style={{ color: colors.accent }}
+                        icon={<FeatherFileCheck />}
+                      />
+                    </div>
+
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: colors.white }}
+                    >
+                      Certifications
+                    </span>
+                  </div>
+
+                  {/* Awards — Inactive */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
+                    <IconWithBackground
+                      size="small"
+                      variant="neutral"
+                      className="!bg-grey !text-neutral-600"
+                      icon={<FeatherAward />}
+                    />
+                    <span className="text-sm text-neutral-500">Awards</span>
+                  </div>
+
+                  {/* Projects — Inactive */}
+                  <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2">
+                    <IconWithBackground
+                      size="small"
+                      variant="neutral"
+                      className="!bg-grey !text-neutral-600"
+                      icon={<FeatherPackage />}
+                    />
+                    <span className="text-sm text-neutral-500">Projects</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+          {deleteId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div
+                className="w-[360px] rounded-2xl p-6 shadow-xl"
+                style={{ backgroundColor: colors.white }}
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3
+                    className="text-lg font-semibold"
+                    style={{ color: colors.accent }}
+                  >
+                    Are you sure?
+                  </h3>
+
+                  <button
+                    onClick={() => setDeleteId(null)}
+                    className="transition"
+                    style={{ color: colors.neutral[600] }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = colors.accent)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = colors.neutral[600])
+                    }
+                  >
+                    ✕
+                  </button>
                 </div>
 
-                {/* Certifications — active (purple) */}
-<div
-  style={{ backgroundColor: colors.primary }}
-  className="flex items-center gap-3 rounded-2xl px-4 py-2 mb-3"
->
-  <div
-    className="flex items-center justify-center h-8 w-8 rounded-2xl shadow-sm"
-    style={{ backgroundColor: colors.white }}
-  >
-    <IconWithBackground
-      size="small"
-      variant="neutral"
-      className="!bg-transparent"
-      style={{ color: colors.accent }}
-      icon={<FeatherFileCheck />}
-    />
-  </div>
+                <p
+                  className="text-sm mb-6"
+                  style={{ color: colors.neutral[600] }}
+                >
+                  Do you really want to delete this certification?
+                </p>
 
-  <span
-    className="text-sm font-medium"
-     style={{color: colors.white}}
-  >
-    Certifications
-  </span>
-</div>
+                <div className="flex gap-3">
+                  {/* Cancel */}
+                  <Button
+                    className="flex-1 rounded-3xl transition"
+                    onClick={() => setDeleteId(null)}
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.accent,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = colors.secondary)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = colors.primary)
+                    }
+                  >
+                    Cancel
+                  </Button>
 
-
-                {/* Awards — Inactive */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
-                  <IconWithBackground
-                    size="small"
-                    variant="neutral"
-                    className="!bg-grey !text-neutral-600"
-                    icon={<FeatherAward />}
-                  />
-                  <span className="text-sm text-neutral-500">Awards</span>
-                </div>
-
-                {/* Projects — Inactive */}
-                <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2">
-                  <IconWithBackground
-                    size="small"
-                    variant="neutral"
-                    className="!bg-grey !text-neutral-600"
-                    icon={<FeatherPackage />}
-                  />
-                  <span className="text-sm text-neutral-500">Projects</span>
+                  {/* Yes */}
+                  <Button
+                    className="flex-1 rounded-3xl transition"
+                    onClick={handleRemove}
+                    disabled={isSubmitting}
+                    style={{
+                      backgroundColor: isSubmitting
+                        ? `${colors.red}55`
+                        : colors.red,
+                      color: colors.accent,
+                      cursor: isSubmitting ? "not-allowed" : "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor = colors.red;
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor = colors.red;
+                    }}
+                  >
+                    {isSubmitting ? "Deleting..." : "Delete"}
+                  </Button>
                 </div>
               </div>
             </div>
-          </aside>
+          )}
         </div>
-      {deleteId && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div
-      className="w-[360px] rounded-2xl p-6 shadow-xl"
-      style={{ backgroundColor: colors.white }}
-    >
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold" style={{ color: colors.accent }}>
-          Are you sure?
-        </h3>
-
-        <button
-          onClick={() => setDeleteId(null)}
-          className="transition"
-          style={{ color: colors.neutral[600] }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = colors.accent)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = colors.neutral[600])}
-        >
-          ✕
-        </button>
       </div>
-
-      <p className="text-sm mb-6" style={{ color: colors.neutral[600] }}>
-        Do you really want to delete this certification?
-      </p>
-
-     <div className="flex gap-3">
-  {/* Cancel */}
-  <Button
-    className="flex-1 rounded-3xl transition"
-    onClick={() => setDeleteId(null)}
-    style={{
-      backgroundColor: colors.primary,
-      color: colors.accent,
-    }}
-    onMouseEnter={(e) =>
-      (e.currentTarget.style.backgroundColor = colors.secondary)
-    }
-    onMouseLeave={(e) =>
-      (e.currentTarget.style.backgroundColor = colors.primary)
-    }
-  >
-    Cancel
-  </Button>
-
-  {/* Yes */}
-  <Button
-    className="flex-1 rounded-3xl transition"
-    onClick={handleRemove}
-    disabled={isSubmitting}
-    style={{
-      backgroundColor: isSubmitting ? `${colors.red}55` : colors.red,
-      color: colors.accent,
-      cursor: isSubmitting ? "not-allowed" : "pointer",
-    }}
-    onMouseEnter={(e) => {
-      if (!isSubmitting)
-        e.currentTarget.style.backgroundColor = colors.red;
-    }}
-    onMouseLeave={(e) => {
-      if (!isSubmitting)
-        e.currentTarget.style.backgroundColor = colors.red;
-    }}
-  >
-    {isSubmitting ? "Deleting..." : "Delete"}
-  </Button>
-</div>
-
+      <Footer />
     </div>
-  </div>
-)}
-
-      </div>
-    </div>
-    <Footer />
-  </div>
-);
+  );
 }

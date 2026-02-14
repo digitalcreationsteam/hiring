@@ -21,6 +21,7 @@ import {
   FeatherPlus,
   FeatherX,
   FeatherCheck,
+  FeatherEdit2,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import * as SubframeCore from "@subframe/core";
@@ -30,7 +31,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { colors } from "src/common/Colors";
 import Navbar from "src/ui/components/Navbar";
 import Footer from "../ui/components/Footer";
-
 
 const DEGREE_OPTIONS = [
   { label: "Diploma", value: "diploma" },
@@ -67,7 +67,6 @@ type UniversityEntry = {
   name: string;
 };
 
-
 function useDebouncedValue<T>(value: T, delay = 250) {
   const [debounced, setDebounced] = React.useState(value);
 
@@ -78,11 +77,6 @@ function useDebouncedValue<T>(value: T, delay = 250) {
 
   return debounced;
 }
-
-
-
-
-
 
 const normalize = (v: string) => v.replace(/\s+/g, " ").trim();
 
@@ -245,36 +239,36 @@ function SchoolNameDropdown({
   const debouncedQuery = useDebouncedValue(query, 250);
 
   const [loading, setLoading] = React.useState(false);
-const [items, setItems] = React.useState<UniversityEntry[]>([]);
+  const [items, setItems] = React.useState<UniversityEntry[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const wrapRef = React.useRef<HTMLDivElement>(null);
 
-    // ✅ Fetch universities function
+  // ✅ Fetch universities function
+  const OPENALEX_BASE = "https://api.openalex.org";
+
   const fetchUniversities = React.useCallback(async (q: string) => {
-    try {
-      const res = await API(
-        "GET",
-        `${URL_PATH.getunivercitylist}`
-      );
+    const url =
+      `${OPENALEX_BASE}/institutions` +
+      `?search=${encodeURIComponent(q)}` +
+      `&per-page=25`;
 
-      const list = (res?.data || []) as any[];
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`OpenAlex error ${r.status}`);
 
-      // ✅ map to only {id, name}
-      const mapped: UniversityEntry[] = list
-        .map((u) => ({
-          id: u._id,
-          name: u.name,
-        }))
-        .filter((x) => x.id && x.name);
+    const json = await r.json();
 
-      return mapped;
-    } catch (e: any) {
-      console.error("fetchUniversities error:", e);
-      throw new Error(e?.message || "Could not load universities");
-    }
+    // OpenAlex returns { results: [...] }
+    const mapped: UniversityEntry[] = (json?.results ?? [])
+      .map((inst: any) => ({
+        // inst.id looks like "https://openalex.org/I123456789"
+        id: String(inst?.id || ""),
+        name: String(inst?.display_name || ""),
+      }))
+      .filter((x: UniversityEntry) => x.id && x.name);
+
+    return mapped;
   }, []);
-
 
   // close on outside click
   React.useEffect(() => {
@@ -294,8 +288,9 @@ const [items, setItems] = React.useState<UniversityEntry[]>([]);
 
   // ✅ fetch results when query changes (with debounce)
   React.useEffect(() => {
+    if (!open) return;
+
     const q = debouncedQuery.trim();
-    
     if (q.length < 2) {
       setItems([]);
       setError(null);
@@ -306,7 +301,6 @@ const [items, setItems] = React.useState<UniversityEntry[]>([]);
       try {
         setLoading(true);
         setError(null);
-
         const data = await fetchUniversities(q);
         setItems(data);
       } catch (e: any) {
@@ -316,9 +310,7 @@ const [items, setItems] = React.useState<UniversityEntry[]>([]);
         setLoading(false);
       }
     })();
-  }, [debouncedQuery, fetchUniversities]);
-
-
+  }, [debouncedQuery, open, fetchUniversities]);
 
   return (
     <div className="relative" ref={wrapRef}>
@@ -362,42 +354,48 @@ const [items, setItems] = React.useState<UniversityEntry[]>([]);
 
           <div className="max-h-[240px] overflow-y-auto">
             {error && (
-              <div className="px-3 py-2 text-sm" style={{ color: colors.neutral[600] }}>
+              <div
+                className="px-3 py-2 text-sm"
+                style={{ color: colors.neutral[600] }}
+              >
                 {error}
               </div>
             )}
 
-            {!error && !loading && items.length === 0 && debouncedQuery.trim().length >= 2 && (
-              <div className="px-3 py-2 text-sm" style={{ color: colors.neutral[600] }}>
-                No matches. You can keep typing to enter custom name.
-              </div>
-            )}
+            {!error &&
+              !loading &&
+              items.length === 0 &&
+              debouncedQuery.trim().length >= 2 && (
+                <div
+                  className="px-3 py-2 text-sm"
+                  style={{ color: colors.neutral[600] }}
+                >
+                  No matches. You can keep typing to enter custom name.
+                </div>
+              )}
 
-{items.map((u) => (
-  <button
-    key={u.id}
-    type="button"
-    className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100"
-    onClick={() => {
-      onChange(u.name);
-      setQuery(u.name);
-      setOpen(false);
-    }}
-  >
-    <span className="truncate" style={{ color: colors.accent }}>
-      {u.name}
-    </span>
-  </button>
-))}
-
-
+            {items.map((u) => (
+              <button
+                key={u.id}
+                type="button"
+                className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100"
+                onClick={() => {
+                  onChange(u.name);
+                  setQuery(u.name);
+                  setOpen(false);
+                }}
+              >
+                <span className="truncate" style={{ color: colors.accent }}>
+                  {u.name}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       )}
     </div>
   );
 }
-
 
 export default function Education() {
   const navigate = useNavigate();
@@ -408,6 +406,8 @@ export default function Education() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const isEditing = !!editingId;
 
   const userId = localStorage.getItem("userId");
 
@@ -449,33 +449,34 @@ export default function Education() {
         return "End year must be after start year";
     }
 
-// Check if grade value is provided
-if (!gradeValue.trim() || gradeValue.trim().length === 0) {
-  return `Please enter ${gradeType === "gpa" ? "GPA" : "CGPA"}`;
-}
+    // Check if grade value is provided
+    if (!gradeValue.trim() || gradeValue.trim().length === 0) {
+      return `Please enter ${gradeType === "gpa" ? "GPA" : "CGPA"}`;
+    }
 
-// Validate based on selected type
-if (gradeType === "gpa") {
-  if (!/^(4(\.0{1,2})?|[0-3](\.[0-9]{1,2})?)$/.test(gradeValue))
-    return "GPA must be between 0 and 4.0 (e.g., 3.5, 4.0)";
-} else {
-  if (!/^(10(\.0{1,2})?|[0-9](\.\d{1,2})?)$/.test(gradeValue))
-    return "CGPA must be between 0 and 10 (e.g., 7.5, 9.2)";
-}
+    // Validate based on selected type
+    if (gradeType === "gpa") {
+      if (!/^(4(\.0{1,2})?|[0-3](\.[0-9]{1,2})?)$/.test(gradeValue))
+        return "GPA must be between 0 and 4.0 (e.g., 3.5, 4.0)";
+    } else {
+      if (!/^(10(\.0{1,2})?|[0-9](\.\d{1,2})?)$/.test(gradeValue))
+        return "CGPA must be between 0 and 10 (e.g., 7.5, 9.2)";
+    }
 
     return null;
   };
 
- const resetForm = () => {
-  setDegree("");
-  setFieldOfStudy("");
-  setSchoolName("");
-  setStartYear("");
-  setEndYear("");
-  setStudying(false);
-  setGradeType("gpa");
-  setGradeValue("");
-};
+  const resetForm = () => {
+    setDegree("");
+    setFieldOfStudy("");
+    setSchoolName("");
+    setStartYear("");
+    setEndYear("");
+    setStudying(false);
+    setGradeType("gpa");
+    setGradeValue("");
+    setEditingId(null);
+  };
 
   const hasEducationOverlap = () => {
     const newStart = Number(startYear);
@@ -568,22 +569,22 @@ if (gradeType === "gpa") {
       : Number(endYear) - Number(startYear);
 
     // ✅ API payload - include both GPA and CGPA
- const payload = {
-  educations: [
-    {
-      degree,
-      fieldOfStudy: toTitleCase(fieldOfStudy),
-      schoolName: toTitleCase(schoolName),
-      startYear: Number(startYear),
-      endYear: currentlyStudying ? null : Number(endYear),
-      currentlyStudying,
-      duration,
-      gpa: gradeType === "gpa" ? Number(gradeValue) : null,
-      cgpa: gradeType === "cgpa" ? Number(gradeValue) : null,
-      gradeSystem: gradeType, // Send which system was used
-    },
-  ],
-};
+    const payload = {
+      educations: [
+        {
+          degree,
+          fieldOfStudy: toTitleCase(fieldOfStudy),
+          schoolName: toTitleCase(schoolName),
+          startYear: Number(startYear),
+          endYear: currentlyStudying ? null : Number(endYear),
+          currentlyStudying,
+          duration,
+          gpa: gradeType === "gpa" ? Number(gradeValue) : null,
+          cgpa: gradeType === "cgpa" ? Number(gradeValue) : null,
+          gradeSystem: gradeType, // Send which system was used
+        },
+      ],
+    };
 
     try {
       setIsSubmitting(true);
@@ -616,6 +617,75 @@ if (gradeType === "gpa") {
       resetForm();
     } catch (err: any) {
       toast.error(err?.message || "Failed to add education");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------- EDIT EDUCATION --------------------
+  const handleUpdateEducation = async () => {
+    const error = validateEducation();
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
+    if (!editingId || !userId) return;
+
+    const currentYear = new Date().getFullYear();
+    const duration = currentlyStudying
+      ? currentYear - Number(startYear)
+      : Number(endYear) - Number(startYear);
+
+    const payload = {
+      degree,
+      fieldOfStudy: toTitleCase(fieldOfStudy),
+      schoolName: toTitleCase(schoolName),
+      startYear: Number(startYear),
+      endYear: currentlyStudying ? null : Number(endYear),
+      currentlyStudying,
+      duration,
+      gpa: gradeType === "gpa" ? Number(gradeValue) : null,
+      cgpa: gradeType === "cgpa" ? Number(gradeValue) : null,
+      gradeSystem: gradeType,
+    };
+
+    try {
+      setIsSubmitting(true);
+
+      await API(
+        "PUT",
+        `${URL_PATH.education}/${editingId}`, // 🔴 confirm endpoint
+        payload,
+        { "user-id": userId },
+      );
+
+      toast.success("Education updated");
+
+      setEducations((prev) =>
+        prev.map((e) => {
+          if (e.id !== editingId) return e;
+
+          return {
+            ...e,
+            degree: payload.degree,
+            fieldOfStudy: payload.fieldOfStudy,
+            schoolName: payload.schoolName,
+            startYear: String(payload.startYear),
+            endYear: payload.currentlyStudying
+              ? undefined
+              : String(payload.endYear ?? ""),
+            currentlyStudying: payload.currentlyStudying,
+            gpa: payload.gpa != null ? String(payload.gpa) : undefined,
+            cgpa: payload.cgpa != null ? String(payload.cgpa) : undefined,
+          };
+        }),
+      );
+
+      await fetchExperienceIndex();
+      resetForm();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update education");
     } finally {
       setIsSubmitting(false);
     }
@@ -742,6 +812,31 @@ if (gradeType === "gpa") {
       (option) => option.value === degreeValue,
     );
     return degreeOption?.label || degreeValue; // fallback to the value if not found
+  };
+
+  //Edit your profile
+  const fillFormForEdit = (ed: EducationEntry) => {
+    setEditingId(ed.id);
+
+    setDegree(ed.degree || "");
+    setFieldOfStudy(ed.fieldOfStudy || "");
+    setSchoolName(ed.schoolName || "");
+    setStartYear(ed.startYear || "");
+    setEndYear(ed.currentlyStudying ? "" : ed.endYear || "");
+    setStudying(!!ed.currentlyStudying);
+
+    if (ed.gpa) {
+      setGradeType("gpa");
+      setGradeValue(String(ed.gpa));
+    } else if (ed.cgpa) {
+      setGradeType("cgpa");
+      setGradeValue(String(ed.cgpa));
+    } else {
+      setGradeType("gpa");
+      setGradeValue("");
+    }
+
+    setSelectedEducation(ed);
   };
 
   // return (
@@ -1337,23 +1432,22 @@ if (gradeType === "gpa") {
   //   </>
   // );
 
-  
   return (
     <div className="min-h-screen relative overflow-hidden">
-    {/* 🎨 Linear gradient background - fixed behind everything */}
-        <div 
-            className="pointer-events-none fixed inset-0 -z-10"
-            style={{
-                background: `linear-gradient(
+      {/* 🎨 Linear gradient background - fixed behind everything */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background: `linear-gradient(
                     to bottom,
                     #d9d9d9 0%,
                     #cfd3d6 25%,
                     #9aa6b2 55%,
                     #2E4056 100%
                 )`,
-                width: "100%",
-            }}
-        />
+          width: "100%",
+        }}
+      />
 
       {/* Header and content with z-index to stay above background */}
       <div className="relative z-10">
@@ -1471,16 +1565,29 @@ if (gradeType === "gpa") {
 
                         {/* Right */}
                         <div className="flex flex-col items-end gap-2 shrink-0">
-                          <IconButton
-                            size="small"
-                            icon={<FeatherX />}
-                            aria-label={`Delete education ${ed.degree}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteId(ed.id);
-                            }}
-                            className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                          />
+                          <div className="flex items-center gap-1">
+                            {/* EDIT */}
+                            <IconButton
+                              size="small"
+                              icon={<FeatherEdit2 />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                fillFormForEdit(ed);
+                              }}
+                              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                            />
+
+                            {/* DELETE */}
+                            <IconButton
+                              size="small"
+                              icon={<FeatherX />}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteId(ed.id);
+                              }}
+                              className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+                            />
+                          </div>
 
                           <span className="text-xs text-neutral-500">
                             {ed.startYear}
@@ -1527,16 +1634,18 @@ if (gradeType === "gpa") {
                             </div>
 
                             {ed.gpa && (
-  <div>
-    <span className="font-medium">GPA:</span> {ed.gpa}
-  </div>
-)}
+                              <div>
+                                <span className="font-medium">GPA:</span>{" "}
+                                {ed.gpa}
+                              </div>
+                            )}
 
-{ed.cgpa && (
-  <div>
-    <span className="font-medium">CGPA:</span> {ed.cgpa}
-  </div>
-)}
+                            {ed.cgpa && (
+                              <div>
+                                <span className="font-medium">CGPA:</span>{" "}
+                                {ed.cgpa}
+                              </div>
+                            )}
                           </div>
                         </>
                       )}
@@ -1549,7 +1658,7 @@ if (gradeType === "gpa") {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleAddEducation();
+                  isEditing ? handleUpdateEducation() : handleAddEducation();
                 }}
                 className="mt-6 flex flex-col gap-4"
               >
@@ -1631,13 +1740,12 @@ if (gradeType === "gpa") {
                   />
                 </TextField>
 
-{/* School Name */}
-<SchoolNameDropdown
-  value={schoolName}
-  onChange={setSchoolName}
-  disabled={isSubmitting}
-/>
-
+                {/* School Name */}
+                <SchoolNameDropdown
+                  value={schoolName}
+                  onChange={setSchoolName}
+                  disabled={isSubmitting}
+                />
 
                 {/* Years */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1788,14 +1896,36 @@ if (gradeType === "gpa") {
                     variant="neutral-secondary"
                     icon={<FeatherPlus />}
                     className="w-full rounded-full h-10 px-4 border-neutral-300"
-                    onClick={handleAddEducation}
+                    onClick={() =>
+                      isEditing ? handleUpdateEducation() : handleAddEducation()
+                    }
                   >
-                    {isSubmitting ? "Adding..." : "Add another education"}
+                    {isSubmitting
+                      ? isEditing
+                        ? "Updating..."
+                        : "Adding..."
+                      : isEditing
+                        ? "Update education"
+                        : "Add another education"}
                   </Button>
-                  <div className="flex-1" />
-                </div>
-              </form>
 
+
+                  <div className="flex-1" />
+                 {/* ✅ Cancle Edit */}
+                 {isEditing && (
+                  <Button
+                    onClick={resetForm}
+                    type="button"
+                    className="w-full rounded-full h-10 mt-2"
+                    variant="brand-tertiary"
+                    style={{backgroundColor: colors.primaryGlow}}
+                  >
+                    Cancel edit
+                  </Button>
+                  )}
+                </div>
+                
+              </form>
 
               {/* Top form horizontal line */}
               <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
@@ -1865,7 +1995,7 @@ if (gradeType === "gpa") {
 
                   {/* 🟣 Active — Education */}
                   <button
-                    style={{ backgroundColor: colors.primary,  }}
+                    style={{ backgroundColor: colors.primary }}
                     type="button"
                     className="w-full flex items-center gap-3 rounded-2xl px-4 py-2 mb-3 hover:shadow-sm"
                   >
@@ -1875,9 +2005,10 @@ if (gradeType === "gpa") {
                         icon={<FeatherGraduationCap />}
                       />
                     </div>
-                    
-                    <span className="text-sm font-medium text-neutral-900"
-                    style={{color: colors.white}}
+
+                    <span
+                      className="text-sm font-medium text-neutral-900"
+                      style={{ color: colors.white }}
                     >
                       Education
                     </span>
@@ -1988,13 +2119,16 @@ if (gradeType === "gpa") {
                     variant="brand-tertiary"
                     className="flex-1 rounded-3xl"
                     onClick={() => setDeleteId(null)}
-                    style={{backgroundColor: colors.primary, color: colors.white}}
-                     onMouseEnter={(e) => {
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                    }}
+                    onMouseEnter={(e) => {
                       if (!isSubmitting)
                         e.currentTarget.style.backgroundColor =
                           colors.secondary;
                     }}
-                      onMouseLeave={(e) => {
+                    onMouseLeave={(e) => {
                       if (!isSubmitting)
                         e.currentTarget.style.backgroundColor = colors.primary;
                     }}
@@ -2016,8 +2150,7 @@ if (gradeType === "gpa") {
                     }}
                     onMouseEnter={(e) => {
                       if (!isSubmitting)
-                        e.currentTarget.style.backgroundColor =
-                          colors.red;
+                        e.currentTarget.style.backgroundColor = colors.red;
                     }}
                     onMouseLeave={(e) => {
                       if (!isSubmitting)

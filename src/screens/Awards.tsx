@@ -16,6 +16,7 @@ import {
   FeatherPlus,
   FeatherX,
   FeatherCheck,
+  FeatherEdit2,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { toast, ToastContainer } from "react-toastify";
@@ -152,6 +153,9 @@ export default function Awards() {
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
   const [selectedAward, setSelectedAward] = useState<any | null>(null);
   const [deleteAwardId, setDeleteAwardId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+const isEditing = !!editingId;
+
 
   type ExperiencePoints = {
     demographics?: number;
@@ -236,6 +240,8 @@ export default function Awards() {
     setName("");
     setDescription("");
     setEndYear("");
+      setEditingId(null);
+
   };
 
   // Helper
@@ -319,6 +325,49 @@ export default function Awards() {
     }
   };
 
+
+    // -------------------- EDIT AWARD --------------------
+    const handleUpdateAward = async () => {
+  if (isSubmitting) return;
+
+  const error = validateAward(name, endYear, description);
+  if (error) {
+    toast.error(error);
+    return;
+  }
+
+  if (!userId || !editingId) return;
+
+  try {
+    setIsSubmitting(true);
+
+    const yearNum = Number(endYear);
+
+    await API(
+      "PUT",
+      `${URL_PATH.awards}/${editingId}`, // ✅ confirm your backend update route
+      {
+        awardName: toTitleCase(normalizeSpaces(name)),
+        description: description.trim() || null,
+        year: yearNum,
+      },
+      { "user-id": userId }
+    );
+
+    toast.success("Award updated successfully");
+
+    await fetchAwards();
+    await fetchExperienceIndex();
+    resetForm();
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || "Failed to update award");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+
   // -------------------- DELETE AWARD --------------------
   const handleRemove = async () => {
     if (!deleteAwardId || isSubmitting) return;
@@ -382,6 +431,19 @@ export default function Awards() {
       navigate("/projects", { state: { source } });
     }
   };
+
+
+const fillFormForEdit = (a: AwardEntry) => {
+  setEditingId(a.id);
+
+  setName(a.name || "");
+  setDescription(a.description || "");
+  setEndYear(a.year || "");
+
+  setSelectedAward(a);
+};
+
+
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -527,22 +589,37 @@ export default function Awards() {
                         </div>
 
                         {/* Right */}
-                        <div className="flex flex-col items-end gap-2 shrink-0">
-                          <IconButton
-                            size="small"
-                            icon={<FeatherX />}
-                            aria-label={`Delete award ${a.name}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteAwardId(a.id);
-                            }}
-                            className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
-                          />
+<div className="flex flex-col items-end gap-2 shrink-0">
+  <div className="flex items-center gap-2">
+    {/* ✅ Edit */}
+    <IconButton
+      size="small"
+      icon={<FeatherEdit2 />}
+      aria-label={`Edit award ${a.name}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        fillFormForEdit(a);
+      }}
+      className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+    />
 
-                          <span className="text-xs text-neutral-500">
-                            {a.year}
-                          </span>
-                        </div>
+    {/* ✅ Delete */}
+    <IconButton
+      size="small"
+      icon={<FeatherX />}
+      aria-label={`Delete award ${a.name}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        setDeleteAwardId(a.id);
+      }}
+      className="!bg-transparent !text-neutral-500 hover:!text-neutral-700"
+    />
+  </div>
+
+  <span className="text-xs text-neutral-500">{a.year}</span>
+</div>
+
+
                       </div>
 
                       {/* 🔹 DETAILS (inside same card) */}
@@ -632,20 +709,42 @@ export default function Awards() {
                   />
                 </TextField>
 
-                <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                  <Button
-                    type="button"
-                    variant="neutral-secondary"
-                    icon={<FeatherPlus />}
-                    className="w-full rounded-full border border-neutral-300 h-10 px-4 flex items-center gap-2"
-                    onClick={handleAddAward}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Adding..." : "Add another award"}
-                  </Button>
+<div className="mt-2 flex flex-col sm:flex-row gap-3 items-center">
+  <Button
+    type="button"
+    disabled={isSubmitting}
+    variant="neutral-secondary"
+    icon={<FeatherPlus />}
+    className="w-full rounded-full border border-neutral-300 h-10 px-4 flex items-center gap-2"
+    onClick={() => (isEditing ? handleUpdateAward() : handleAddAward())}
+  >
+    {isSubmitting
+      ? isEditing
+        ? "Updating..."
+        : "Adding..."
+      : isEditing
+      ? "Update award"
+      : "Add another award"}
+  </Button>
 
-                  <div className="flex-1" />
-                </div>
+  <div className="flex-1" />
+
+  {/* ✅ Cancel edit */}
+  {isEditing && (
+    <Button
+      onClick={resetForm}
+      type="button"
+      className="w-full rounded-full h-10 mt-2 sm:mt-0"
+      variant="brand-tertiary"
+      style={{ backgroundColor: colors.primaryGlow }}
+    >
+      Cancel edit
+    </Button>
+  )}
+</div>
+
+
+
               </form>
 
               <div className="w-full h-[1px] bg-gray-300 my-4 flex-shrink-0" />
