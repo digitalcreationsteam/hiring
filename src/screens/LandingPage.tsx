@@ -11,6 +11,7 @@ import CTASection from 'src/ui/components/CTASection';
 import Footer from 'src/ui/components/Footer';
 
 const LandingPage = () => {
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />

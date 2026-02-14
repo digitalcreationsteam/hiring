@@ -271,7 +271,7 @@ const Footer = () => {
               // style={{ color: uniTalentColors.text }}
               className="text-xs opacity-70"
             >
-              © {currentYear} UniTalent. All rights reserved.
+              © {currentYear} UniTalent Corporation Pvt Ltd.
             </p>
 
             <div className="flex flex-wrap gap-3">

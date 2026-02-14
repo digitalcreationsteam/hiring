@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { uniTalentColors } from 'src/common/Colors';
+import { useInView } from 'src/hooks/useInView';
 
 const HeroSection = () => {
+  const { ref, isInView } = useInView();           // add this line
   const [scrollY, setScrollY] = useState(0);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
@@ -17,7 +19,11 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section id="home"
+      ref={ref}                                     // attach ref
+      className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-all duration-[1500] ${
+        isInView ? 'animate-in' : 'opacity-0 translate-y-10'
+      }`}>
       {/* Video Background with Overlay */}
       <div className="absolute inset-0 overflow-hidden bg-black">
         {/* Video Element */}
@@ -149,54 +155,8 @@ const HeroSection = () => {
             style={{ color: 'rgba(255, 255, 255, 0.85)', animationDelay: '0.2s',  }}
             className="text-base sm:text-lg lg:text-xl max-w-2xl mx-auto mb-8 sm:mb-10 lg:mb-12 leading-relaxed animate-fade-in-up"
           >
-            The hiring system is broken. We help you break through it.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center max-w-2xl mx-auto mb-8 sm:mb-10 lg:mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' } as React.CSSProperties}>
-            <button 
-              style={{ 
-                background: `linear-gradient(135deg, ${uniTalentColors.primary} 0%, ${uniTalentColors.secondary || '#FFEDB2'} 100%)`,
-                color: uniTalentColors.lightGray,
-                boxShadow: `0 8px 30px ${uniTalentColors.primary}66`,
-              }}
-              className="w-full sm:flex-1 py-3 sm:py-4 px-6 sm:px-8 font-bold rounded-lg sm:rounded-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 group text-sm sm:text-base"
-            >
-              <span className="flex items-center justify-center">
-                Get Your Fair Shot
-                <svg 
-                  className="w-4 h-4 sm:w-5 sm:h-5 ml-2 transform group-hover:translate-x-1 transition-transform duration-300"
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
-            </button>
-            
-            <button 
-              style={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: '#FFFFFF',
-                borderColor: '#FFFFFF',
-                backdropFilter: 'blur(10px)',
-              }}
-              className="w-full sm:flex-1 py-3 sm:py-4 px-6 sm:px-8 font-bold rounded-lg sm:rounded-xl border-2 hover:bg-white hover:bg-opacity-20 hover:shadow-lg active:scale-95 transition-all duration-300 group text-sm sm:text-base"
-            >
-              <span className="flex items-center justify-center">
-                See How It Works
-                <svg 
-                  className="w-4 h-4 sm:w-5 sm:h-5 ml-2 transform group-hover:rotate-180 transition-transform duration-300"
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </span>
-            </button>
-          </div>
+             Be part of a new talent ecosystem
+          </p>  
 
         </div>
       </div>

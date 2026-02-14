@@ -1698,87 +1698,88 @@ if (gradeType === "gpa") {
                 </div>
 
                 {/* GPA Field - US 4-point scale */}
-                {/* Grade Type Selector Dropdown */}
-<div className="flex flex-col gap-1">
-  <label className="text-[12px] font-medium text-neutral-900">
-    Grade System <span className="text-red-500">*</span>
-  </label>
+                {/* Grade Type Selector Dropdown + Input Side by Side */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {/* Grade Type Selector Dropdown */}
+  <div className="flex flex-col gap-1">
+    <label className="text-[12px] font-medium text-neutral-900">
+      Grade System <span className="text-red-500">*</span>
+    </label>
 
-  <SubframeCore.DropdownMenu.Root>
-    <SubframeCore.DropdownMenu.Trigger asChild>
-      <div
-        className="flex h-9 items-center justify-between rounded-full border border-neutral-300 px-3 cursor-pointer hover:bg-neutral-50"
-        style={{ backgroundColor: colors.white }}
-      >
-        <span
-          className="text-[12px]"
-          style={{ color: gradeType ? colors.accent : "#9CA3AF" }}
+    <SubframeCore.DropdownMenu.Root>
+      <SubframeCore.DropdownMenu.Trigger asChild>
+        <div
+          className="flex h-10 items-center justify-between rounded-full border border-neutral-300 px-4 cursor-pointer hover:bg-neutral-50 transition"
+          style={{ backgroundColor: colors.white }}
         >
-          {gradeType === "gpa" ? "GPA (4.0 scale)" : "CGPA (10.0 scale)"}
-        </span>
+          <span
+            className="text-[12px] font-medium"
+            style={{ color: colors.accent }}
+          >
+            {gradeType === "gpa" ? "GPA" : "CGPA"}
+          </span>
 
-        <FeatherChevronDown style={{ color: "#6B7280" }} />
-      </div>
-    </SubframeCore.DropdownMenu.Trigger>
+          <FeatherChevronDown style={{ color: "#6B7280" }} />
+        </div>
+      </SubframeCore.DropdownMenu.Trigger>
 
-    <SubframeCore.DropdownMenu.Portal>
-      <SubframeCore.DropdownMenu.Content
-        sideOffset={4}
-        align="start"
-        className="bg-white text-neutral-900 rounded-2xl shadow-lg py-1 border border-neutral-300 min-w-[200px]"
-        style={{ zIndex: 999999 }}
-      >
-        <SubframeCore.DropdownMenu.Item
-          className="px-4 py-2 text-sm text-neutral-900 cursor-pointer hover:bg-neutral-100 outline-none"
-          onSelect={() => {
-            setGradeType("gpa");
-            setGradeValue(""); // Clear value when switching
-          }}
+      <SubframeCore.DropdownMenu.Portal>
+        <SubframeCore.DropdownMenu.Content
+          sideOffset={4}
+          align="start"
+          className="bg-white text-neutral-900 rounded-2xl shadow-lg py-1 border border-neutral-300 min-w-[180px]"
+          style={{ zIndex: 999999 }}
         >
-          GPA (4.0 scale)
-        </SubframeCore.DropdownMenu.Item>
+          <SubframeCore.DropdownMenu.Item
+            className="px-4 py-2 text-sm text-neutral-900 cursor-pointer hover:bg-neutral-100 outline-none"
+            onSelect={() => {
+              setGradeType("gpa");
+              setGradeValue("");
+            }}
+          >
+            GPA (4.0)
+          </SubframeCore.DropdownMenu.Item>
 
-        <SubframeCore.DropdownMenu.Item
-          className="px-4 py-2 text-sm text-neutral-900 cursor-pointer hover:bg-neutral-100 outline-none"
-          onSelect={() => {
-            setGradeType("cgpa");
-            setGradeValue(""); // Clear value when switching
-          }}
-        >
-          CGPA (10.0 scale)
-        </SubframeCore.DropdownMenu.Item>
-      </SubframeCore.DropdownMenu.Content>
-    </SubframeCore.DropdownMenu.Portal>
-  </SubframeCore.DropdownMenu.Root>
-</div>
+          <SubframeCore.DropdownMenu.Item
+            className="px-4 py-2 text-sm text-neutral-900 cursor-pointer hover:bg-neutral-100 outline-none"
+            onSelect={() => {
+              setGradeType("cgpa");
+              setGradeValue("");
+            }}
+          >
+            CGPA (10.0)
+          </SubframeCore.DropdownMenu.Item>
+        </SubframeCore.DropdownMenu.Content>
+      </SubframeCore.DropdownMenu.Portal>
+    </SubframeCore.DropdownMenu.Root>
+  </div>
 
-{/* Single Grade Input Field */}
-<TextField
-  className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
-  label={
-    <span className="text-[12px]">
-      {gradeType === "gpa" ? "GPA" : "CGPA"}{" "}
+  {/* Single Grade Input Field */}
+  <TextField
+    className="h-auto w-full [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300"
+    label={
+      <span className="text-[12px]">
+        {gradeType === "gpa" ? "GPA" : "CGPA"}{" "}
       <span className="text-red-500">*</span>
-    </span>
-  }
->
-  <TextField.Input
-    className="rounded-full h-10 px-4 bg-white !border-none focus:ring-0"
-    placeholder={
-      gradeType === "gpa"
-        ? "e.g., 3.8 (out of 4)"
-        : "e.g., 7.8 (out of 10)"
+      </span>
     }
-    value={gradeValue}
-    onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
-      const value = ev.target.value.replace(/[^0-9.]/g, "");
-      const decimalCount = (value.match(/\./g) || []).length;
-      if (decimalCount <= 1) {
-        setGradeValue(value);
+  >
+    <TextField.Input
+      className="rounded-full h-10 px-4 bg-white !border-none focus:ring-0"
+      placeholder={
+        gradeType === "gpa" ? "e.g., 3.8" : "e.g., 7.8"
       }
-    }}
-  />
-</TextField>
+      value={gradeValue}
+      onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
+        const value = ev.target.value.replace(/[^0-9.]/g, "");
+        const decimalCount = (value.match(/\./g) || []).length;
+        if (decimalCount <= 1) {
+          setGradeValue(value);
+        }
+      }}
+    />
+  </TextField>
+  </div>
                 
                 <div className="mt-2 flex flex-col sm:flex-row gap-3 items-center">
                   <Button
