@@ -1,0 +1,223 @@
+@keyframes talent-glow {
+  0% {
+    box-shadow: 0 0 0px rgba(59, 130, 246, 0);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.5),
+      0 0 40px rgba(59, 130, 246, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes talent-ripple {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  75% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes talent-wave {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(3px) rotate(1deg);
+  }
+  75% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+@keyframes talent-sparkle {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes talent-particle {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes talent-ring-1 {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes talent-ring-2 {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes talent-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes talent-twinkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes talent-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+}
+
+@keyframes talent-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes talent-breath {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes talent-slide {
+  0% {
+    transform: translateX(-5px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-talent-glow {
+  animation: talent-glow 0.6s ease-out;
+}
+
+.animate-talent-ripple {
+  animation: talent-ripple 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-talent-wave {
+  animation: talent-wave 0.4s ease-in-out;
+}
+
+.animate-talent-sparkle {
+  animation: talent-sparkle 0.8s ease-in-out;
+}
+
+.animate-talent-particle {
+  --tx: $ {() => (Math.random() - 0.5) * 100}px;
+  --ty: $ {() => (Math.random() - 0.5) * 100}px;
+  animation: talent-particle 1s ease-out forwards;
+}
+
+.animate-talent-ring-1 {
+  animation: talent-ring-1 0.6s ease-out forwards;
+}
+
+.animate-talent-ring-2 {
+  animation: talent-ring-2 0.6s ease-out 0.1s forwards;
+}
+
+.animate-talent-shimmer {
+  animation: talent-shimmer 0.8s ease-in-out;
+}
+
+.animate-talent-twinkle {
+  animation: talent-twinkle 0.8s ease-out forwards;
+}
+
+.animate-talent-twinkle-delay {
+  animation: talent-twinkle 0.8s ease-out 0.2s forwards;
+}
+
+.animate-talent-pulse {
+  animation: talent-pulse 0.6s ease-in-out;
+}
+
+.animate-talent-float {
+  animation: talent-float 2s ease-in-out infinite;
+}
+
+.animate-talent-breath {
+  animation: talent-breath 3s ease-in-out infinite;
+}
+
+.animate-talent-slide {
+  animation: talent-slide 0.3s ease-out;
+}

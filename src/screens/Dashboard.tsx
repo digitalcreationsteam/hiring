@@ -58,6 +58,7 @@ import {
 } from "@subframe/core";
 import Navbar from "src/ui/components/Navbar";
 import Footer from "src/ui/components/Footer";
+import { clearUserData } from "src/utils/authUtils";
 // import HeaderLogo from "@/ui/components/HeaderLogo";
 
 /* ==================== TYPES ==================== */
@@ -485,63 +486,63 @@ export default function Dashboard() {
   // };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  console.log("", e);
-  const file = e.target.files?.[0];
-  if (!file) return;
+    console.log("", e);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // Validate file size (e.g., max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    toast.error("File size should be less than 5MB");
-    return;
-  }
+    // Validate file size (e.g., max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should be less than 5MB");
+      return;
+    }
 
-  // Validate file type
-  const validTypes = ["image/jpeg", "image/png", "image/webp"];
-  if (!validTypes.includes(file.type)) {
-    toast.error("Please select a valid image (JPEG, PNG, or WebP)");
-    return;
-  }
+    // Validate file type
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please select a valid image (JPEG, PNG, or WebP)");
+      return;
+    }
 
-  // Cleanup old preview
-  if (avatar && avatar.startsWith("blob:")) {
-    URL.revokeObjectURL(avatar);
-  }
+    // Cleanup old preview
+    if (avatar && avatar.startsWith("blob:")) {
+      URL.revokeObjectURL(avatar);
+    }
 
-  // Create preview
-  const previewUrl = URL.createObjectURL(file);
-  setAvatar(previewUrl);
+    // Create preview
+    const previewUrl = URL.createObjectURL(file);
+    setAvatar(previewUrl);
 
-  try {
-    setIsSavingAvatar(true);
+    try {
+      setIsSavingAvatar(true);
 
-    // Upload to server
-    const formData = new FormData();
-    formData.append("avatar", file);
+      // Upload to server
+      const formData = new FormData();
+      formData.append("avatar", file);
 
-    await API("POST", URL_PATH.uploadProfile, formData);
+      await API("POST", URL_PATH.uploadProfile, formData);
 
-    // Refresh from server (dashboard includes documents.profileUrl)
-    await fetchDashboardData();
+      // Refresh from server (dashboard includes documents.profileUrl)
+      await fetchDashboardData();
 
-    // Dispatch custom event to notify Navbar about avatar update
-    window.dispatchEvent(new Event('avatar-updated'));
+      // Dispatch custom event to notify Navbar about avatar update
+      window.dispatchEvent(new Event("avatar-updated"));
 
-    // Revoke preview after successful upload
-    setTimeout(() => {
-      if (previewUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    }, 1000);
-  } catch (error) {
-    console.error("Upload failed:", error);
-    toast.error("Failed to upload profile picture");
-  } finally {
-    setIsSavingAvatar(false);
-  }
-};
+      // Revoke preview after successful upload
+      setTimeout(() => {
+        if (previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(previewUrl);
+        }
+      }, 1000);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast.error("Failed to upload profile picture");
+    } finally {
+      setIsSavingAvatar(false);
+    }
+  };
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearUserData();
     navigate("/login");
   };
 
@@ -573,21 +574,20 @@ export default function Dashboard() {
     <>
       <ToastContainer position="top-center" autoClose={3000} />
       <div
-      style={{
-    background: `linear-gradient(
+        style={{
+          background: `linear-gradient(
       to bottom,
       #d9d9d9 0%,
       #cfd3d6 25%,
       #9aa6b2 55%,
       #2E4056 100%
     )`,
-    width: "100%",
-    fontFamily: "'Poppins', sans-serif",
-  }}
+          width: "100%",
+          fontFamily: "'Poppins', sans-serif",
+        }}
         className="min-h-screen w-full relative"
         // style={{ backgroundColor: colors.white,  fontFamily: "'Inter', sans-serif" }}
       >
-
         {/* TOP WELCOME BANNER */}
         <div className="w-full relative" style={{ borderColor: colors.aqua }}>
           <Navbar />
@@ -597,14 +597,12 @@ export default function Dashboard() {
           <div className="flex flex-col gap-8 lg:flex-row">
             {/* --- LEFT SIDEBAR --- */}
             <div className="flex w-full flex-col gap-6 lg:w-[340px] lg:flex-none">
-
               <Card
                 className="flex w-full flex-col items-center gap-3 rounded-[2rem] shadow-sm text-center "
                 style={{
                   backgroundColor: colors.white,
-                  border: `1.5px solid ${colors.primaryGlow}`
+                  border: `1.5px solid ${colors.primaryGlow}`,
                 }}
-                
               >
                 <CardContent className="px-6 py-8 flex w-full flex-col items-center gap-3">
                   {/* Avatar Section */}
@@ -647,10 +645,7 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                    <p
-                      className="text-sm "
-                      style={{ color: colors.secondary }}
-                    >
+                    <p className="text-sm " style={{ color: colors.secondary }}>
                       {user.domain}
                     </p>
 
@@ -676,7 +671,7 @@ export default function Dashboard() {
                         className="h-9 w-9 rounded-xl flex items-center justify-center"
                         style={{
                           backgroundColor: colors.primary,
-                          color: colors.white
+                          color: colors.white,
                         }}
                       >
                         <FeatherTrophy className="w-5 h-5 ml-1" />
@@ -702,7 +697,7 @@ export default function Dashboard() {
                 style={{
                   backgroundColor: colors.white,
                   color: colors.accent,
-                  border: `1.5px solid ${colors.primaryGlow}`
+                  border: `1.5px solid ${colors.primaryGlow}`,
                 }}
               >
                 <CardHeader className="pb-2">
@@ -764,7 +759,10 @@ export default function Dashboard() {
               </Card>
               <Card
                 className="w-full rounded-[2rem] shadow-sm border"
-                style={{ backgroundColor: colors.white, border: `1.5px solid ${colors.primaryGlow}` }}
+                style={{
+                  backgroundColor: colors.white,
+                  border: `1.5px solid ${colors.primaryGlow}`,
+                }}
               >
                 <CardHeader className="pb-3 border-b">
                   <CardTitle
@@ -776,13 +774,12 @@ export default function Dashboard() {
                         className="w-9 h-9 rounded-full pl-2.5"
                         style={{ color: colors.white, background: colors.primary }}
                       /> */}
-                       <img
-        src="/resume.png"   // change to your image name
-        alt="Trophy"
-        className="w-7 h-7 object-contain"
-      />
+                      <img
+                        src="/resume.png" // change to your image name
+                        alt="Trophy"
+                        className="w-7 h-7 object-contain"
+                      />
                     </div>
-                    
                     Professional Resume
                   </CardTitle>
                 </CardHeader>
@@ -987,7 +984,6 @@ export default function Dashboard() {
 
             {/* --- CENTER DASHBOARD --- */}
             <div className="flex w-full flex-col gap-8 lg:max-w-[800px]">
-
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {[
                   {
@@ -1017,7 +1013,7 @@ export default function Dashboard() {
                     className="rounded-3xl shadow-sm border"
                     style={{
                       backgroundColor: colors.white,
-                      border: `1.5px solid ${colors.primaryGlow}`
+                      border: `1.5px solid ${colors.primaryGlow}`,
                     }}
                   >
                     <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
@@ -1049,7 +1045,10 @@ export default function Dashboard() {
                         )}
                       </div>
 
-                      <span style={{color: "black"}} className="text-[10px] uppercase tracking-widest">
+                      <span
+                        style={{ color: "black" }}
+                        className="text-[10px] uppercase tracking-widest"
+                      >
                         {rank.label}
                       </span>
 
@@ -1076,7 +1075,11 @@ export default function Dashboard() {
 
               <Card
                 className="w-full rounded-[2.5rem] shadow-xl overflow-hidden"
-                style={{ backgroundColor: "white", color: colors.accent, border: `1.5px solid ${colors.primaryGlow}`   }}
+                style={{
+                  backgroundColor: "white",
+                  color: colors.accent,
+                  border: `1.5px solid ${colors.primaryGlow}`,
+                }}
               >
                 <CardContent className="p-8">
                   <div className="flex flex-col md:flex-row items-center gap-8">
@@ -1211,7 +1214,13 @@ export default function Dashboard() {
                     Recommended Actions
                   </h3>
 
-                  <span style={{background: colors.primaryGlow, color: colors.accent}} className="w-fit text-[10px] sm:text-xs px-3 py-1 rounded-full">
+                  <span
+                    style={{
+                      background: colors.primaryGlow,
+                      color: colors.accent,
+                    }}
+                    className="w-fit text-[10px] sm:text-xs px-3 py-1 rounded-full"
+                  >
                     4 Actions Available
                   </span>
                 </div>
@@ -1219,7 +1228,10 @@ export default function Dashboard() {
                 {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-start">
                   {/* ================= Assessment ================= */}
-                  <Card style={{border: `1.5px solid ${colors.primaryGlow}`   }} className="border border-neutral-200 rounded-3xl sm:rounded-[2rem] shadow-sm bg-white transition-all">
+                  <Card
+                    style={{ border: `1.5px solid ${colors.primaryGlow}` }}
+                    className="border border-neutral-200 rounded-3xl sm:rounded-[2rem] shadow-sm bg-white transition-all"
+                  >
                     <CardContent className="pt-2 pb-0 px-4 sm:pt-3 sm:pb-3 sm:px-3">
                       <div className="flex justify-between items-start mb-4 sm:mb-6">
                         <div
@@ -1228,10 +1240,10 @@ export default function Dashboard() {
                         >
                           {/* <FeatherFileText /> */}
                           <img
-                          src="/assessment.png"   // change to your image name
-                          alt="Trophy"
-                          className="w-8 h-8 object-contain"
-                        />
+                            src="/assessment.png" // change to your image name
+                            alt="Trophy"
+                            className="w-8 h-8 object-contain"
+                          />
                         </div>
 
                         <Badge
@@ -1289,22 +1301,27 @@ export default function Dashboard() {
                   </Card>
 
                   {/* ================= Case Studies ================= */}
-                  <Card style={{border: `1.5px solid ${colors.primaryGlow}`}} className="border border-neutral-200 rounded-3xl sm:rounded-[2rem] shadow-sm bg-white transition-all">
+                  <Card
+                    style={{ border: `1.5px solid ${colors.primaryGlow}` }}
+                    className="border border-neutral-200 rounded-3xl sm:rounded-[2rem] shadow-sm bg-white transition-all"
+                  >
                     <CardContent className="pt-2 pb-0 px-4 sm:pt-3 sm:pb-3 sm:px-3">
                       <div className="flex justify-between items-start mb-4 sm:mb-6">
                         <div
-                          style={{
-                            // backgroundColor: colors.primary,
-                            // color: colors.white,
-                          }}
+                          style={
+                            {
+                              // backgroundColor: colors.primary,
+                              // color: colors.white,
+                            }
+                          }
                           className="rounded-2xl"
                         >
                           {/* <FeatherBookOpen /> */}
                           <img
-                          src="/book.png"   // change to your image name
-                          alt="Trophy"
-                          className="w-8 h-8 object-contain"
-                        />
+                            src="/book.png" // change to your image name
+                            alt="Trophy"
+                            className="w-8 h-8 object-contain"
+                          />
                         </div>
 
                         <Badge
@@ -1344,7 +1361,13 @@ export default function Dashboard() {
                   </Card>
 
                   {/* ================= Hackathons ================= */}
-                  <Card style={{border: `1.5px solid ${colors.primaryGlow}`, cursor: "not-allowed"}} className="bg-white border rounded-3xl sm:rounded-[2rem] shadow-sm opacity-80">
+                  <Card
+                    style={{
+                      border: `1.5px solid ${colors.primaryGlow}`,
+                      cursor: "not-allowed",
+                    }}
+                    className="bg-white border rounded-3xl sm:rounded-[2rem] shadow-sm opacity-80"
+                  >
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex justify-between items-start mb-4 sm:mb-6">
                         <div className="p-3 bg-neutral-200 rounded-2xl text-neutral-500">
@@ -1382,7 +1405,13 @@ export default function Dashboard() {
                   </Card>
 
                   {/* ================= Courses ================= */}
-                  <Card style={{border: `1.5px solid ${colors.primaryGlow}`, cursor: "not-allowed"}} className="bg-white rounded-3xl sm:rounded-[2rem] shadow-sm opacity-80">
+                  <Card
+                    style={{
+                      border: `1.5px solid ${colors.primaryGlow}`,
+                      cursor: "not-allowed",
+                    }}
+                    className="bg-white rounded-3xl sm:rounded-[2rem] shadow-sm opacity-80"
+                  >
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex justify-between items-start mb-4 sm:mb-6">
                         <div className="p-3 bg-neutral-200 rounded-2xl text-neutral-500">
@@ -1423,7 +1452,10 @@ export default function Dashboard() {
 
             {/* --- RIGHT SIDEBAR --- */}
             <div className="flex w-full flex-col gap-6 lg:w-[340px] lg:flex-none">
-              <Card style={{border: `1.5px solid ${colors.primaryGlow}`}} className="bg-white rounded-[2rem] border shadow-sm">
+              <Card
+                style={{ border: `1.5px solid ${colors.primaryGlow}` }}
+                className="bg-white rounded-[2rem] border shadow-sm"
+              >
                 <CardHeader className="pb-2">
                   <CardTitle
                     className="text-sm font-bold flex items-center gap-2"
@@ -1434,10 +1466,10 @@ export default function Dashboard() {
                       className="w-8 h-8 rounded-full pl-2.5"
                     /> */}
                     <img
-        src="/trophy.png"   // change to your image name
-        alt="Trophy"
-        className="w-7 h-7 object-contain"
-      />
+                      src="/trophy.png" // change to your image name
+                      alt="Trophy"
+                      className="w-7 h-7 object-contain"
+                    />
                     Top PMs at Stanford
                   </CardTitle>
                 </CardHeader>
@@ -1468,7 +1500,9 @@ export default function Dashboard() {
                       key={idx}
                       className="flex items-center gap-3 p-3 rounded-2xl"
                       style={{
-                        backgroundColor: p.isUser ? colors.aqua : colors.background,
+                        backgroundColor: p.isUser
+                          ? colors.aqua
+                          : colors.background,
                       }}
                     >
                       <div
@@ -1513,7 +1547,11 @@ export default function Dashboard() {
 
               <Card
                 className="rounded-[2.5rem] shadow-lg text-center overflow-hidden"
-                style={{ backgroundColor: colors.white, color: colors.accent, border: `1.5px solid ${colors.primaryGlow}`}}
+                style={{
+                  backgroundColor: colors.white,
+                  color: colors.accent,
+                  border: `1.5px solid ${colors.primaryGlow}`,
+                }}
               >
                 <CardContent className="p-8">
                   <p className="text-xs font-black uppercase tracking-widest opacity-70">
@@ -1536,7 +1574,10 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card style={{border: `1.5px solid ${colors.primaryGlow}`}}  className="bg-white rounded-[2rem] border shadow-sm">
+              <Card
+                style={{ border: `1.5px solid ${colors.primaryGlow}` }}
+                className="bg-white rounded-[2rem] border shadow-sm"
+              >
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle
                     className="text-sm font-bold"
@@ -1594,7 +1635,10 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              <Card style={{border: `1.5px solid ${colors.primaryGlow}`}}  className="rounded-3xl border bg-white overflow-hidden">
+              <Card
+                style={{ border: `1.5px solid ${colors.primaryGlow}` }}
+                className="rounded-3xl border bg-white overflow-hidden"
+              >
                 <CardHeader>
                   <CardTitle
                     className="text-lg"

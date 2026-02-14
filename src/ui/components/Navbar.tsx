@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { colors, uniTalentColors } from "src/common/Colors";
 import { Menu, X, User, Settings, LogOut, MessageCircle } from "lucide-react";
 import { BASE_URL } from "src/common/API";
+import { clearUserData } from "src/utils/authUtils";
 
 const DEFAULT_AVATAR =
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400";
@@ -13,9 +14,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   /* -------------------- Avatar Logic -------------------- */
-  
+
   // Function to get avatar from localStorage
   const getAvatarFromStorage = () => {
     try {
@@ -59,11 +60,17 @@ const Navbar = () => {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("avatar-updated", handleAvatarUpdate as EventListener);
-    
+    window.addEventListener(
+      "avatar-updated",
+      handleAvatarUpdate as EventListener,
+    );
+
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("avatar-updated", handleAvatarUpdate as EventListener);
+      window.removeEventListener(
+        "avatar-updated",
+        handleAvatarUpdate as EventListener,
+      );
     };
   }, []);
 
@@ -86,8 +93,7 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearUserData();
     setProfileOpen(false);
     navigate("/login");
   };
@@ -104,8 +110,7 @@ const Navbar = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const menuItems = ["Home", "Features", "Contact"];
@@ -116,7 +121,6 @@ const Navbar = () => {
       style={{ backgroundColor: colors.primary }}
     >
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-        
         {/* Logo */}
         <div className="flex items-center gap-3">
           <img
@@ -152,7 +156,10 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                style={{backgroundColor: uniTalentColors.lightGray, color: uniTalentColors.primary }}
+                style={{
+                  backgroundColor: uniTalentColors.lightGray,
+                  color: uniTalentColors.primary,
+                }}
                 className="px-6 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
               >
                 Login
@@ -273,16 +280,26 @@ const Navbar = () => {
             <div className="pt-4 border-t space-y-3">
               {!isLoggedIn ? (
                 <div className="flex flex-col items-center gap-3">
-                  <Link 
-                  className="px-6 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
-                  style={{backgroundColor:colors.white, color:colors.primary}}
-                  to="/login" onClick={() => setIsOpen(false)}>
+                  <Link
+                    className="px-6 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+                    style={{
+                      backgroundColor: colors.white,
+                      color: colors.primary,
+                    }}
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                  >
                     Login
                   </Link>
                   <Link
-                  className="px-6 py-2 m-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
-                  style={{backgroundColor:colors.white, color:colors.primary}}
-                  to="/signup" onClick={() => setIsOpen(false)}>
+                    className="px-6 py-2 m-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
+                    style={{
+                      backgroundColor: colors.white,
+                      color: colors.primary,
+                    }}
+                    to="/signup"
+                    onClick={() => setIsOpen(false)}
+                  >
                     Sign Up
                   </Link>
                 </div>

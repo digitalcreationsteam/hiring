@@ -7,8 +7,8 @@ import axios from "axios";
    🌐 BASE URL
 ========================================= */
 // export const BASE_URL = "http://localhost:5000/dev-api";
-// export const BASE_URL = "http://localhost:5001/api";
- export const BASE_URL = "https://unitalent.cloud/api";
+export const BASE_URL = "http://localhost:5000/api";
+//  export const BASE_URL = "https://unitalent.cloud/api";
 // export const BASE_URL = "https://unitalent.cloud/dev-api";
 
 
@@ -70,7 +70,7 @@ export const URL_PATH = {
   getEducation: "/user/education",
   deleteEducation: "/user/education",
 
-getunivercitylist: "/user/universities",
+  getunivercitylist: "/user/universities",
 
   /* ---------- WORK EXPERIENCE ---------- */
   experience: "/user/work",
@@ -109,7 +109,7 @@ getunivercitylist: "/user/universities",
 
   createSubscription: "/subscription/create",
   initiateDodoPayment: "/subscription/payments/dodo/initiate",
-  checkSubsciptionStatus:"/subscription",
+  checkSubsciptionStatus: "/subscription",
   verifyPayment: "/subscription/verify",
   getSubscriptions: "/subscription",
   getCurrentSubscription: "/subscription/current",

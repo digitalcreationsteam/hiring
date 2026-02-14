@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "../ui/components/Button";
 import { useNavigate } from "react-router-dom";
 import { IconWithBackground } from "../ui/components/IconWithBackground";
-import HeaderLogo  from "src/ui/components/HeaderLogo";
+import HeaderLogo from "src/ui/components/HeaderLogo";
 import { FeatherArrowLeft } from "@subframe/core";
 import { FeatherBook } from "@subframe/core";
 import { FeatherCheckSquare } from "@subframe/core";
@@ -40,7 +40,7 @@ function AssessmentIntro3() {
           "GET",
           URL_PATH.getJobDomain,
           {},
-          { "user-id": userId }
+          { "user-id": userId },
         );
 
         if (!Array.isArray(res) || res.length === 0) {
@@ -53,7 +53,7 @@ function AssessmentIntro3() {
         console.error("Domain fetch failed", err);
         setDomainName(null);
         setDomainError(
-          "Unable to load your selected domain. Please try again."
+          "Unable to load your selected domain. Please try again.",
         );
       } finally {
         setDomainLoading(false);
@@ -79,7 +79,7 @@ function AssessmentIntro3() {
         "POST",
         URL_PATH.startAssessment,
         {},
-        { "user-id": userId }
+        { "user-id": userId },
       );
 
       if (response?.attemptId) {
@@ -117,7 +117,7 @@ function AssessmentIntro3() {
   // }}
   // className="min-h-screen bg-neutral-50 relative overflow-hidden">
   //   {/* Blended background - Covers entire page */}
-    
+
   //   {/* Header and content with z-index to stay above background */}
   //   <div className="relative z-10">
   //     <Navbar />
@@ -287,7 +287,7 @@ function AssessmentIntro3() {
   //             </span>
   //           </div>
   //         </div>
-          
+
   //         <div className="flex w-full flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-8">
   //           <Button
   //             disabled={loading}
@@ -317,179 +317,192 @@ function AssessmentIntro3() {
   // );
 
   return (
-  <div
-    style={{
-      background: `linear-gradient(
+    <div
+      style={{
+        background: `linear-gradient(
         to bottom,
         #d9d9d9 0%,
         #cfd3d6 25%,
         #9aa6b2 55%,
         #2E4056 100%
       )`,
-      width: "100%",
-    }}
-    className="min-h-screen flex flex-col"
-  >
-    {/* Content Wrapper */}
-    <div className="flex-grow relative z-10">
-      <Navbar />
+        width: "100%",
+      }}
+      className="min-h-screen flex flex-col"
+    >
+      {/* Content Wrapper */}
+      <div className="flex-grow relative z-10">
+        <Navbar />
 
-      <div className=" min-h-screen flex w-full justify-center px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex w-full max-w-[1200px] flex-col items-start gap-6 sm:gap-8 py-8">
-
-          <Button
-            variant="neutral-tertiary"
-            size="small"
-            icon={<FeatherArrowLeft />}
-            onClick={() => navigate(-1)}
-          />
-
-          {/* Header Section */}
-          <div className="flex w-full flex-col items-center gap-6">
-            <IconWithBackground
-              style={{ backgroundColor: colors.primary, color: colors.white }}
-              className="rounded-2xl"
-              size="large"
-              icon={<FeatherFileText />}
-              square
+        <div className=" min-h-screen flex w-full justify-center px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-col items-start gap-6 sm:gap-8 py-8">
+            <Button
+              variant="neutral-tertiary"
+              size="small"
+              icon={<FeatherArrowLeft />}
+              onClick={() => navigate(-1)}
             />
 
-            <div className="flex flex-col items-center gap-3">
-              <span className="text-xl sm:text-2xl md:text-[30px] font-heading-1 text-default-font text-center">
-                {domainLoading
-                  ? "Loading Assessment..."
-                  : `${domainName} Skill Assessment`}
-              </span>
+            {/* Header Section */}
+            <div className="flex w-full flex-col items-center gap-6">
+              <IconWithBackground
+                style={{ backgroundColor: colors.primary, color: colors.white }}
+                className="rounded-2xl"
+                size="large"
+                icon={<FeatherFileText />}
+                square
+              />
 
-              <span className="max-w-[90%] sm:max-w-[800px] text-sm font-body text-center">
-                This assessment evaluates your readiness for {domainName} roles
-                through real-world scenarios. You'll be tested on three aspects —
-              </span>
-            </div>
-          </div>
+              <div className="flex flex-col items-center gap-3">
+                <span className="text-xl sm:text-2xl md:text-[30px] font-heading-1 text-default-font text-center">
+                  {domainLoading
+                    ? "Loading Assessment..."
+                    : `${domainName} Skill Assessment`}
+                </span>
 
-          {/* Cards */}
-          <div className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {/* Knowledge */}
-            <div className="flex flex-col gap-4 rounded-3xl border border-neutral-border bg-white px-4 sm:px-6 py-4 sm:py-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <IconWithBackground
-                  style={{ backgroundColor: colors.primary, color: colors.white }}
-                  className="rounded-2xl"
-                  size="medium"
-                  icon={<FeatherBook />}
-                />
-                <span className="text-heading-3 font-heading-3 text-default-font">
-                  Knowledge
+                <span className="max-w-[90%] sm:max-w-[800px] text-sm font-body text-center">
+                  This assessment evaluates your readiness for {domainName}{" "}
+                  roles through real-world scenarios. You'll be tested on three
+                  aspects —
                 </span>
               </div>
-              <div className="flex flex-col gap-2 text-xs text-gray-600">
-                <span>• Product lifecycle stages and trade-offs</span>
-                <span>• User-centric design and customer discovery</span>
-                <span>• Market sizing, competition, and positioning</span>
-                <span>• Metrics, KPIs, and outcome-based measurement</span>
-                <span>• Agile development and go-to-market fundamentals</span>
-                <span>• Stakeholder dynamics and business fundamentals</span>
+            </div>
+
+            {/* Cards */}
+            <div className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {/* Knowledge */}
+              <div className="flex flex-col gap-4 rounded-3xl border border-neutral-border bg-white px-4 sm:px-6 py-4 sm:py-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <IconWithBackground
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                    }}
+                    className="rounded-2xl"
+                    size="medium"
+                    icon={<FeatherBook />}
+                  />
+                  <span className="text-heading-3 font-heading-3 text-default-font">
+                    Knowledge
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 text-xs text-gray-600">
+                  <span>• Product lifecycle stages and trade-offs</span>
+                  <span>• User-centric design and customer discovery</span>
+                  <span>• Market sizing, competition, and positioning</span>
+                  <span>• Metrics, KPIs, and outcome-based measurement</span>
+                  <span>• Agile development and go-to-market fundamentals</span>
+                  <span>• Stakeholder dynamics and business fundamentals</span>
+                </div>
+              </div>
+
+              {/* Decision-Making */}
+              <div className="flex flex-col gap-4 rounded-3xl border border-neutral-border bg-white px-4 sm:px-6 py-4 sm:py-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <IconWithBackground
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                    }}
+                    className="rounded-2xl"
+                    size="medium"
+                    icon={<FeatherTarget />}
+                  />
+                  <span className="text-heading-3 font-heading-3 text-default-font">
+                    Decision-Making Skills
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 text-xs text-gray-600">
+                  <span>• Breaking down ambiguous problems</span>
+                  <span>• Identifying and prioritizing user problems</span>
+                  <span>
+                    • Making trade-offs between scope, speed, and impact
+                  </span>
+                  <span>
+                    • Defining success metrics and evaluating outcomes
+                  </span>
+                  <span>• Analyzing qualitative and quantitative inputs</span>
+                  <span>• Prioritizing under real-world constraints</span>
+                  <span>• Communicating and justifying decisions</span>
+                </div>
+              </div>
+
+              {/* Attributes */}
+              <div className="flex flex-col gap-4 rounded-3xl border border-neutral-border bg-white px-4 sm:px-6 py-4 sm:py-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <IconWithBackground
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                    }}
+                    className="rounded-2xl"
+                    size="medium"
+                    icon={<FeatherCompass />}
+                  />
+                  <span className="text-heading-3 font-heading-3 text-default-font">
+                    Attributes
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 text-xs text-gray-600">
+                  <span>• Structured and first-principles thinking</span>
+                  <span>• Customer empathy and ownership</span>
+                  <span>• Comfort with ambiguity</span>
+                  <span>• Bias toward action and iteration</span>
+                  <span>• Strategic judgment over short-term optimization</span>
+                  <span>• Balancing data, intuition, and constraints</span>
+                  <span>• Decision quality under uncertainty</span>
+                </div>
               </div>
             </div>
 
-            {/* Decision-Making */}
-            <div className="flex flex-col gap-4 rounded-3xl border border-neutral-border bg-white px-4 sm:px-6 py-4 sm:py-6 shadow-sm">
+            {/* Info Section */}
+            <div className="flex w-full flex-wrap items-center justify-center gap-4 sm:gap-8 rounded-3xl border border-neutral-border bg-white px-8 py-6 shadow-sm">
               <div className="flex items-center gap-3">
-                <IconWithBackground
-                  style={{ backgroundColor: colors.primary, color: colors.white }}
-                  className="rounded-2xl"
-                  size="medium"
-                  icon={<FeatherTarget />}
-                />
-                <span className="text-heading-3 font-heading-3 text-default-font">
-                  Decision-Making Skills
+                <FeatherClock />
+                <span className="font-semibold">25 minutes</span>
+              </div>
+              <div className="hidden sm:flex h-8 w-px bg-neutral-border" />
+              <div className="flex items-center gap-3">
+                <FeatherCheckSquare />
+                <span className="font-semibold">20 scenario questions</span>
+              </div>
+              <div className="hidden sm:flex h-8 w-px bg-neutral-border" />
+              <div className="flex items-center gap-3">
+                <FeatherTrendingUp />
+                <span className="font-semibold">
+                  Counts toward your Skill Index
                 </span>
               </div>
-              <div className="flex flex-col gap-2 text-xs text-gray-600">
-                <span>• Breaking down ambiguous problems</span>
-                <span>• Identifying and prioritizing user problems</span>
-                <span>• Making trade-offs between scope, speed, and impact</span>
-                <span>• Defining success metrics and evaluating outcomes</span>
-                <span>• Analyzing qualitative and quantitative inputs</span>
-                <span>• Prioritizing under real-world constraints</span>
-                <span>• Communicating and justifying decisions</span>
-              </div>
             </div>
 
-            {/* Attributes */}
-            <div className="flex flex-col gap-4 rounded-3xl border border-neutral-border bg-white px-4 sm:px-6 py-4 sm:py-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <IconWithBackground
-                  style={{ backgroundColor: colors.primary, color: colors.white }}
-                  className="rounded-2xl"
-                  size="medium"
-                  icon={<FeatherCompass />}
-                />
-                <span className="text-heading-3 font-heading-3 text-default-font">
-                  Attributes
-                </span>
-              </div>
-              <div className="flex flex-col gap-2 text-xs text-gray-600">
-                <span>• Structured and first-principles thinking</span>
-                <span>• Customer empathy and ownership</span>
-                <span>• Comfort with ambiguity</span>
-                <span>• Bias toward action and iteration</span>
-                <span>• Strategic judgment over short-term optimization</span>
-                <span>• Balancing data, intuition, and constraints</span>
-                <span>• Decision quality under uncertainty</span>
-              </div>
+            {/* Buttons */}
+            <div className="flex w-full flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-8">
+              <Button
+                disabled={loading}
+                style={{ backgroundColor: colors.primary, color: "white" }}
+                className="w-full max-w-[260px] h-10 rounded-2xl disabled:opacity-60"
+                size="large"
+                icon={<FeatherZap />}
+                onClick={handleBeginAssessment}
+              >
+                {loading ? "Starting..." : "Begin Skill Index Assessment"}
+              </Button>
+
+              <button
+                className="text-subtext-color hover:text-gray-700 transition"
+                onClick={() => navigate("/dashboard")}
+              >
+                Skip for now
+              </button>
             </div>
           </div>
-
-          {/* Info Section */}
-          <div className="flex w-full flex-wrap items-center justify-center gap-4 sm:gap-8 rounded-3xl border border-neutral-border bg-white px-8 py-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <FeatherClock />
-              <span className="font-semibold">25 minutes</span>
-            </div>
-            <div className="hidden sm:flex h-8 w-px bg-neutral-border" />
-            <div className="flex items-center gap-3">
-              <FeatherCheckSquare />
-              <span className="font-semibold">20 scenario questions</span>
-            </div>
-            <div className="hidden sm:flex h-8 w-px bg-neutral-border" />
-            <div className="flex items-center gap-3">
-              <FeatherTrendingUp />
-              <span className="font-semibold">Counts toward your Skill Index</span>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex w-full flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-8">
-            <Button
-              disabled={loading}
-              style={{ backgroundColor: colors.primary, color: "white" }}
-              className="w-full max-w-[260px] h-10 rounded-2xl disabled:opacity-60"
-              size="large"
-              icon={<FeatherZap />}
-              onClick={handleBeginAssessment}
-            >
-              {loading ? "Starting..." : "Begin Skill Index Assessment"}
-            </Button>
-
-            <button
-              className="text-subtext-color hover:text-gray-700 transition"
-              onClick={() => navigate("/dashboard")}
-            >
-              Skip for now
-            </button>
-          </div>
-
         </div>
       </div>
+
+      {/* Footer stays at bottom */}
+      <Footer />
     </div>
-
-    {/* Footer stays at bottom */}
-    <Footer />
-  </div>
-);
-
+  );
 }
 
 export default AssessmentIntro3;

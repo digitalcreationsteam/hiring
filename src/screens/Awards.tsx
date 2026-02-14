@@ -1,4 +1,4 @@
-// src/components/Awards.tsx
+// src/components/Awards.tsx - Fixed footer positioning
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -23,8 +23,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { colors } from "../common/Colors";
 import Navbar from "src/ui/components/Navbar";
 import Footer from "../ui/components/Footer";
-
-
 
 type AwardEntry = {
   id: string;
@@ -58,7 +56,6 @@ function EndYearPicker({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -76,7 +73,6 @@ function EndYearPicker({
 
   return (
     <div className="relative" ref={ref}>
-      {/* INPUT */}
       <input
         readOnly
         disabled={disabled}
@@ -88,42 +84,40 @@ function EndYearPicker({
         }`}
       />
 
-      {/* PICKER */}
       {open && (
         <div className="absolute z-50 mt-2 w-64 rounded-2xl border border-neutral-300 bg-white shadow-lg p-3 max-h-60 overflow-auto">
           <div className="grid grid-cols-4 gap-2 text-sm">
             {years.map((year) => (
-<button
-  key={year}
-  type="button"
-  onClick={() => {
-    onChange(String(year));
-    setOpen(false);
-  }}
-  className="py-2 px-3 rounded-lg transition text-sm sm:text-base"
-  style={{
-    backgroundColor:
-      value === String(year) ? colors.accent : "transparent",
-    color:
-      value === String(year)
-        ? colors.background
-        : colors.neutral[800],
-    cursor: "pointer",
-  }}
-  onMouseEnter={(e) => {
-    if (value !== String(year)) {
-      e.currentTarget.style.backgroundColor = colors.primaryGlow;
-    }
-  }}
-  onMouseLeave={(e) => {
-    if (value !== String(year)) {
-      e.currentTarget.style.backgroundColor = "transparent";
-    }
-  }}
->
-  {year}
-</button>
-
+              <button
+                key={year}
+                type="button"
+                onClick={() => {
+                  onChange(String(year));
+                  setOpen(false);
+                }}
+                className="py-2 px-3 rounded-lg transition text-sm sm:text-base"
+                style={{
+                  backgroundColor:
+                    value === String(year) ? colors.accent : "transparent",
+                  color:
+                    value === String(year)
+                      ? colors.background
+                      : colors.neutral[800],
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  if (value !== String(year)) {
+                    e.currentTarget.style.backgroundColor = colors.primaryGlow;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (value !== String(year)) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                {year}
+              </button>
             ))}
           </div>
         </div>
@@ -143,7 +137,6 @@ export default function Awards() {
 
   const MAX_AWARDS = 5;
 
-  // form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [year, setYear] = useState("");
@@ -171,7 +164,6 @@ export default function Awards() {
     (experiencePoints?.certifications ?? 0) +
     (experiencePoints?.awards ?? 0);
 
-  //GET
   const fetchAwards = async () => {
     if (!userId) return;
 
@@ -197,7 +189,6 @@ export default function Awards() {
     }
   };
 
-  // -------------------- GET EXPERIENCE INDEX --------------------
   const fetchExperienceIndex = React.useCallback(async () => {
     if (!userId) return;
 
@@ -217,7 +208,6 @@ export default function Awards() {
     }
   }, [userId]);
 
-  //USE EFFECT
   const [awards, setAwards] = useState<AwardEntry[]>([]);
 
   useEffect(() => {
@@ -226,7 +216,6 @@ export default function Awards() {
     fetchExperienceIndex();
   }, [userId]);
 
-  // SC2 small textfield classes
   const scTextFieldClass =
     "w-full [&>label]:text-[12px] [&>label]:font-medium [&>p]:text-[11px] [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300 [&>div]:h-9";
   const scInputClass =
@@ -238,7 +227,6 @@ export default function Awards() {
     setEndYear("");
   };
 
-  // Helper
   const validateAward = (
     name: string,
     endYear: string,
@@ -319,7 +307,6 @@ export default function Awards() {
     }
   };
 
-  // -------------------- DELETE AWARD --------------------
   const handleRemove = async () => {
     if (!deleteAwardId || isSubmitting) return;
 
@@ -351,22 +338,6 @@ export default function Awards() {
     }
   };
 
-  const buildAwardsPayload = (list: AwardEntry[]) => {
-    if (!userId) {
-      toast.error("Session expired. Please login again.");
-      navigate("/login");
-      return null;
-    }
-
-    return {
-      awards: list.map((a) => ({
-        awardName: a.name.trim(),
-        description: a.description?.trim() || null,
-        year: Number(a.year),
-      })),
-    };
-  };
-
   const hasRealAward = awards.some((a) => !a.isDemo);
   const canContinue = hasRealAward;
 
@@ -384,27 +355,28 @@ export default function Awards() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-     {/* 🎨 Linear gradient background - fixed behind everything */}
-    <div 
-      className="pointer-events-none fixed inset-0 -z-10"
-      style={{
-        background: `linear-gradient(
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* 🎨 Linear gradient background - fixed behind everything */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background: `linear-gradient(
           to bottom,
           #d9d9d9 0%,
           #cfd3d6 25%,
           #9aa6b2 55%,
           #2E4056 100%
         )`,
-        width: "100%",
-      }}
-    />
+          width: "100%",
+        }}
+      />
+
       {/* Header and content with z-index to stay above background */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col flex-1">
         <Navbar />
         <ToastContainer position="top-center" autoClose={3000} />
 
-        <div className="flex justify-center px-4 sm:px-6 py-0 sm:py-0">
+        <div className="flex-1 flex justify-center px-4 sm:px-6 py-0 sm:py-0">
           <div className="w-full max-w-[1000px] flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
             {/* Left card */}
             <main className="w-full md:max-w-[448px] flex flex-col gap-6 rounded-[28px] border border-neutral-300 bg-white px-4 sm:px-6 md:px-8 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
@@ -415,13 +387,11 @@ export default function Awards() {
                   icon={<FeatherArrowLeft />}
                   onClick={async () => {
                     try {
-                      // 1️⃣ If came from dashboard → always go back to dashboard
                       if (source === "dashboard") {
                         navigate("/dashboard");
                         return;
                       }
 
-                      // 2️⃣ Otherwise → ask backend if education is allowed
                       const res = await API("POST", "/auth/verify-route", {
                         route: "/certifications",
                       });
@@ -429,7 +399,6 @@ export default function Awards() {
                       if (res.allowed) {
                         navigate("/certifications", { state: { source } });
                       }
-                      // ❌ else do nothing (education already completed)
                     } catch {
                       // silent fail
                     }
@@ -456,62 +425,62 @@ export default function Awards() {
               </div>
 
               {/* Header */}
-                         <header className=" w-full">
-              <h2 className="text-[22px] text-neutral-900">
-                Add awards and extracurriculars
-              </h2>
-              <p className="text-xs text-neutral-500">
-                These help recruiters understand your interests and achievements
-              </p>
-            </header>
+              <header className=" w-full">
+                <h2 className="text-[22px] text-neutral-900">
+                  Add awards and extracurriculars
+                </h2>
+                <p className="text-xs text-neutral-500">
+                  These help recruiters understand your interests and
+                  achievements
+                </p>
+              </header>
 
-            <section className="flex w-full flex-col gap-3">
-              {awards.map((a) => {
-                const isSelected = selectedAward?.id === a.id;
+              <section className="flex w-full flex-col gap-3">
+                {awards.map((a) => {
+                  const isSelected = selectedAward?.id === a.id;
 
-                return (
-                  <div
-                    key={a.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedAward(isSelected ? null : a)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setSelectedAward(isSelected ? null : a);
-                      }
-                    }}
-                          className="rounded-3xl px-4 py-3 cursor-pointer transition-all duration-200 focus:outline-none"
-          style={{
-            backgroundColor: isSelected ? `${colors.primary}10` : colors.white,
-            border: `1px solid ${
-              isSelected ? colors.primary : colors.neutral[400]
-            }`,
-            boxShadow: isSelected
-              ? `0 4px 14px ${colors.primary}22`
-              : "0 1px 3px rgba(0,0,0,0.04)",
-          }}
-                  >
-                      {/* 🔹 TOP ROW */}
+                  return (
+                    <div
+                      key={a.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedAward(isSelected ? null : a)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedAward(isSelected ? null : a);
+                        }
+                      }}
+                      className="rounded-3xl px-4 py-3 cursor-pointer transition-all duration-200 focus:outline-none"
+                      style={{
+                        backgroundColor: isSelected
+                          ? `${colors.primary}10`
+                          : colors.white,
+                        border: `1px solid ${
+                          isSelected ? colors.primary : colors.neutral[400]
+                        }`,
+                        boxShadow: isSelected
+                          ? `0 4px 14px ${colors.primary}22`
+                          : "0 1px 3px rgba(0,0,0,0.04)",
+                      }}
+                    >
                       <div className="flex items-center justify-between">
-                        {/* Left */}
                         <div className="flex items-center gap-3 min-w-0">
-                     <Avatar
-  size="large"
-  square
-  className="!rounded-2xl font-semibold"
-  style={{
-    backgroundColor: `${colors.primary}22`, // soft tinted background
-    color: colors.primary,                  // brand text color
-  }}
->
-  {a.name
-    .split(" ")
-    .slice(0, 2)
-    .map((s) => s[0])
-    .join("")}
-</Avatar>
-
+                          <Avatar
+                            size="large"
+                            square
+                            className="!rounded-2xl font-semibold"
+                            style={{
+                              backgroundColor: `${colors.primary}22`,
+                              color: colors.primary,
+                            }}
+                          >
+                            {a.name
+                              .split(" ")
+                              .slice(0, 2)
+                              .map((s) => s[0])
+                              .join("")}
+                          </Avatar>
 
                           <div className="flex flex-col min-w-0">
                             <span className="text-sm font-semibold text-neutral-900 truncate">
@@ -526,7 +495,6 @@ export default function Awards() {
                           </div>
                         </div>
 
-                        {/* Right */}
                         <div className="flex flex-col items-end gap-2 shrink-0">
                           <IconButton
                             size="small"
@@ -545,7 +513,6 @@ export default function Awards() {
                         </div>
                       </div>
 
-                      {/* 🔹 DETAILS (inside same card) */}
                       {isSelected && (
                         <>
                           <div className="my-4 border-t border-neutral-200" />
@@ -605,7 +572,6 @@ export default function Awards() {
                   />
                 </TextField>
 
-                {/* End Year */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[12px] font-medium">
                     Year <span className="text-red-500">*</span>
@@ -658,7 +624,7 @@ export default function Awards() {
                   style={{
                     backgroundColor:
                       !canContinue || isSubmitting
-                        ? `${colors.accent}66` // faded primary when disabled
+                        ? `${colors.accent}66`
                         : colors.accent,
                     cursor:
                       !canContinue || isSubmitting ? "not-allowed" : "pointer",
@@ -696,7 +662,6 @@ export default function Awards() {
                     Progress Steps
                   </div>
 
-                  {/* ⚪ Completed — Demographics */}
                   <button
                     type="button"
                     className="w-full flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3 hover:bg-neutral-50"
@@ -711,7 +676,6 @@ export default function Awards() {
                     </span>
                   </button>
 
-                  {/* Education — completed (green) */}
                   <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
                     <IconWithBackground
                       size="small"
@@ -721,7 +685,6 @@ export default function Awards() {
                     <span className="text-sm text-neutral-700">Education</span>
                   </div>
 
-                  {/* Experience — completed (green) */}
                   <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
                     <IconWithBackground
                       size="small"
@@ -731,7 +694,6 @@ export default function Awards() {
                     <span className="text-sm text-neutral-700">Experience</span>
                   </div>
 
-                  {/* Certifications — completed (green) */}
                   <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2 mb-3">
                     <IconWithBackground
                       size="small"
@@ -743,7 +705,6 @@ export default function Awards() {
                     </span>
                   </div>
 
-                  {/* Awards — active (purple) */}
                   <div
                     style={{ backgroundColor: colors.primary }}
                     className="flex items-center gap-3 rounded-2xl px-4 py-2 mb-3"
@@ -756,14 +717,14 @@ export default function Awards() {
                         icon={<FeatherAward />}
                       />
                     </div>
-                    <span className="text-sm font-medium text-neutral-900"
-                     style={{color: colors.white}}
+                    <span
+                      className="text-sm font-medium text-neutral-900"
+                      style={{ color: colors.white }}
                     >
                       Awards
                     </span>
                   </div>
 
-                  {/* Projects — inactive */}
                   <div className="flex items-center gap-3 rounded-2xl border border-neutral-300 bg-white px-4 py-2">
                     <IconWithBackground
                       variant="neutral"
@@ -817,18 +778,21 @@ export default function Awards() {
                 <div className="flex gap-3">
                   <Button
                     variant="brand-tertiary"
-                    className="flex-1 !rounded-3xl" // ✅ force same rounding
+                    className="flex-1 !rounded-3xl"
                     onClick={() => setDeleteAwardId(null)}
-                    style={{backgroundColor: colors.primary, color: colors.white}}
-                                         onMouseEnter={(e) => {
-                                          if (!isSubmitting)
-                                            e.currentTarget.style.backgroundColor =
-                                              colors.secondary;
-                                        }}
-                                          onMouseLeave={(e) => {
-                                          if (!isSubmitting)
-                                            e.currentTarget.style.backgroundColor = colors.primary;
-                                        }}
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.white,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor =
+                          colors.secondary;
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSubmitting)
+                        e.currentTarget.style.backgroundColor = colors.primary;
+                    }}
                   >
                     Cancel
                   </Button>
@@ -846,8 +810,7 @@ export default function Awards() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isSubmitting)
-                        e.currentTarget.style.backgroundColor =
-                          colors.red;
+                        e.currentTarget.style.backgroundColor = colors.red;
                     }}
                     onMouseLeave={(e) => {
                       if (!isSubmitting)
@@ -862,8 +825,7 @@ export default function Awards() {
           )}
         </div>
       </div>
-          <Footer />
-      
+      <Footer />
     </div>
   );
 }

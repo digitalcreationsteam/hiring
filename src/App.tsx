@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import { isAuthenticated } from "./utils/authUtils";
 import Chat from "./ui/components/chat/Chat";
-import LandingPage from './screens/LandingPage'
+import LandingPage from "./screens/LandingPage";
 import RecruiterChats from "./screens/RecruiterChats";
 import SignUp from "./screens/SignUp";
 import LogIn from "./screens/Login";
@@ -50,9 +50,11 @@ import NotFound from "./screens/NotFound";
 const router = createBrowserRouter([
   {
     index: true,
-    element: isAuthenticated()
-      ? <Navigate to="/dashboard" replace />
-      : <LandingPage />,
+    element: isAuthenticated() ? (
+      <Navigate to="/dashboard" replace />
+    ) : (
+      <LandingPage />
+    ),
   },
   { path: "/signup", element: <SignUp /> },
   { path: "/login", element: <LogIn /> },
@@ -319,10 +321,9 @@ const router = createBrowserRouter([
   },
 
   {
-  path: "*",
-  element: <NotFound />,
-}
-
+    path: "*",
+    element: <NotFound />,
+  },
 ]);
 
 export default function App() {

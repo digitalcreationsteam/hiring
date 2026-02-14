@@ -18,7 +18,7 @@
 //   accent: "#1F2937", 
 
 //   // Borders should be semi-transparent white, but for solid fallbacks:
-  
+
 
 //   neutral: {
 //     50: "#FAFAFA",
@@ -64,17 +64,17 @@ export const colors = {
 
   status: {
     invited: "#DCFCE7", // Light green background
-    invitedText: "#15803D", 
+    invitedText: "#15803D",
     absent: "#F3F4F6",  // Light grey background
     absentText: "#4B5563",
-    
+
   },
 
-aqua: "#C5E1B8",       // Light Aqua
+  aqua: "#C5E1B8",       // Light Aqua
   cream: "#FFFAE6",      // Main Background
   mint: "#E4F2EA",
 
-  
+
 };
 
 
@@ -85,10 +85,10 @@ export const uniTalentColors = {
   lightGray: "#D9D9D9",    // Borders and dividers
   background: "#F8F8F8",   // Main background
   text: "#060606",         // All text content
-  secondary:"#2E4056",
+  secondary: "#2E4056",
   // Extended palette
   primaryLight: "#FFEDB2", // Light yellow for gradients
-  
+
   // Status colors for UniTalent
   status: {
     success: "#FFD85F",    // Using primary for success
@@ -96,7 +96,7 @@ export const uniTalentColors = {
     inactive: "#F3F4F6",
     inactiveText: "#4B5563",
   },
-  
+
   // Utility colors
   white: "#FFFFFF",
   black: "#060606",
