@@ -60,6 +60,7 @@ import {
 import Navbar from "src/ui/components/Navbar";
 import Footer from "src/ui/components/Footer";
 import { Eye } from "lucide-react";
+import { clearUserData } from "src/utils/authUtils";
 // import HeaderLogo from "@/ui/components/HeaderLogo";
 
 /* ==================== TYPES ==================== */

@@ -619,9 +619,7 @@ export default function Awards() {
                     variant="neutral-secondary"
                     icon={<FeatherPlus />}
                     className="w-full rounded-full border border-neutral-300 h-10 px-4 flex items-center gap-2"
-                    onClick={() =>
-                      isEditing ? handleUpdateAward() : handleAddAward()
-                    }
+                    onClick={handleAddAward}
                   >
                     {isSubmitting
                       ? isEditing

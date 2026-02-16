@@ -3,12 +3,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "./Avatar";
 import { FeatherLogOut, FeatherSettings, FeatherUser } from "@subframe/core";
+import { clearUserData } from "src/utils/authUtils";
 
 export default function HeaderLogo() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const handleLogout = () => {
-    localStorage.clear();
+      clearUserData();
     navigate("/login");
   };
 
