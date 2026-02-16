@@ -7,11 +7,11 @@ import axios from "axios";
    🌐 BASE URL
 ========================================= */
 // export const BASE_URL = "http://localhost:5000/dev-api";
-export const BASE_URL = "http://localhost:5000/api";
-//  export const BASE_URL = "https://unitalent.cloud/api";
 // export const BASE_URL = "http://localhost:5000/api";
-// export const BASE_URL = "http://localhost:5001/api";
-// export const BASE_URL = "https://unitalent.cloud/api";
+//  export const BASE_URL = "https://unitalent.cloud/api";
+export const BASE_URL = "http://localhost:5000/api";
+// export const BASE_URL = "http://192.168.0.105:5001/api";
+// export const BASE_URL = "http://192.168.0.104:5002/api";
 // export const BASE_URL = "https://unitalent.cloud/dev-api";
 
 
@@ -147,73 +147,256 @@ export const URL_PATH = {
 /* =========================================
    🚀 API WRAPPER FUNCTION
 ========================================= */
+// export default async function API(method, url, data = {}, headers = {}) {
+//   try {
+//     // Get auth token and userId from localStorage
+//     const token = localStorage.getItem("token");
+//     const userId = localStorage.getItem("userId");
+
+//     const config = {
+//       method: method.toLowerCase(),
+//       url,
+//       headers: {
+//         // Add auth token if exists
+//         ...(token && { Authorization: `Bearer ${token}` }),
+//         // Add userId if exists
+//         ...(userId && { "user-id": userId }),
+//         // Merge custom headers
+//         ...headers,
+//       },
+//     };
+
+//     // Handle GET requests
+//     if (config.method === "get") {
+//       config.params = data;
+//     } else {
+//       // Handle POST/PUT/PATCH requests
+//       config.data = data;
+
+//       // Don't set Content-Type for FormData
+//       if (data instanceof FormData) {
+//         delete config.headers["Content-Type"];
+//       } else {
+//         config.headers["Content-Type"] = "application/json";
+//       }
+//     }
+
+//     // Make request
+//     const response = await apiClient(config);
+
+//     // Log in development
+//     if (isDev) {
+//       console.log(`✅ ${method.toUpperCase()} ${url}`, response.data);
+//     }
+
+//     return response.data;
+//   } catch (error) {
+//     // Log error in development
+//     if (isDev) {
+//       console.error(`❌ ${method.toUpperCase()} ${url}`, error);
+//     }
+
+//     // Handle response errors
+//     if (error.response) {
+//       const { data, status } = error.response;
+//       throw { ...data, status };
+//     }
+//     // Handle network errors
+//     else if (error.request) {
+//       throw {
+//         success: false,
+//         message: "No response from server. Check your connection.",
+//       };
+//     }
+//     // Handle other errors
+//     else {
+//       throw {
+//         success: false,
+//         message: error.message || "An unexpected error occurred.",
+//       };
+//     }
+//   }
+// }
+
 export default async function API(method, url, data = {}, headers = {}) {
+  // Log the request details at the start
+  console.log(`\n========== 🌐 API REQUEST ==========`);
+  console.log(`📌 Method: ${method.toUpperCase()}`);
+  console.log(`📌 URL: ${url}`);
+
+  const fullUrl = `${BASE_URL}${url}`;
+  console.log(`📌 Full endpoint: ${fullUrl}`);
+  console.log(`📌 Environment: ${isDev ? 'Development' : 'Production'}`);
+
   try {
     // Get auth token and userId from localStorage
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
 
-    const config = {
-      method: method.toLowerCase(),
-      url,
-      headers: {
-        // Add auth token if exists
-        ...(token && { Authorization: `Bearer ${token}` }),
-        // Add userId if exists
-        ...(userId && { "user-id": userId }),
-        // Merge custom headers
-        ...headers,
-      },
+    console.log(`🔑 Auth Check:`);
+    console.log(`   - Token present: ${!!token}`);
+    if (token) console.log(`   - Token preview: ${token.substring(0, 20)}...`);
+    console.log(`   - User ID present: ${!!userId}`);
+    console.log(`   - User ID value: ${userId || 'MISSING'}`);
+
+    // Build headers
+    const requestHeaders = {
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(userId && { "user-id": userId }),
+      ...headers,
     };
 
-    // Handle GET requests
-    if (config.method === "get") {
-      config.params = data;
-    } else {
-      // Handle POST/PUT/PATCH requests
-      config.data = data;
+    // Log headers being sent (hide full token for security)
+    console.log(`📨 Request Headers being sent:`);
+    const safeHeaders = { ...requestHeaders };
+    if (safeHeaders.Authorization) {
+      safeHeaders.Authorization = `Bearer ${token ? token.substring(0, 15) + '...' : 'none'}`;
+    }
+    console.log(safeHeaders);
 
-      // Don't set Content-Type for FormData
+    // Handle FormData
+    if (data instanceof FormData) {
+      console.log(`📎 FormData detected:`);
+      for (let pair of data.entries()) {
+        if (pair[0] === 'resume' && pair[1] instanceof File) {
+          console.log(`   - ${pair[0]}: File: ${pair[1].name}, Size: ${(pair[1].size / 1024).toFixed(2)}KB, Type: ${pair[1].type}`);
+        } else {
+          console.log(`   - ${pair[0]}:`, pair[1]);
+        }
+      }
+      // Let browser set Content-Type for FormData
+      delete requestHeaders["Content-Type"];
+    } else {
+      console.log(`📦 Data:`, data);
+      requestHeaders["Content-Type"] = "application/json";
+    }
+
+    // Make request and measure time
+    console.log(`🚀 Sending request to ${method.toUpperCase()} ${url}...`);
+    const startTime = Date.now();
+
+    const fetchOptions = {
+      method: method.toUpperCase(),
+      headers: requestHeaders,
+    };
+
+    // Add body for non-GET requests
+    if (method.toUpperCase() !== 'GET') {
       if (data instanceof FormData) {
-        delete config.headers["Content-Type"];
+        fetchOptions.body = data;
       } else {
-        config.headers["Content-Type"] = "application/json";
+        fetchOptions.body = JSON.stringify(data);
       }
     }
 
-    // Make request
-    const response = await apiClient(config);
+    const response = await fetch(fullUrl, fetchOptions);
 
-    // Log in development
-    if (isDev) {
-      console.log(`✅ ${method.toUpperCase()} ${url}`, response.data);
+    const responseTime = Date.now() - startTime;
+    console.log(`⏱️ Response time: ${responseTime}ms`);
+    console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+
+    // Parse response
+    let responseData;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await response.json();
+    } else {
+      responseData = await response.text();
     }
 
-    return response.data;
+    console.log(`📦 Response data:`, responseData);
+
+    if (!response.ok) {
+      // Create a consistent error object
+      const error = new Error(
+        responseData?.message ||
+        responseData?.error ||
+        `Request failed with status ${response.status}`
+      );
+      error.status = response.status;
+      error.data = responseData;
+      error.response = {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData
+      };
+      throw error;
+    }
+
+    console.log(`✅ ${method.toUpperCase()} ${url} - Success!`);
+    console.log(`========== ✅ API REQUEST COMPLETE ==========\n`);
+
+    return responseData;
+
   } catch (error) {
-    // Log error in development
-    if (isDev) {
-      console.error(`❌ ${method.toUpperCase()} ${url}`, error);
+    console.log(`\n========== ❌ API ERROR ==========`);
+    console.log(`❌ Error in ${method.toUpperCase()} ${url}`);
+
+    // Log error details
+    console.error(`❌ Error name:`, error.name || 'Unknown');
+    console.error(`❌ Error message:`, error.message || 'Unknown error');
+
+    if (error.status) {
+      console.error(`❌ Error status:`, error.status);
     }
 
-    // Handle response errors
+    if (error.data) {
+      console.error(`❌ Error data:`, error.data);
+    }
+
     if (error.response) {
-      const { data, status } = error.response;
-      throw { ...data, status };
+      console.error(`❌ Error response:`, error.response);
     }
-    // Handle network errors
-    else if (error.request) {
-      throw {
-        success: false,
-        message: "No response from server. Check your connection.",
-      };
+
+    // Log stack trace in development
+    if (isDev && error.stack) {
+      console.error(`❌ Stack trace:`, error.stack);
     }
-    // Handle other errors
-    else {
-      throw {
-        success: false,
-        message: error.message || "An unexpected error occurred.",
-      };
-    }
+
+    console.log(`========== ❌ API ERROR END ==========\n`);
+
+    // Re-throw the error so the component can handle it
+    throw error;
   }
 }
+
+// Helper function to test API connection
+export const testAPIConnection = async () => {
+  console.log(`\n========== 🔌 TESTING API CONNECTION ==========`);
+
+  console.log(`📡 Base URL: ${BASE_URL}`);
+
+  // Check localStorage
+  console.log(`📦 localStorage contents:`);
+  console.log(`   - Token: ${!!localStorage.getItem("token")}`);
+  console.log(`   - UserId: ${localStorage.getItem("userId")}`);
+  console.log(`   - UserEmail: ${localStorage.getItem("userEmail")}`);
+
+  try {
+    // Try a simple health check endpoint
+    const testUrl = `${BASE_URL}/health`;
+    console.log(`🏥 Testing health endpoint: ${testUrl}`);
+
+    const response = await fetch(testUrl, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    console.log(`📥 Health check response status: ${response.status}`);
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`✅ Server is healthy:`, data);
+    } else {
+      const data = await response.text();
+      console.log(`⚠️ Server returned non-200 status:`, data);
+    }
+
+  } catch (error) {
+    console.error(`❌ Cannot connect to server:`, error.message);
+    console.log(`💡 Make sure your backend server is running at: ${BASE_URL}`);
+    console.log(`💡 If your backend is on a different port, update REACT_APP_API_URL in .env file`);
+  }
+
+  console.log(`========== 🏁 TEST COMPLETE ==========\n`);
+};

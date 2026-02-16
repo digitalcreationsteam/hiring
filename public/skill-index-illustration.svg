@@ -1,0 +1,35 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient Circle -->
+  <circle cx="100" cy="100" r="85" fill="url(#gradient)" opacity="0.1"/>
+  
+  <!-- Person/User Icon -->
+  <circle cx="100" cy="75" r="25" fill="#5B3B8C" opacity="0.2"/>
+  <circle cx="100" cy="75" r="20" fill="#5B3B8C" opacity="0.3"/>
+  <circle cx="100" cy="75" r="15" fill="#5B3B8C"/>
+  
+  <!-- Body -->
+  <path d="M70 120L100 100L130 120L115 150L85 150L70 120Z" fill="#5B3B8C" opacity="0.2"/>
+  
+  <!-- Assessment/Skill Elements -->
+  <rect x="45" y="115" width="25" height="35" rx="4" fill="#9AA6B2" opacity="0.3"/>
+  <rect x="130" y="115" width="25" height="35" rx="4" fill="#9AA6B2" opacity="0.3"/>
+  
+  <!-- Rising Graph Line -->
+  <path d="M40 160L70 140L100 150L130 120L160 130" stroke="#5B3B8C" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 4" fill="none"/>
+  
+  <!-- Score Badge -->
+  <circle cx="160" cy="50" r="20" fill="#FFD966" opacity="0.2"/>
+  <circle cx="160" cy="50" r="15" fill="#FFD966" opacity="0.4"/>
+  <text x="155" y="55" font-family="Arial" font-size="12" fill="#5B3B8C" font-weight="bold">95</text>
+  
+  <!-- Decorative Elements -->
+  <circle cx="30" cy="30" r="5" fill="#5B3B8C" opacity="0.1"/>
+  <circle cx="170" cy="170" r="5" fill="#5B3B8C" opacity="0.1"/>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5B3B8C"/>
+      <stop offset="100%" stop-color="#9AA6B2"/>
+    </linearGradient>
+  </defs>
+</svg>
