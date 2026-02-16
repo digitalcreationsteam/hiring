@@ -17,6 +17,10 @@ import {
   FeatherFileCheck,
   FeatherAward,
   FeatherPackage,
+  FeatherChevronRight,
+  FeatherMapPin,
+  FeatherMail,
+  FeatherPhone,
 } from "@subframe/core";
 import API, { URL_PATH } from "src/common/API";
 import { toast, ToastContainer } from "react-toastify";
@@ -25,7 +29,6 @@ import { Country, State, City } from "country-state-city";
 import { colors } from "src/common/Colors";
 import Navbar from "src/ui/components/Navbar";
 import Footer from "../ui/components/Footer";
-
 
 interface DemographicsData {
   fullName: string;
@@ -45,12 +48,11 @@ interface ApiError {
 interface StepItem {
   label: string;
   icon: React.ReactNode;
+  completed?: boolean;
 }
 
 export default function Demographics() {
   const navigate = useNavigate();
-  const [navReady, setNavReady] = useState(false);
-
   const dispatch = useAppDispatch();
   const [isManualCity, setIsManualCity] = useState<boolean>(false);
   const OTHER_CITY_VALUE = "__OTHER__";
@@ -66,33 +68,6 @@ export default function Demographics() {
   );
 
   /* ============================================
-     GUARD: Redirect if not on demographics step
-  ============================================ */
-  // useEffect(() => {
-  //   if (currentStep && currentStep !== "demographics") {
-  //     console.warn("User tried to access demographics but on", currentStep);
-  //     navigate(nextRoute || "/demographics");
-  //   }
-  // }, [currentStep, nextRoute, navigate]);
-
-  // useEffect(() => {
-  //   if (!currentStep) return;
-  //   if (currentStep === "demographics") return;
-  //   navigate(nextRoute || "/");
-  // }, [currentStep, nextRoute, navigate]);
-
-  //   useEffect(() => {
-  //   if (!navReady) return;
-
-  //   // allow browser back navigation
-  //   if (window.history.state?.idx > 0) return;
-
-  //   if (currentStep === "demographics") return;
-
-  //   navigate(nextRoute || "/");
-  // }, [navReady, currentStep, nextRoute, navigate]);
-
-  /* ============================================
      LOCAL STATE
   ============================================ */
   const [phoneVisible, setPhoneVisible] = useState<boolean>(false);
@@ -100,39 +75,7 @@ export default function Demographics() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [experienceIndex, setExperienceIndex] = useState<number | null>(null);
-
-
-  
-  useEffect(() => {
-    const hydrateNavigation = async () => {
-      if (currentStep) {
-        setNavReady(true);
-        return;
-      }
-
-      try {
-        const res = await API("GET", URL_PATH.getUserStatus);
-
-        if (res?.navigation) {
-          dispatch(
-            setNavigation({
-              nextRoute: res.navigation.nextRoute,
-              currentStep: res.navigation.currentStep,
-              completedSteps: res.navigation.completedSteps,
-              isOnboardingComplete: res.navigation.isOnboardingComplete,
-              hasPayment: res.navigation.hasPayment,
-            }),
-          );
-        }
-      } catch (e) {
-        console.error("Failed to hydrate onboarding", e);
-      } finally {
-        setNavReady(true);
-      }
-    };
-
-    hydrateNavigation();
-  }, [currentStep, dispatch]);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const [form, setForm] = useState<DemographicsData>({
     fullName: "",
@@ -195,7 +138,6 @@ export default function Demographics() {
       return "Please enter a valid email address.";
     }
 
-    // ✅ FIX: Check if phoneNumber exists AND is not empty before testing regex
     const phoneValue = form.phoneNumber ? form.phoneNumber.trim() : "";
 
     if (!phoneValue) {
@@ -219,7 +161,8 @@ export default function Demographics() {
 
     return null;
   };
-    // ✅ Controls when Continue button becomes enabled
+
+  // ✅ Controls when Continue button becomes enabled
   const canContinue =
     form.fullName.trim() !== "" &&
     form.email.trim() !== "" &&
@@ -227,7 +170,6 @@ export default function Demographics() {
     form.country.trim() !== "" &&
     form.state.trim() !== "" &&
     form.city.trim() !== "";
-
 
   /* ============================================
      FORM HANDLERS
@@ -262,41 +204,23 @@ export default function Demographics() {
     };
 
     try {
-      // ✅ Step 1: Save demographics to backend
       const saveResponse = await API("POST", URL_PATH.demographics, payload);
 
-      if (!saveResponse?.data) {
-        setError(saveResponse?.message || "Failed to save demographics");
-        setIsSubmitting(false);
-        return;
+      if (!saveResponse?.success) {
+        throw new Error(saveResponse?.message || "Failed to save demographics");
       }
 
-      // ✅ Step 2: Get updated navigation status
-      const statusResponse = await API("GET", URL_PATH.getUserStatus);
-
-      if (!statusResponse?.success) {
-        setError("Failed to get next step");
-        setIsSubmitting(false);
-        return;
+      // Still update Redux with the navigation data if needed elsewhere
+      if (saveResponse?.navigation) {
+        dispatch(setNavigation(saveResponse.navigation));
       }
 
-      // ✅ Step 3: Update Redux with new navigation
-      dispatch(
-        setNavigation({
-          nextRoute: statusResponse.navigation.nextRoute,
-          currentStep: statusResponse.navigation.currentStep,
-          completedSteps: statusResponse.navigation.completedSteps,
-          isOnboardingComplete: statusResponse.navigation.isOnboardingComplete,
-          hasPayment: statusResponse.navigation.hasPayment,
-        }),
-      );
-      toast.success("Demographics added successfully");
+      toast.success("Demographics saved successfully");
 
+      // ✅ FORCE NAVIGATE TO EDUCATION PAGE regardless of what backend returns
       setTimeout(() => {
-        navigate(statusResponse.navigation.nextRoute);
-      }, 3000);
-
-      // ✅ Step 4: Navigate to next step
+        navigate("/education"); // or whatever your education route is
+      }, 1500);
     } catch (err: unknown) {
       const apiError = err as ApiError;
       const message = apiError?.message || "Failed to submit demographics";
@@ -314,16 +238,14 @@ export default function Demographics() {
       try {
         let demographicsRes = null;
 
-        // ✅ 404 is NORMAL for first-time users
         try {
           demographicsRes = await API("GET", URL_PATH.getDemographics);
         } catch (err: any) {
           if (err?.response?.status !== 404) {
-            throw err; // real error
+            throw err;
           }
         }
 
-        // Populate form ONLY if data exists
         const data = demographicsRes?.data;
 
         if (data?.fullName) {
@@ -338,7 +260,6 @@ export default function Demographics() {
           setPhoneVisible(!!data.phoneVisibleToRecruiters);
         }
 
-        // Experience index is safe
         const expRes = await API("GET", URL_PATH.calculateExperienceIndex);
         setExperienceIndex(expRes?.points?.demographics || 0);
       } catch (err) {
@@ -383,158 +304,161 @@ export default function Demographics() {
       setSelectedCity(city);
       setIsManualCity(false);
     } else {
-      // 👇 THIS IS THE FIX
       setSelectedCity(null);
       setIsManualCity(true);
     }
   }, [selectedCountry, selectedState, form.city]);
 
   /* ============================================
-     RENDER
+     RENDER - MINIMALISTIC DESIGN
   ============================================ */
-  const fieldClass =
-    "w-full [&>label]:text-[8px] [&>label]:font-small [&>div]:rounded-full [&>div]:border [&>div]:border-neutral-300 [&>div]:h-8 focus:border-black";
 
+  // Minimalist field styles
+  const fieldClass = "w-full mb-4";
   const inputClass =
-    "w-full h-7 rounded-full px-2 text-[12px] leading-none bg-transparent focus:bg-transparent focus:outline-none focus:ring-0";
+    "w-full px-0 py-2 text-sm border-0 border-b border-neutral-200 rounded-none bg-transparent focus:ring-0 focus:border-b-2 focus:outline-none transition-all duration-200";
+  const labelClass = "text-xs font-medium text-neutral-500 mb-1 block";
 
   const steps: StepItem[] = [
-    { label: "Education", icon: <FeatherGraduationCap key="edu" /> },
-    { label: "Experience", icon: <FeatherBriefcase key="exp" /> },
-    { label: "Certifications", icon: <FeatherFileCheck key="cert" /> },
-    { label: "Awards", icon: <FeatherAward key="award" /> },
-    { label: "Projects", icon: <FeatherPackage key="proj" /> },
+    { label: "Demographics", icon: <FeatherUser />, completed: true },
+    { label: "Education", icon: <FeatherGraduationCap /> },
+    { label: "Experience", icon: <FeatherBriefcase /> },
+    { label: "Certifications", icon: <FeatherFileCheck /> },
+    { label: "Awards", icon: <FeatherAward /> },
+    { label: "Projects", icon: <FeatherPackage /> },
   ];
 
-
-
   return (
-    <div className="min-h-screen relative overflow-hidden">
-       {/* 🎨 Linear gradient background - fixed behind everything */}
-    <div 
-      className="pointer-events-none fixed inset-0 -z-10"
-      style={{
-        background: `linear-gradient(
-          to bottom,
-          #d9d9d9 0%,
-          #cfd3d6 25%,
-          #9aa6b2 55%,
-          #2E4056 100%
-        )`,
-        width: "100%",
-      }}
-    />
+    <div className="min-h-screen bg-neutral-50">
+      <ToastContainer position="top-center" autoClose={2000} />
+      <Navbar />
 
-      {/* Header and content with z-index to stay above background */}
-      <div className="relative z-10">
-        <ToastContainer position="top-center" autoClose={2000} />
-        <Navbar />
-        <div className="flex justify-center px-4 sm:px-6 py-0 sm:py-0">
-          <div className="w-full max-w-[1000px] mx-auto flex flex-col md:flex-row gap-6 md:gap-8 justify-center py-8">
-            {/* LEFT CARD */}
-            <main className="w-full md:max-w-[480px] bg-white rounded-3xl border border-neutral-300 px-4 sm:px-6 md:px-8 py-6 shadow-[0_10px_30px_rgba(40,0,60,0.06)]">
-              {/* Header */}
-              <div className="flex items-center gap-4 mb-6">
-                <IconButton
-                  size="small"
-                  icon={<FeatherArrowLeft />}
-                  onClick={() => navigate("/upload-resume")}
-                />
+      {/* Simple header with progress */}
+      <main className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Simple header with progress */}
+        <div className="flex items-center gap-3 mb-8">
+          <IconButton
+            size="small"
+            icon={<FeatherArrowLeft />}
+            onClick={() => navigate("/upload-resume")}
+            className="text-neutral-600 hover:text-neutral-900"
+          />
+          <div className="flex-1 flex items-center gap-1">
+            <div className="h-1 flex-1 bg-neutral-200 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: "16.67%", backgroundColor: colors.primary }}
+              />
+            </div>
+            <span className="text-xs text-neutral-500 ml-2">1/6</span>
+          </div>
+        </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="flex-1 h-[5px] rounded-full"
-                      style={{ backgroundColor: colors.primary }}
-                    />
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 h-[5px] rounded-full bg-neutral-300"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Title */}
-              <div className="mb-6">
-                <h2 className="text-[22px] text-neutral-900 font-semibold">
-                  Let's Calculate Your Experience Index
-                </h2>
-                <p className="text-xs text-neutral-500 mt-2">
-                  This information helps us create rankings and connect you with
-                  relevant recruiters
+        {/* Main content - Two column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column - Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-neutral-100">
+              <div className="mb-8">
+                <h1 className="text-2xl font-light text-neutral-900 mb-2">
+                  Tell us about yourself
+                </h1>
+                <p className="text-sm text-neutral-500 font-light">
+                  This helps us personalize your experience and connect you with
+                  the right opportunities
                 </p>
               </div>
 
               {/* Form */}
-              <div className="flex flex-col gap-4 mb-6">
-                <TextField label="Name *" className={fieldClass}>
-                  <TextField.Input
+              <div className="space-y-6">
+                {/* Name */}
+                <div className={fieldClass}>
+                  <label className={labelClass}>FULL NAME</label>
+                  <input
+                    type="text"
                     value={form.fullName}
                     onChange={(e) =>
                       handleInputChange("fullName", e.target.value)
                     }
+                    onFocus={() => setFocusedField("name")}
+                    onBlur={() => setFocusedField(null)}
                     placeholder="John Smith"
                     className={inputClass}
+                    style={{
+                      borderBottomColor:
+                        focusedField === "name" ? colors.primary : undefined,
+                    }}
                   />
-                </TextField>
+                </div>
 
-                <TextField
-                  label="Email *"
-                  helpText={
-                    <span className="text-xs text-gray-400">
-                      Used for account access and recruiter outreach
-                    </span>
-                  }
-                  className={fieldClass}
-                >
-                  <TextField.Input
+                {/* Email */}
+                <div className={fieldClass}>
+                  <label className={labelClass}>EMAIL</label>
+                  <input
+                    type="email"
                     value={form.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
                     placeholder="you@example.com"
                     className={inputClass}
+                    style={{
+                      borderBottomColor:
+                        focusedField === "email" ? colors.primary : undefined,
+                    }}
                   />
-                </TextField>
+                  <p className="text-xs text-neutral-400 mt-1 font-light">
+                    Used for account access and recruiter outreach
+                  </p>
+                </div>
 
-                <TextField
-                  label="Phone Number"
-                  helpText={
-                    <span className="text-gray-400 text-xs">
-                      Optional for recruiter contact
-                    </span>
-                  }
-                  className={fieldClass}
-                >
-                  <TextField.Input
+                {/* Phone */}
+                <div className={fieldClass}>
+                  <label className={labelClass}>PHONE NUMBER</label>
+                  <input
+                    type="tel"
                     value={form.phoneNumber}
                     onChange={(e) =>
                       handleInputChange("phoneNumber", e.target.value)
                     }
+                    onFocus={() => setFocusedField("phone")}
+                    onBlur={() => setFocusedField(null)}
                     placeholder="+1 (555) 123-4567"
                     className={inputClass}
+                    style={{
+                      borderBottomColor:
+                        focusedField === "phone" ? colors.primary : undefined,
+                    }}
                   />
-                </TextField>
+                </div>
 
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={phoneVisible}
-                    onCheckedChange={setPhoneVisible}
-                    className="h-5 w-9 data-[state=checked]:bg-violet-700 data-[state=unchecked]:bg-neutral-300"
+                {/* Phone visibility toggle - minimalist */}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-neutral-600">
+                    Show to recruiters
+                  </span>
+                  <button
+                    onClick={() => setPhoneVisible(!phoneVisible)}
+                    className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none"
                     style={{
                       backgroundColor: phoneVisible
                         ? colors.primary
-                        : undefined,
+                        : colors.neutral[200],
                     }}
-                  />
-                  <span className="text-sm text-neutral-700">
-                    Make phone number visible to recruiters
-                  </span>
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        phoneVisible ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <TextField label="Country *" className={fieldClass}>
+                {/* Location - Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  {/* Country */}
+                  <div className={fieldClass}>
+                    <label className={labelClass}>COUNTRY</label>
                     <select
                       className={inputClass}
                       value={selectedCountry?.isoCode || ""}
@@ -545,7 +469,6 @@ export default function Demographics() {
                         setSelectedCountry(country);
                         setSelectedState(null);
                         setSelectedCity(null);
-
                         setForm((prev) => ({
                           ...prev,
                           country: country?.name || "",
@@ -554,16 +477,18 @@ export default function Demographics() {
                         }));
                       }}
                     >
-                      <option value="">Select Country</option>
+                      <option value="">Select</option>
                       {countries.map((c) => (
                         <option key={c.isoCode} value={c.isoCode}>
                           {c.name}
                         </option>
                       ))}
                     </select>
-                  </TextField>
+                  </div>
 
-                  <TextField label="State *" className={fieldClass}>
+                  {/* State */}
+                  <div className={fieldClass}>
+                    <label className={labelClass}>STATE</label>
                     <select
                       className={inputClass}
                       disabled={!selectedCountry}
@@ -575,7 +500,6 @@ export default function Demographics() {
                         setSelectedState(state);
                         setSelectedCity(null);
                         setIsManualCity(false);
-
                         setForm((prev) => ({
                           ...prev,
                           state: state?.name || "",
@@ -583,16 +507,18 @@ export default function Demographics() {
                         }));
                       }}
                     >
-                      <option value="">Select State</option>
+                      <option value="">Select</option>
                       {states.map((s) => (
                         <option key={s.isoCode} value={s.isoCode}>
                           {s.name}
                         </option>
                       ))}
                     </select>
-                  </TextField>
+                  </div>
 
-                  <TextField label="City *" className={fieldClass}>
+                  {/* City */}
+                  <div className="md:col-span-2">
+                    <label className={labelClass}>CITY</label>
                     {!isManualCity ? (
                       <select
                         className={inputClass}
@@ -600,15 +526,12 @@ export default function Demographics() {
                         value={selectedCity?.name || ""}
                         onChange={(e) => {
                           const value = e.target.value;
-
-                          // Explicit intent → manual entry
                           if (value === OTHER_CITY_VALUE) {
                             setIsManualCity(true);
                             setSelectedCity(null);
                             setForm((prev) => ({ ...prev, city: "" }));
                             return;
                           }
-
                           const city = cities.find((c) => c.name === value);
                           setSelectedCity(city);
                           setForm((prev) => ({
@@ -617,24 +540,21 @@ export default function Demographics() {
                           }));
                         }}
                       >
-                        <option value="">Select City</option>
-
+                        <option value="">Select</option>
                         {cities.map((c) => (
                           <option key={c.name} value={c.name}>
                             {c.name}
                           </option>
                         ))}
-
-                        <option value={OTHER_CITY_VALUE}>Other</option>
+                        <option value={OTHER_CITY_VALUE}>+ Other</option>
                       </select>
                     ) : (
-                      <TextField.Input
+                      <input
+                        type="text"
                         value={form.city}
                         onChange={(e) => {
                           const value = e.target.value;
                           setForm((prev) => ({ ...prev, city: value }));
-
-                          // 👇 Only switch back when user clears text
                           if (value.trim() === "") {
                             setIsManualCity(false);
                             setSelectedCity(null);
@@ -645,120 +565,105 @@ export default function Demographics() {
                         autoFocus
                       />
                     )}
-                  </TextField>
+                  </div>
+                </div>
+
+                {/* Continue Button - Minimalist */}
+                <div className="pt-8">
+                  <button
+                    onClick={handleContinue}
+                    disabled={!canContinue || isSubmitting || isLoading}
+                    className="w-full py-3 px-4 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor:
+                        canContinue && !isSubmitting && !isLoading
+                          ? colors.primary
+                          : colors.neutral[100],
+                      color:
+                        canContinue && !isSubmitting && !isLoading
+                          ? "white"
+                          : colors.neutral[400],
+                    }}
+                  >
+                    {isLoading
+                      ? "Loading..."
+                      : isSubmitting
+                        ? "Saving..."
+                        : "Continue"}
+                  </button>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div className="w-full h-px bg-neutral-200 my-5" />
-
-              {/* Submit Button */}
-<Button
-  onClick={handleContinue}
-  disabled={!canContinue || isSubmitting || isLoading}
-  className="w-full h-10 sm:h-11 rounded-full text-sm sm:text-base font-semibold transition-all duration-200"
-  style={{
-    backgroundColor:
-      !canContinue || isSubmitting || isLoading
-        ? colors.neutral[200]   // faded background
-        : colors.accent,
-
-    color:
-      !canContinue || isSubmitting || isLoading
-        ? colors.neutral[400]   // faded text instead of full color
-        : colors.background,
-
-    cursor:
-      !canContinue || isSubmitting || isLoading
-        ? "not-allowed"
-        : "pointer",
-
-    boxShadow:
-      !canContinue || isSubmitting || isLoading
-        ? "none"
-        : "0 6px 16px rgba(0,0,0,0.10)",
-
-    transform:
-      !canContinue || isSubmitting || isLoading
-        ? "none"
-        : "translateY(0)",
-
-    opacity:
-      !canContinue || isSubmitting || isLoading ? 0.7 : 1,
-  }}
->
-  {!canContinue
-    ? " continue"
-    : isLoading
-    ? "Loading..."
-    : isSubmitting
-    ? "Submitting..."
-    : "Continue"}
-</Button>
-
-
-            </main>
-
-            {/* RIGHT PANEL */}
-            <aside className="w-full md:w-72 shrink-0 mt-6 md:mt-0">
-              <div className="md:sticky md:top-6 bg-white rounded-[20px] px-6 py-6 shadow-lg border border-neutral-300">
-                <h3 className="text-[20px] font-semibold text-neutral-900">
-                  Your Experience Index
+          {/* Right column - Progress Panel */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 sticky top-6">
+              {/* Experience Index - Minimal */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-neutral-500 mb-3">
+                  EXPERIENCE INDEX
                 </h3>
-
-                <div className="flex items-center justify-center py-8">
-                  <span className="text-[48px] font-medium text-neutral-300">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-light text-neutral-900">
                     {experienceIndex ?? 0}
                   </span>
+                  <span className="text-xs text-neutral-400">/100</span>
                 </div>
-
-                <div className="h-px bg-neutral-300 mb-4" />
-
-                <div className="text-[16px] font-semibold text-neutral-800 mb-3">
-                  Progress Steps
-                </div>
-
-                {/* Current Step */}
-                <button
-                  style={{ backgroundColor: colors.primary }}
-                  type="button"
-                  className="w-full flex items-center gap-3 rounded-2xl px-4 py-2 mb-3 hover:shadow-sm"
-                >
-                  <div className="flex items-center justify-center h-8 w-8 rounded-2xl bg-white shadow-sm">
-                    <IconWithBackground
-                      size="small"
-                      icon={<FeatherGraduationCap />}
-                    />
-                  </div>
-
-                  <span
-                    className="text-sm font-medium text-neutral-900"
-                    style={{ color: colors.white }}
-                  >
-                    Demographics
-                  </span>
-                </button>
-
-                {/* Other Steps */}
-                {steps.map((step) => (
-                  <div
-                    key={step.label}
-                    className="flex items-center gap-3 rounded-2xl border border-neutral-300 px-4 py-2 mb-3"
-                  >
-                    <IconWithBackground
-                      size="small"
-                      variant="neutral"
-                      icon={step.icon}
-                    />
-                    <span className="text-sm text-neutral-500">
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
               </div>
-            </aside>
+
+              <div className="h-px bg-neutral-100 my-4" />
+
+              {/* Steps - Minimal */}
+              <div>
+                <h3 className="text-sm font-medium text-neutral-500 mb-4">
+                  PROGRESS
+                </h3>
+                <div className="space-y-2">
+                  {steps.map((step, index) => (
+                    <div
+                      key={step.label}
+                      className="flex items-center gap-3 py-2 px-3 rounded-xl transition-colors"
+                      style={{
+                        backgroundColor:
+                          index === 0 ? `${colors.primary}08` : "transparent",
+                      }}
+                    >
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center"
+                        style={{
+                          backgroundColor:
+                            index === 0 ? colors.primary : colors.neutral[100],
+                          color: index === 0 ? "white" : colors.neutral[400],
+                        }}
+                      >
+                        <span className="text-xs">{index + 1}</span>
+                      </div>
+                      <span
+                        className="text-sm flex-1"
+                        style={{
+                          color:
+                            index === 0 ? colors.primary : colors.neutral[500],
+                          fontWeight: index === 0 ? 500 : 400,
+                        }}
+                      >
+                        {step.label}
+                      </span>
+                      {index === 0 && (
+                        <FeatherChevronRight
+                          className="w-4 h-4"
+                          style={{ color: colors.primary }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
+
       <Footer />
     </div>
   );

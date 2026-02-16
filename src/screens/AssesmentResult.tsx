@@ -21,6 +21,8 @@ import API, { URL_PATH } from "src/common/API";
 import { colors } from "src/common/Colors";
 import Navbar from "src/ui/components/Navbar";
 import Footer from "src/ui/components/Footer";
+import { useAppDispatch } from "src/store/hooks";
+import { setNavigation, completeStep } from "src/store/slices/onboardingSlice";
 
 type RankItem = {
   rank: number | string;
@@ -49,6 +51,7 @@ type IntegrityReport = {
 function AssessmentResult() {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
 
   const [isResultLoading, setIsResultLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -81,6 +84,53 @@ function AssessmentResult() {
     city: { rank: "-" },
     university: { rank: "-" },
   });
+
+  // ============================================
+  // MARK ONBOARDING AS COMPLETE
+  // ============================================
+  useEffect(() => {
+    console.log("📍 [AssessmentResult] ==================");
+    console.log("📍 [AssessmentResult] Component mounted");
+    console.log("📍 [AssessmentResult] Marking onboarding as complete");
+
+    // Mark assessment-results as completed
+    dispatch(completeStep("assessment-results"));
+
+    // Fetch updated navigation to confirm completion
+    const markOnboardingComplete = async () => {
+      try {
+        const statusResponse = await API("GET", URL_PATH.getUserStatus);
+
+        if (statusResponse?.success && statusResponse.navigation) {
+          console.log(
+            "✅ [AssessmentResult] Updating Redux with completed status",
+          );
+          dispatch(
+            setNavigation({
+              nextRoute: statusResponse.navigation.nextRoute,
+              currentStep: statusResponse.navigation.currentStep,
+              completedSteps: statusResponse.navigation.completedSteps,
+              isOnboardingComplete:
+                statusResponse.navigation.isOnboardingComplete,
+              hasPayment: statusResponse.navigation.hasPayment,
+            }),
+          );
+
+          if (statusResponse.navigation.isOnboardingComplete) {
+            console.log("🎉 [AssessmentResult] Onboarding is now complete!");
+          }
+        }
+      } catch (error) {
+        console.error(
+          "❌ [AssessmentResult] Failed to fetch navigation:",
+          error,
+        );
+      }
+    };
+
+    markOnboardingComplete();
+    console.log("📍 [AssessmentResult] ==================");
+  }, [dispatch]);
 
   // Trigger celebration animation on load
   useEffect(() => {
@@ -243,6 +293,16 @@ function AssessmentResult() {
     fetchResult();
     fetchRanks();
   }, [fetchResult, fetchRanks, navigate]);
+
+  const handleGoToDashboard = () => {
+    console.log("🚀 [AssessmentResult] Go to Dashboard clicked");
+    console.log("📍 Navigating to /dashboard");
+
+    // Add a small delay to ensure Redux updates are processed
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 100);
+  };
 
   const formatDate = (iso?: string | null) => {
     if (!iso) return "--";
@@ -672,7 +732,7 @@ function AssessmentResult() {
                 iconRight={
                   <FeatherArrowRight className="group-hover:translate-x-1 transition-transform" />
                 }
-                onClick={() => navigate("/dashboard")}
+                onClick={handleGoToDashboard}
               >
                 <span className="relative z-10">Go to Dashboard</span>
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
