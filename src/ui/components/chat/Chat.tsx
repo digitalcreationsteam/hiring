@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "./socket";
 import { colors } from "src/common/Colors";
@@ -13,10 +19,15 @@ import {
   FeatherSearch,
   FeatherSend,
   FeatherCheck,
+  FeatherChevronRight,
+  FeatherMessageSquare,
 } from "@subframe/core";
 import API, { URL_PATH, BASE_URL } from "src/common/API";
+import Navbar from "src/ui/components/Navbar";
+import Footer from "./../Footer";
 
-const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400";
+const DEFAULT_AVATAR =
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400";
 
 type Student = {
   name: string;
@@ -55,7 +66,7 @@ export default function Chat() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [otherIsTyping, setOtherIsTyping] = useState(false);
-const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [recruiters, setRecruiters] = useState<Recruiter[]>([]);
   const [search, setSearch] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -63,6 +74,7 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingRecruiters, setLoadingRecruiters] = useState(true);
   const [sending, setSending] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const [student, setStudent] = useState<Student>({
     name: "",
@@ -93,79 +105,108 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     return date.toLocaleDateString();
   }, []);
 
-  // Fetch recruiters list (people you've chatted with)
+  // Fetch recruiters list
   const fetchRecruiters = useCallback(async () => {
     if (!currentUserId) return;
-    
+
     setLoadingRecruiters(true);
     try {
-      // You might need to create this endpoint or use a different one
-      // Based on your backend, you might fetch from the Chat model
       const response = await API("GET", "/chat/participants");
-      
+
       if (response?.data) {
-        const formattedRecruiters = response.data.map((r: any) => {
-          const otherUser = r.participants.find((p: any) => p._id !== currentUserId);
-          const lastMessage = r.messages?.[r.messages.length - 1];
-          
-          return {
-            userId: otherUser._id,
-            name: otherUser.name || "Unknown User",
-            company: otherUser.company,
-            title: otherUser.title,
-            avatar: otherUser.avatar || DEFAULT_AVATAR,
-            lastMessage: lastMessage?.text,
-            time: lastMessage?.timestamp ? formatTimeAgo(new Date(lastMessage.timestamp)) : "",
-            unread: r.messages?.filter((m: any) => 
-              m.senderId === otherUser._id && !m.read
-            ).length || 0,
-            lastMessageTime: lastMessage?.timestamp ? new Date(lastMessage.timestamp) : new Date(),
-          };
-        }).sort((a: Recruiter, b: Recruiter) => 
-          (b.lastMessageTime?.getTime() || 0) - (a.lastMessageTime?.getTime() || 0)
-        );
-        
+        const formattedRecruiters = response.data
+          .map((r: any) => {
+            const otherUser = r.participants.find(
+              (p: any) => p._id !== currentUserId,
+            );
+            const lastMessage = r.messages?.[r.messages.length - 1];
+
+            return {
+              userId: otherUser._id,
+              name: otherUser.name || "Unknown User",
+              company: otherUser.company,
+              title: otherUser.title,
+              avatar: otherUser.avatar || DEFAULT_AVATAR,
+              lastMessage: lastMessage?.text,
+              time: lastMessage?.timestamp
+                ? formatTimeAgo(new Date(lastMessage.timestamp))
+                : "",
+              unread:
+                r.messages?.filter(
+                  (m: any) => m.senderId === otherUser._id && !m.read,
+                ).length || 0,
+              lastMessageTime: lastMessage?.timestamp
+                ? new Date(lastMessage.timestamp)
+                : new Date(),
+            };
+          })
+          .sort(
+            (a: Recruiter, b: Recruiter) =>
+              (b.lastMessageTime?.getTime() || 0) -
+              (a.lastMessageTime?.getTime() || 0),
+          );
+
         setRecruiters(formattedRecruiters);
       }
     } catch (err) {
       console.error("Failed to fetch recruiters:", err);
-      // Fallback to demo data if API fails
+      // Fallback to demo data
       setRecruiters([
         {
           userId: "RECRUITER_ID_1",
           name: "Sarah Kim",
           company: "TechWave Inc",
           title: "Senior Recruiter",
-          avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
+          avatar:
+            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
           lastMessage: "Perfect! I'll send over the JD in a moment...",
           time: "2m ago",
           unread: 2,
         },
-        // ... other demo recruiters
+        {
+          userId: "RECRUITER_ID_2",
+          name: "Michael Chen",
+          company: "DesignHub",
+          title: "Talent Acquisition",
+          avatar:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+          lastMessage: "Your portfolio looks great! When are you available?",
+          time: "1h ago",
+          unread: 0,
+        },
+        {
+          userId: "RECRUITER_ID_3",
+          name: "Jessica Williams",
+          company: "Startup Labs",
+          title: "HR Manager",
+          avatar:
+            "https://images.unsplash.com/photo-1494790108777-2f3bdbce8d9d?w=200",
+          lastMessage: "Thanks for your interest in the position",
+          time: "1d ago",
+          unread: 0,
+        },
       ]);
     } finally {
       setLoadingRecruiters(false);
     }
   }, [currentUserId, formatTimeAgo]);
 
-  // Fetch messages when chat is selected
+  // Fetch messages
   const fetchMessages = useCallback(async () => {
     if (!otherUserId || !currentUserId) return;
 
     setLoading(true);
     try {
       const response = await API("GET", URL_PATH.getChatHistory(otherUserId));
-      
+
       if (response?.data) {
         const formattedMessages = response.data.map((msg: any) => ({
           ...msg,
           time: formatMessageTime(msg.timestamp || new Date()),
           timestamp: new Date(msg.timestamp),
         }));
-        
+
         setMessages(formattedMessages);
-        
-        // Mark messages as read when we open the chat
         markMessagesAsRead();
       }
     } catch (err) {
@@ -178,22 +219,22 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Mark messages as read
   const markMessagesAsRead = useCallback(async () => {
     if (!otherUserId || !currentUserId) return;
-    
+
     try {
       await API("POST", URL_PATH.markMessagesRead, {
         senderId: otherUserId,
         receiverId: currentUserId,
       });
-      
-      // Update local state to mark messages as read
-      setMessages(prev => prev.map(msg => 
-        msg.senderId === otherUserId ? { ...msg, read: true } : msg
-      ));
-      
-      // Update recruiter's unread count
-      setRecruiters(prev => prev.map(r => 
-        r.userId === otherUserId ? { ...r, unread: 0 } : r
-      ));
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.senderId === otherUserId ? { ...msg, read: true } : msg,
+        ),
+      );
+
+      setRecruiters((prev) =>
+        prev.map((r) => (r.userId === otherUserId ? { ...r, unread: 0 } : r)),
+      );
     } catch (err) {
       console.error("Failed to mark messages as read:", err);
     }
@@ -203,53 +244,61 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!currentUserId) return;
 
-    // Join user's room
     socket.emit("join", currentUserId);
 
     const onReceiveMessage = async (msg: Msg) => {
-      // Check if this message is for the current chat
       if (msg.senderId === otherUserId || msg.receiverId === otherUserId) {
         const formattedMsg = {
           ...msg,
           time: formatMessageTime(msg.timestamp || new Date()),
           timestamp: new Date(msg.timestamp || new Date()),
         };
-        
-        setMessages(prev => [...prev, formattedMsg]);
-        
-        // Mark as read if we received it while viewing
+
+        setMessages((prev) => [...prev, formattedMsg]);
+
         if (msg.senderId === otherUserId) {
           await markMessagesAsRead();
         }
       }
-      
-      // Update recruiter's last message in the list
-      const senderId = msg.senderId === currentUserId ? msg.receiverId : msg.senderId;
+
+      const senderId =
+        msg.senderId === currentUserId ? msg.receiverId : msg.senderId;
       const isFromOtherUser = msg.senderId !== currentUserId;
-      
-      setRecruiters(prev => prev.map(r => {
-        if (r.userId === senderId) {
-          return {
-            ...r,
-            lastMessage: msg.text,
-            time: formatTimeAgo(new Date()),
-            unread: isFromOtherUser ? (r.unread || 0) + 1 : 0,
-            lastMessageTime: new Date(),
-          };
-        }
-        return r;
-      }).sort((a, b) => 
-        (b.lastMessageTime?.getTime() || 0) - (a.lastMessageTime?.getTime() || 0)
-      ));
+
+      setRecruiters((prev) =>
+        prev
+          .map((r) => {
+            if (r.userId === senderId) {
+              return {
+                ...r,
+                lastMessage: msg.text,
+                time: formatTimeAgo(new Date()),
+                unread: isFromOtherUser ? (r.unread || 0) + 1 : 0,
+                lastMessageTime: new Date(),
+              };
+            }
+            return r;
+          })
+          .sort(
+            (a, b) =>
+              (b.lastMessageTime?.getTime() || 0) -
+              (a.lastMessageTime?.getTime() || 0),
+          ),
+      );
     };
 
     const onMessageSent = (msg: Msg) => {
-      // Update message with server data (replace temp ID)
-      setMessages(prev => prev.map(m => 
-        m.text === msg.text && m.senderId === currentUserId && !m._id 
-          ? { ...m, ...msg, time: formatMessageTime(msg.timestamp || new Date()) }
-          : m
-      ));
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.text === msg.text && m.senderId === currentUserId && !m._id
+            ? {
+                ...m,
+                ...msg,
+                time: formatMessageTime(msg.timestamp || new Date()),
+              }
+            : m,
+        ),
+      );
       setSending(false);
     };
 
@@ -268,14 +317,19 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
       socket.off("message-sent", onMessageSent);
       socket.off("user-typing", onTyping);
     };
-  }, [currentUserId, otherUserId, formatMessageTime, formatTimeAgo, markMessagesAsRead]);
+  }, [
+    currentUserId,
+    otherUserId,
+    formatMessageTime,
+    formatTimeAgo,
+    markMessagesAsRead,
+  ]);
 
-  // Fetch data on component mount
+  // Fetch data on mount
   useEffect(() => {
     fetchRecruiters();
   }, [fetchRecruiters]);
 
-  // Fetch messages when otherUserId changes
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
@@ -283,40 +337,41 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Auto-scroll to bottom
   useEffect(() => {
     if (messagesEndRef.current && chatContainerRef.current) {
-      const isNearBottom = 
-        chatContainerRef.current.scrollHeight - 
-        chatContainerRef.current.scrollTop - 
-        chatContainerRef.current.clientHeight < 100;
-      
+      const isNearBottom =
+        chatContainerRef.current.scrollHeight -
+          chatContainerRef.current.scrollTop -
+          chatContainerRef.current.clientHeight <
+        100;
+
       if (isNearBottom) {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
     }
   }, [messages, otherIsTyping]);
 
-  // Typing indicator handler
+  // Typing indicator
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
-    
+
     if (!isTyping && otherUserId) {
       setIsTyping(true);
       socket.emit("typing", {
         senderId: currentUserId,
         receiverId: otherUserId,
-        isTyping: true
+        isTyping: true,
       });
-      
+
       if (typingTimeoutRef.current) {
-  clearTimeout(typingTimeoutRef.current);
-  typingTimeoutRef.current = null;
-}
-      
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+
       typingTimeoutRef.current = setTimeout(() => {
         setIsTyping(false);
         socket.emit("typing", {
           senderId: currentUserId,
           receiverId: otherUserId,
-          isTyping: false
+          isTyping: false,
         });
       }, 2000);
     }
@@ -328,8 +383,7 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const text = input.trim();
     const tempId = `temp_${Date.now()}`;
-    
-    // Optimistic update
+
     const tempMessage: Msg = {
       _id: tempId,
       senderId: currentUserId,
@@ -339,12 +393,11 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
       time: formatMessageTime(new Date()),
       read: false,
     };
-    
-    setMessages(prev => [...prev, tempMessage]);
+
+    setMessages((prev) => [...prev, tempMessage]);
     setInput("");
     setSending(true);
-    
-    // Clear typing indicator
+
     setIsTyping(false);
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -352,46 +405,45 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     socket.emit("typing", {
       senderId: currentUserId,
       receiverId: otherUserId,
-      isTyping: false
+      isTyping: false,
     });
 
     try {
-      // Send via socket - your backend will save to database
       socket.emit("send-message", {
         senderId: currentUserId,
         receiverId: otherUserId,
         text,
         timestamp: new Date().toISOString(),
       });
-      
-      // Update recruiter list with new last message
-      setRecruiters(prev => prev.map(r => {
-        if (r.userId === otherUserId) {
-          return {
-            ...r,
-            lastMessage: text,
-            time: "Just now",
-            lastMessageTime: new Date(),
-          };
-        }
-        return r;
-      }).sort((a, b) => 
-        (b.lastMessageTime?.getTime() || 0) - (a.lastMessageTime?.getTime() || 0)
-      ));
-      
+
+      setRecruiters((prev) =>
+        prev
+          .map((r) => {
+            if (r.userId === otherUserId) {
+              return {
+                ...r,
+                lastMessage: text,
+                time: "Just now",
+                lastMessageTime: new Date(),
+              };
+            }
+            return r;
+          })
+          .sort(
+            (a, b) =>
+              (b.lastMessageTime?.getTime() || 0) -
+              (a.lastMessageTime?.getTime() || 0),
+          ),
+      );
     } catch (err) {
       console.error("Failed to send message:", err);
       setSending(false);
-      
-      // Remove optimistic update on error
-      setMessages(prev => prev.filter(m => m._id !== tempId));
-      
-      // Show error to user
+      setMessages((prev) => prev.filter((m) => m._id !== tempId));
       alert("Failed to send message. Please try again.");
     }
   };
 
-  // Filter recruiters based on search
+  // Filter recruiters
   const filteredRecruiters = useMemo(() => {
     const s = search.trim().toLowerCase();
     if (!s) return recruiters;
@@ -400,7 +452,7 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
         r.name.toLowerCase().includes(s) ||
         (r.company || "").toLowerCase().includes(s) ||
         (r.title || "").toLowerCase().includes(s) ||
-        (r.lastMessage || "").toLowerCase().includes(s)
+        (r.lastMessage || "").toLowerCase().includes(s),
     );
   }, [search, recruiters]);
 
@@ -414,13 +466,14 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
       try {
         const res = await API("GET", URL_PATH.calculateExperienceIndex);
         const demo = res?.data?.demographics?.[0];
-        const domain = typeof res?.jobdomain === "string"
-          ? res.jobdomain
-          : res?.jobdomain?.domain || "";
+        const domain =
+          typeof res?.jobdomain === "string"
+            ? res.jobdomain
+            : res?.jobdomain?.domain || "";
 
         const profileFromServer = res?.documents?.profileUrl;
         let avatar = DEFAULT_AVATAR;
-        
+
         if (profileFromServer) {
           const origin = BASE_URL.replace(/\/api\/?$/, "");
           if (/^https?:\/\//.test(profileFromServer)) {
@@ -446,7 +499,7 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     fetchStudent();
   }, []);
 
-  // Handle enter key to send message
+  // Handle enter key
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -454,358 +507,376 @@ const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     }
   };
 
-  // Loading states
+  // Steps for progress (matching Awards page)
+  const steps = [
+    { label: "Dashboard", icon: <FeatherMessageSquare />, completed: true },
+    { label: "Messages", icon: <FeatherMessageSquare />, active: true },
+  ];
+
   if (!currentUserId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Please log in to use chat</p>
-      </div>
-    );
-  }
-
-  // CHECK - For when no recruiter is selected
-  if (!otherUserId) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="max-w-md text-center">
-          <h1 className="text-2xl font-bold mb-3 text-gray-800">Welcome to Chat</h1>
-          <p className="text-gray-600 mb-6">
-            {currentUserRole === "recruiter" 
-              ? "Select a student from your inbox to start chatting." 
-              : "Select a recruiter to start chatting."}
-          </p>
-          <button 
-            onClick={() => navigate("/dashboard")}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
-          >
-            Go to Dashboard
-          </button>
-        </div>
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <p className="text-neutral-500">Please log in to use chat</p>
       </div>
     );
   }
 
   return (
-<div className="min-h-screen w-full" >
-       {/* Blended background - fixed behind everything */}
-       <div className="pointer-events-none fixed inset-0 -z-10">
-         <div
-           className="absolute inset-0"
-           style={{ backgroundColor: colors.background }}
-         />
- 
-         <div
-           className="absolute -top-40 -left-40 h-[560px] w-[560px] rounded-full blur-3xl opacity-55"
-           style={{
-             background: `radial-gradient(circle at 60% 60%, ${colors.primary}AA, transparent 52%)`,
-           }}
-         />
- 
-         <div
-           className="absolute -top-48 right-[-220px] h-[680px] w-[680px] rounded-full blur-3xl opacity-35"
-           style={{
-             background: `radial-gradient(circle at 50% 30%, ${colors.secondary}99, transparent 62%)`,
-           }}
-         />
- 
-         <div
-           className="absolute bottom-[-260px] left-[15%] h-[760px] w-[760px] rounded-full blur-3xl opacity-20"
-           style={{
-             background: `radial-gradient(circle at 50% 50%, ${colors.accent}44, transparent 62%)`,
-           }}
-         />
-  </div>
-      {/* TOP BAR */}
-      <div className="w-full border-b" style={{ borderColor: colors.primary }}>
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="h-9 w-9 rounded-xl border flex items-center justify-center hover:bg-gray-50 transition"
-              style={{ borderColor: colors.primary }}
-              title="Back"
-            >
-              <FeatherArrowLeft />
-            </button>
+    <div className="min-h-screen bg-neutral-50">
+      <Navbar />
 
-            <div className="flex flex-col">
-              <div className="text-sm font-black" style={{ color: colors.primary }}>
-                {student.name}
-              </div>
-              <div className="text-[11px] font-semibold" style={{ color: colors.secondary }}>
-                {student.domain}
-              </div>
-            </div>
-          </div>
-
-          <div className="hidden md:flex items-center gap-2 flex-1 max-w-[520px]">
-            <div
-              className="flex items-center gap-2 w-full rounded-2xl border px-3 py-2"
-              style={{ borderColor: colors.primary, backgroundColor: colors.primaryGlow, }}
-            >
-              <FeatherSearch className="w-4 h-4" />
-              <input
-                className="w-full bg-transparent outline-none text-sm"
-                placeholder="Search recruiters"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+      <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Simple header with progress - matching Awards page */}
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-400 hover:text-neutral-600 transition-colors"
+          >
+            <FeatherArrowLeft className="w-4 h-4" />
+          </button>
+          <div className="flex-1 flex items-center gap-1">
+            <div className="h-1 flex-1 bg-neutral-200 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: "50%", backgroundColor: colors.primary }}
               />
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold" style={{ color: colors.primary }}>
-              Messages
-            </span>
-            <Avatar
-              size="small"
-              image={student.avatar}
-              style={{ boxShadow: `0 0 0 2px ${colors.primary}` }}
-            />
+            <span className="text-xs text-neutral-500 ml-2">1/2</span>
           </div>
         </div>
-      </div>
 
-      {/* BODY */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4">
-        <div className="flex gap-4">
-          {/* LEFT SIDEBAR */}
-          <div
-            className="w-[320px] hidden lg:flex flex-col border rounded-3xl overflow-hidden"
-            style={{ borderColor: colors.primary, backgroundColor: colors.white }}
-          >
-            <div
-              className="p-4 border-b flex items-center justify-between"
-              style={{ borderColor: colors.primary }}
-            >
-              <div className="text-sm font-black" style={{ color: colors.primary }}>
-                Recruiters
-              </div>
-              <button
-                className="h-9 w-9 rounded-xl border flex items-center justify-center hover:bg-gray-50 transition"
-                style={{ borderColor: colors.primary }}
-                title="New message"
-              >
-                <FeatherEdit3 />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {loadingRecruiters ? (
-                <div className="p-4 text-center text-gray-500">Loading...</div>
-              ) : filteredRecruiters.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">No recruiters found</div>
-              ) : (
-                filteredRecruiters.map((r) => {
-                  const active = r.userId === otherUserId;
-                  return (
-                    <button
-                      key={r.userId}
-                      className="w-full text-left px-4 py-3 border-b hover:bg-neutral-50 transition"
-                      style={{
-                        borderColor: colors.primaryGlow,
-                        backgroundColor: active ? colors.primaryGlow : colors.white,
-                      }}
-                      onClick={() => navigate(`/chat/${r.userId}`)}
-                    >
-                      <div className="flex gap-3 items-start">
-                        <Avatar size="small" image={r.avatar} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="font-bold text-sm truncate" style={{ color: colors.primary }}>
-                              {r.name}
-                            </div>
-                            <div className="text-[10px] font-semibold opacity-70">{r.time}</div>
-                          </div>
-                          <div className="text-[11px] truncate" style={{ color: colors.secondary }}>
-                            {r.company}
-                          </div>
-                          <div className="text-[11px] truncate mt-1 opacity-80">
-                            {r.lastMessage || "Start a conversation"}
-                          </div>
-                          {r.unread ? (
-                            <div className="mt-2">
-                              <Badge
-                                className="border-none text-[10px] font-bold"
-                                style={{ backgroundColor: colors.secondary, color: colors.white }}
-                              >
-                                {r.unread} new
-                              </Badge>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* CHAT PANEL */}
-          <div
-            className="flex-1 border rounded-3xl overflow-hidden flex flex-col"
-            style={{ borderColor: colors.primary, backgroundColor: colors.white }}
-          >
-            {/* Chat header */}
-            <div
-              className="px-4 py-3 border-b flex items-center justify-between"
-              style={{ borderColor: colors.primaryGlow }}
-            >
-              <div className="flex items-center gap-3">
-                <Avatar
-                  size="small"
-                  image={activeRecruiter?.avatar || DEFAULT_AVATAR}
-                  style={{ boxShadow: `0 0 0 2px ${colors.primaryGlow}` }}
-                />
-                <div className="flex flex-col">
-                  <div className="text-sm font-black" style={{ color: colors.primary }}>
-                    {activeRecruiter?.name || "Select a recruiter"}
-                  </div>
-                  <div className="text-[11px]" style={{ color: colors.secondary }}>
-                    {activeRecruiter?.company || ""} {activeRecruiter?.title ? `• ${activeRecruiter.title}` : ""}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className="h-9 w-9 rounded-xl border flex items-center justify-center hover:bg-gray-50 transition"
-                style={{ borderColor: colors.primary }}
-              >
-                <FeatherMoreVertical />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div 
-              ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-4 space-y-3"
-              style={{ maxHeight: "calc(70vh - 60px)" }}
-            >
-              {loading ? (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-500">Loading messages...</p>
-                  </div>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-gray-500">No messages yet</p>
-                    <p className="text-sm text-gray-400 mt-1">Start the conversation!</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {messages.map((m, i) => {
-                    const isMe = m.senderId === currentUserId;
-                    return (
-                      <div key={m._id || i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                        <div className="max-w-[70%]">
-                          <div
-                            className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                              isMe ? "" : "border"
-                            } ${m._id?.startsWith('temp_') ? 'opacity-80' : ''}`}
-                            style={
-                              isMe
-                                ? { backgroundColor: colors.secondary, color: colors.white }
-                                : { backgroundColor: colors.white, borderColor: colors.primaryGlow, color: colors.primary }
-                            }
-                          >
-                            {m.text}
-                            {m._id?.startsWith('temp_') && (
-                              <span className="ml-2 text-xs opacity-70">Sending...</span>
-                            )}
-                          </div>
-                          <div className={`mt-1 text-[10px] font-semibold ${isMe ? "text-right" : "text-left"} opacity-60 flex items-center gap-1`}>
-                            {m.time}
-                            {isMe && (
-                              <FeatherCheck className={`w-3 h-3 ${m.read ? 'text-blue-400' : 'text-gray-400'}`} />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  {/* Typing indicator */}
-                  {otherIsTyping && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[70%]">
-                        <div
-                          className="px-4 py-3 rounded-2xl text-sm border"
-                          style={{ backgroundColor: colors.white, borderColor: colors.primary }}
-                        >
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </div>
-
-            {/* Composer */}
-            <div
-              className="p-3 border-t"
-              style={{ borderColor: colors.primary, backgroundColor: colors.white }}
-            >
-              <div className="flex gap-2">
-                <input
-                  className="flex-1 border rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2  transition"
-                  style={{ borderColor: colors.secondary, backgroundColor: colors.secondary, color: colors.white }}
-                  placeholder="Write a message…"
-                  value={input}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  disabled={!otherUserId || sending}
-                />
+        {/* Main content - Two column layout matching Awards page */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column - Recruiters List */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-medium text-neutral-500">
+                  RECRUITERS
+                </h2>
                 <button
-                  onClick={sendMessage}
-                  className="px-5 rounded-2xl font-bold disabled:opacity-50 flex items-center gap-2 hover:opacity-90 transition"
-                  style={{ backgroundColor: colors.primary, color: colors.white }}
-                  disabled={!otherUserId || !input.trim() || sending}
+                  className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-400 hover:text-neutral-600 transition-colors"
+                  title="New message"
                 >
-                  {sending ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Sending
-                    </>
-                  ) : (
-                    <>
-                      <FeatherSend className="w-4 h-4" />
-                      Send
-                    </>
-                  )}
+                  <FeatherEdit3 className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* Search */}
+              <div className="mb-4">
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 bg-white"
+                  style={{
+                    borderColor:
+                      focusedField === "search" ? colors.primary : undefined,
+                  }}
+                >
+                  <FeatherSearch className="w-4 h-4 text-neutral-400" />
+                  <input
+                    className="w-full bg-transparent outline-none text-sm text-neutral-700 placeholder:text-neutral-400"
+                    placeholder="Search recruiters..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onFocus={() => setFocusedField("search")}
+                    onBlur={() => setFocusedField(null)}
+                  />
+                </div>
+              </div>
+
+              {/* Recruiters List */}
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {loadingRecruiters ? (
+                  <div className="text-center py-8">
+                    <div
+                      className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+                      style={{ borderColor: colors.primary }}
+                    ></div>
+                    <p className="text-sm text-neutral-400 mt-2">Loading...</p>
+                  </div>
+                ) : filteredRecruiters.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-neutral-400">
+                      No recruiters found
+                    </p>
+                  </div>
+                ) : (
+                  filteredRecruiters.map((r) => {
+                    const active = r.userId === otherUserId;
+                    return (
+                      <button
+                        key={r.userId}
+                        onClick={() => navigate(`/chat/${r.userId}`)}
+                        className="w-full text-left p-3 rounded-xl transition-all duration-200"
+                        style={{
+                          backgroundColor: active
+                            ? `${colors.primary}08`
+                            : "transparent",
+                          border: `1px solid ${active ? colors.primary : colors.neutral[200]}`,
+                        }}
+                      >
+                        <div className="flex gap-3">
+                          <Avatar size="small" image={r.avatar} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className="text-sm font-medium truncate"
+                                style={{
+                                  color: active
+                                    ? colors.primary
+                                    : colors.neutral[900],
+                                }}
+                              >
+                                {r.name}
+                              </span>
+                              <span className="text-[10px] text-neutral-400 whitespace-nowrap">
+                                {r.time}
+                              </span>
+                            </div>
+                            <p className="text-xs text-neutral-500 truncate">
+                              {r.company} • {r.title}
+                            </p>
+                            <p className="text-xs text-neutral-400 truncate mt-1">
+                              {r.lastMessage || "Start a conversation"}
+                            </p>
+                            {r.unread ? (
+                              <div className="mt-2">
+                                <Badge
+                                  className="text-[10px] font-medium px-2 py-0.5"
+                                  style={{
+                                    backgroundColor: colors.primary,
+                                    color: "white",
+                                  }}
+                                >
+                                  {r.unread} new
+                                </Badge>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right column - Chat */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden flex flex-col h-[700px]">
+              {/* Chat Header */}
+              {activeRecruiter ? (
+                <>
+                  <div className="p-6 border-b border-neutral-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar
+                          size="medium"
+                          image={activeRecruiter.avatar || DEFAULT_AVATAR}
+                        />
+                        <div>
+                          <h3 className="font-medium text-neutral-900">
+                            {activeRecruiter.name}
+                          </h3>
+                          <p className="text-xs text-neutral-500">
+                            {activeRecruiter.company} • {activeRecruiter.title}
+                          </p>
+                        </div>
+                      </div>
+                      <button className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center text-neutral-400 hover:text-neutral-600 transition-colors">
+                        <FeatherMoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  <div
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto p-6 space-y-4"
+                  >
+                    {loading ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <div
+                            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto"
+                            style={{ borderColor: colors.primary }}
+                          ></div>
+                          <p className="text-sm text-neutral-400 mt-2">
+                            Loading messages...
+                          </p>
+                        </div>
+                      </div>
+                    ) : messages.length === 0 ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <div
+                            className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                            style={{ backgroundColor: `${colors.primary}10` }}
+                          >
+                            <FeatherMessageSquare
+                              className="w-6 h-6"
+                              style={{ color: colors.primary }}
+                            />
+                          </div>
+                          <p className="text-sm text-neutral-500">
+                            No messages yet
+                          </p>
+                          <p className="text-xs text-neutral-400 mt-1">
+                            Start the conversation!
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {messages.map((m, i) => {
+                          const isMe = m.senderId === currentUserId;
+                          return (
+                            <div
+                              key={m._id || i}
+                              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                            >
+                              <div className="max-w-[70%]">
+                                <div
+                                  className={`px-4 py-2 rounded-2xl text-sm ${
+                                    m._id?.startsWith("temp_")
+                                      ? "opacity-70"
+                                      : ""
+                                  }`}
+                                  style={
+                                    isMe
+                                      ? {
+                                          backgroundColor: colors.primary,
+                                          color: "white",
+                                        }
+                                      : {
+                                          backgroundColor: colors.neutral[100],
+                                          color: colors.neutral[900],
+                                        }
+                                  }
+                                >
+                                  {m.text}
+                                </div>
+                                <div
+                                  className={`mt-1 text-[10px] text-neutral-400 flex items-center gap-1 ${
+                                    isMe ? "justify-end" : "justify-start"
+                                  }`}
+                                >
+                                  {m.time}
+                                  {isMe && (
+                                    <FeatherCheck
+                                      className={`w-3 h-3 ${
+                                        m.read
+                                          ? "text-blue-400"
+                                          : "text-neutral-300"
+                                      }`}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Typing indicator */}
+                        {otherIsTyping && (
+                          <div className="flex justify-start">
+                            <div className="max-w-[70%]">
+                              <div
+                                className="px-4 py-3 rounded-2xl text-sm"
+                                style={{ backgroundColor: colors.neutral[100] }}
+                              >
+                                <div className="flex space-x-1">
+                                  <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"></div>
+                                  <div
+                                    className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"
+                                    style={{ animationDelay: "0.2s" }}
+                                  ></div>
+                                  <div
+                                    className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce"
+                                    style={{ animationDelay: "0.4s" }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div ref={messagesEndRef} />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Message Input */}
+                  <div className="p-4 border-t border-neutral-100">
+                    <div className="flex gap-2">
+                      <input
+                        className="flex-1 px-4 py-2 text-sm border border-neutral-200 rounded-xl focus:outline-none transition-all duration-200"
+                        style={{
+                          borderColor:
+                            focusedField === "message"
+                              ? colors.primary
+                              : undefined,
+                        }}
+                        placeholder="Write a message..."
+                        value={input}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        onFocus={() => setFocusedField("message")}
+                        onBlur={() => setFocusedField(null)}
+                        disabled={sending}
+                      />
+                      <button
+                        onClick={sendMessage}
+                        className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                        style={{
+                          backgroundColor: colors.primary,
+                          color: "white",
+                        }}
+                        disabled={!input.trim() || sending}
+                      >
+                        {sending ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span className="hidden sm:inline">Sending</span>
+                          </>
+                        ) : (
+                          <>
+                            <FeatherSend className="w-4 h-4" />
+                            <span className="hidden sm:inline">Send</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // No recruiter selected state
+                <div className="h-full flex items-center justify-center p-6">
+                  <div className="text-center">
+                    <div
+                      className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                      style={{ backgroundColor: `${colors.primary}10` }}
+                    >
+                      <FeatherMessageSquare
+                        className="w-8 h-8"
+                        style={{ color: colors.primary }}
+                      />
+                    </div>
+                    <h3 className="text-lg font-light text-neutral-900 mb-2">
+                      Select a conversation
+                    </h3>
+                    <p className="text-sm text-neutral-500 max-w-xs">
+                      Choose a recruiter from the list to start chatting
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Mobile search */}
-        <div className="lg:hidden mt-4">
-          <div
-            className="flex items-center gap-2 w-full rounded-2xl border px-3 py-2"
-            style={{ borderColor: colors.aqua, backgroundColor: colors.cream }}
-          >
-            <FeatherSearch className="w-4 h-4" />
-            <input
-              className="w-full bg-transparent outline-none text-sm"
-              placeholder="Search recruiters"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

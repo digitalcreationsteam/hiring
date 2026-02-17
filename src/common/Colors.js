@@ -141,6 +141,7 @@ export const uniTalentColors = {
   text: "#060606",         // All text content
   secondary: "#2E4056",
   // Extended palette
+  red: "#EF4444",
   primaryLight: "#FFEDB2", // Light yellow for gradients
 
   // Status colors for UniTalent

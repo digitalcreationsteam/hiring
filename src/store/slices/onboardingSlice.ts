@@ -68,6 +68,7 @@ const APP_ROUTES = [
   "/experience-index",
   "/skill-index",
   "/hireability-index",
+  "/my-profile",
 ];
 
 // ============================================

@@ -43,6 +43,12 @@ interface DemographicsData {
 interface ApiError {
   message?: string;
   success?: boolean;
+  response?: {
+    data?: {
+      message?: string;
+    };
+    status?: number;
+  };
 }
 
 interface StepItem {
@@ -182,9 +188,12 @@ export default function Demographics() {
   };
 
   const handleContinue = async (): Promise<void> => {
+    console.log("\n========== 📝 SUBMITTING DEMOGRAPHICS ==========");
+
     // Validate
     const validationError = validateForm();
     if (validationError) {
+      console.log("❌ Validation error:", validationError);
       setError(validationError);
       toast.error(validationError);
       return;
@@ -192,6 +201,30 @@ export default function Demographics() {
 
     setError("");
     setIsSubmitting(true);
+
+    // Get userId from localStorage
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+
+    console.log("👤 User ID from localStorage:", userId);
+    console.log(
+      "🔑 Token from localStorage:",
+      token ? `${token.substring(0, 20)}...` : "MISSING",
+    );
+
+    if (!userId) {
+      console.error("❌ No user ID found");
+      toast.error("User session expired. Please login again.");
+      navigate("/login");
+      return;
+    }
+
+    if (!token) {
+      console.error("❌ No token found");
+      toast.error("Session expired. Please login again.");
+      navigate("/login");
+      return;
+    }
 
     const payload = {
       fullName: normalizeText(form.fullName),
@@ -203,44 +236,118 @@ export default function Demographics() {
       phoneVisibleToRecruiters: phoneVisible,
     };
 
+    console.log("📦 Payload being sent:", JSON.stringify(payload, null, 2));
+    console.log("📡 Sending POST request to:", URL_PATH.demographics);
+    console.log("📋 Headers being sent:", {
+      "user-id": userId,
+      Authorization: `Bearer ${token.substring(0, 20)}...`,
+      "Content-Type": "application/json",
+    });
+
     try {
-      const saveResponse = await API("POST", URL_PATH.demographics, payload);
+      const saveResponse = await API("POST", URL_PATH.demographics, payload, {
+        "user-id": userId,
+        Authorization: `Bearer ${token}`,
+      });
+
+      console.log("📥 Save response:", saveResponse);
 
       if (!saveResponse?.success) {
         throw new Error(saveResponse?.message || "Failed to save demographics");
       }
 
-      // Still update Redux with the navigation data if needed elsewhere
+      console.log("✅ Demographics saved successfully");
+
       if (saveResponse?.navigation) {
+        console.log("🧭 Navigation data:", saveResponse.navigation);
         dispatch(setNavigation(saveResponse.navigation));
       }
 
       toast.success("Demographics saved successfully");
 
-      // ✅ FORCE NAVIGATE TO EDUCATION PAGE regardless of what backend returns
+      console.log("➡️ Navigating to education page...");
       setTimeout(() => {
-        navigate("/education"); // or whatever your education route is
+        navigate("/education");
       }, 1500);
     } catch (err: unknown) {
-      const apiError = err as ApiError;
-      const message = apiError?.message || "Failed to submit demographics";
-
       console.error("❌ Error saving demographics:", err);
+
+      const apiError = err as ApiError;
+
+      if (apiError.response) {
+        console.error("📋 Error response status:", apiError.response.status);
+        console.error(
+          "📋 Error response data:",
+          JSON.stringify(apiError.response.data, null, 2),
+        );
+
+        // Check for specific error messages
+        if (apiError.response.status === 500) {
+          console.error("🔍 SERVER ERROR - Check backend logs for:");
+          console.error("   - MongoDB connection issues");
+          console.error("   - Schema validation errors");
+          console.error("   - Missing required fields in database");
+          console.error("   - Null value where not allowed");
+
+          // Log the payload again for debugging
+          console.error(
+            "📦 Payload that caused 500:",
+            JSON.stringify(payload, null, 2),
+          );
+
+          toast.error("Server error. Our team has been notified.");
+        } else if (apiError.response.status === 400) {
+          console.error("📋 Validation errors:", apiError.response.data);
+          toast.error("Invalid data format. Please check your inputs.");
+        } else if (apiError.response.status === 401) {
+          toast.error("Session expired. Please login again.");
+          navigate("/login");
+          return;
+        } else if (apiError.response.status === 409) {
+          toast.error("Demographics already exist. Try updating instead.");
+        }
+      }
+
+      const message =
+        apiError?.message ||
+        apiError?.response?.data?.message ||
+        "Failed to submit demographics";
+
+      console.log("📋 Error message:", message);
       setError(message);
       toast.error(message);
     } finally {
       setIsSubmitting(false);
+      console.log("🏁 Demographics submission complete");
     }
   };
 
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
+      console.log("\n========== 📊 FETCHING DEMOGRAPHICS DATA ==========");
+
+      const userId = localStorage.getItem("userId");
+      console.log("👤 User ID for fetch:", userId);
+
       try {
         let demographicsRes = null;
 
         try {
-          demographicsRes = await API("GET", URL_PATH.getDemographics);
+          console.log(
+            "📡 Fetching demographics from:",
+            URL_PATH.getDemographics,
+          );
+          demographicsRes = await API(
+            "GET",
+            URL_PATH.getDemographics,
+            undefined,
+            {
+              "user-id": userId,
+            },
+          );
+          console.log("📥 Demographics response:", demographicsRes);
         } catch (err: any) {
+          console.log("⚠️ Demographics fetch error:", err?.response?.status);
           if (err?.response?.status !== 404) {
             throw err;
           }
@@ -249,6 +356,7 @@ export default function Demographics() {
         const data = demographicsRes?.data;
 
         if (data?.fullName) {
+          console.log("✅ Found existing demographics data:", data);
           setForm({
             fullName: data.fullName,
             email: data.email || "",
@@ -258,16 +366,28 @@ export default function Demographics() {
             country: data.country || "",
           });
           setPhoneVisible(!!data.phoneVisibleToRecruiters);
+        } else {
+          console.log("ℹ️ No existing demographics data found");
         }
 
-        const expRes = await API("GET", URL_PATH.calculateExperienceIndex);
+        console.log("📡 Fetching experience index...");
+        const expRes = await API(
+          "GET",
+          URL_PATH.calculateExperienceIndex,
+          undefined,
+          {
+            "user-id": userId,
+          },
+        );
+        console.log("📥 Experience index response:", expRes);
         setExperienceIndex(expRes?.points?.demographics || 0);
       } catch (err) {
-        console.error("Demographics load failed:", err);
+        console.error("❌ Demographics load failed:", err);
         setError("Failed to load demographics");
         toast.error("Failed to load demographics");
       } finally {
         setIsLoading(false);
+        console.log("🏁 Demographics fetch complete");
       }
     };
 

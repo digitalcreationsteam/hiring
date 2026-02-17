@@ -124,6 +124,18 @@ type Hireability = {
   };
 };
 
+type RecruiterMessage = {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  company: string;
+  message: string;
+  time: string;
+  avatar: string;
+  unread: boolean;
+};
+
 /* ==================== CONSTANTS ==================== */
 
 const DEFAULT_AVATAR =
@@ -237,166 +249,153 @@ export default function Dashboard() {
     hackathons: { val: "0/0", pct: "0%" },
   });
 
+  // State for recruiter messages
+  const [recentRecruiterMessages, setRecentRecruiterMessages] = useState<
+    RecruiterMessage[]
+  >([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
+  // Log when component mounts
+  useEffect(() => {
+    console.log("\n========== 🚀 DASHBOARD MOUNTED ==========");
+    console.log(
+      "Current User ID from localStorage:",
+      localStorage.getItem("userId"),
+    );
+    console.log(
+      "Current User from localStorage:",
+      localStorage.getItem("user"),
+    );
+  }, []);
+
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
       const parsed = JSON.parse(user);
       setCurrentUserId(parsed?._id || null);
+      console.log("✅ Current User ID set:", parsed?._id);
     }
   }, []);
 
-  const openChat = () => {
-    if (!chatUserId.trim()) return;
-    navigate(`/chat/${chatUserId.trim()}`);
+  const openMyChat = () => {
+    console.log("\n========== 💬 OPENING CHAT ==========");
+    const studentId = localStorage.getItem("userId");
+    console.log("Student ID from localStorage:", studentId);
+
+    if (!studentId) {
+      console.error("❌ No student ID found");
+      toast.error("User ID not found. Please login again.");
+      return;
+    }
+    console.log("✅ Navigating to chat with ID:", studentId);
+    navigate(`/chat/${studentId}`);
+  };
+
+  // Fetch recent recruiter messages
+  const fetchRecentRecruiterMessages = useCallback(async () => {
+    console.log(
+      "\n========== 💬 FETCHING RECENT RECRUITER MESSAGES ==========",
+    );
+    const studentId = localStorage.getItem("userId");
+
+    if (!studentId) {
+      console.log("❌ No student ID found");
+      return;
+    }
+
+    setLoadingMessages(true);
+    try {
+      console.log("📡 Fetching recent messages for student:", studentId);
+      const response = await API("GET", `/chat/recent/${studentId}`);
+
+      console.log("📥 Recent messages response:", response);
+
+      if (response?.data) {
+        // Filter to only show messages from recruiters
+        const recruiterMessages = response.data.filter(
+          (msg: any) =>
+            msg.senderRole === "recruiter" || msg.receiverRole === "recruiter",
+        );
+
+        console.log(
+          `✅ Found ${recruiterMessages.length} recent recruiter messages`,
+        );
+        setRecentRecruiterMessages(recruiterMessages.slice(0, 3));
+      }
+    } catch (err) {
+      console.error("❌ Failed to fetch recent messages:", err);
+      // Fallback demo data
+      console.log("📋 Using fallback demo messages");
+      setRecentRecruiterMessages([
+        {
+          id: "recruiter1",
+          senderId: "recruiter1",
+          senderName: "Sarah Kim",
+          senderRole: "recruiter",
+          company: "TechWave Inc",
+          message:
+            "Hi! I reviewed your profile and would love to connect about a Product Manager role at TechWave.",
+          time: "2m ago",
+          avatar:
+            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200",
+          unread: true,
+        },
+        {
+          id: "recruiter2",
+          senderId: "recruiter2",
+          senderName: "Michael Chen",
+          senderRole: "recruiter",
+          company: "DesignHub",
+          message:
+            "Your portfolio is impressive! When are you available for a quick call this week?",
+          time: "1h ago",
+          avatar:
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+          unread: false,
+        },
+        {
+          id: "recruiter3",
+          senderId: "recruiter3",
+          senderName: "Jessica Williams",
+          senderRole: "recruiter",
+          company: "Startup Labs",
+          message:
+            "Thanks for connecting! We have an opening that matches your profile.",
+          time: "1d ago",
+          avatar:
+            "https://images.unsplash.com/photo-1494790108777-2f3bdbce8d9d?w=200",
+          unread: false,
+        },
+      ]);
+    } finally {
+      setLoadingMessages(false);
+      console.log("🏁 Recent messages fetch complete");
+    }
+  }, []);
+
+  // Open chat with specific recruiter
+  const openChatWithRecruiter = (recruiterId: string) => {
+    console.log("Opening chat with recruiter:", recruiterId);
+    navigate(`/chat/${recruiterId}`);
   };
 
   /* ==================== API CALLS ==================== */
 
-  //   const fetchDashboardData = useCallback(async () => {
-  //     try {
-  //       const res = await API("GET", URL_PATH.calculateExperienceIndex);
-
-  //       console.log("fetchDashboardData response:", res);
-  //       if (!res) return;
-
-  //       /* DEMOGRAPHICS */
-  //       const demo = res?.data?.demographics?.[0];
-  //       setUser({
-  //         name: demo?.fullName || "",
-  //         domain: "",
-  //         location: formatLocation(demo?.city, demo?.state),
-  //       });
-
-  //       /* AVATAR */
-  //       const profileFromServer = res?.documents?.profileUrl;
-  //       let normalizedProfile: string | null = null;
-
-  //       if (profileFromServer) {
-  //         const origin = BASE_URL.replace(/\/api\/?$/, "");
-  //         if (/^https?:\/\//.test(profileFromServer))
-  //           normalizedProfile = profileFromServer;
-  //         else if (profileFromServer.startsWith("/"))
-  //           normalizedProfile = origin + profileFromServer;
-  //         else normalizedProfile = origin + "/" + profileFromServer;
-  //       }
-
-  //       setAvatar(normalizedProfile || DEFAULT_AVATAR);
-
-  //       // save in localStorage safely
-  //       try {
-  //         if (normalizedProfile) {
-  //           const u = localStorage.getItem("user");
-  //           const parsed = u ? JSON.parse(u) : {};
-  //           parsed.profileUrl = normalizedProfile;
-  //           localStorage.setItem("user", JSON.stringify(parsed));
-  //         }
-  //       } catch {}
-
-  //       /* RANK */
-  //       const rank = res?.rank;
-  //       setRankData({
-  //         global: {
-  //           rank: rank?.globalRank ?? "-",
-  //           percentile: calculatePercentile(rank?.globalRank),
-  //         },
-  //         country: {
-  //           rank: rank?.countryRank ?? "-",
-  //           percentile: calculatePercentile(rank?.countryRank),
-  //         },
-  //         state: {
-  //           rank: rank?.stateRank ?? "-",
-  //           percentile: calculatePercentile(rank?.stateRank),
-  //         },
-  //         city: {
-  //           rank: rank?.cityRank ?? "-",
-  //           percentile: calculatePercentile(rank?.cityRank),
-  //         },
-  //         university: {
-  //           // ✅ FIX KEY (your response is universityRank, not universityrank)
-  //           rank: rank?.universityRank ?? "-",
-  //           percentile: calculatePercentile(rank?.universityRank),
-  //         },
-  //       });
-
-  //       /* HIREABILITY */
-  //       const hireabilityIndex = res?.hireabilityIndex;
-  //       setHireability({
-  //         totalScore: hireabilityIndex?.hireabilityIndex ?? 0,
-  //         weeklyChange: 0,
-  //         nextRankPoints:
-  //           (hireabilityIndex?.experienceIndexTotal ?? 0) -
-  //           (hireabilityIndex?.experienceIndexScore ?? 0),
-  //         skill: {
-  //           score: hireabilityIndex?.skillIndexScore ?? 0,
-  //           max: hireabilityIndex?.skillIndexTotal ?? 0,
-  //         },
-  //         experience: {
-  //           score: hireabilityIndex?.experienceIndexScore ?? 0,
-  //           max: hireabilityIndex?.experienceIndexTotal ?? 0,
-  //         },
-  //       });
-
-  //       /* LISTS */
-  //       setWorkExperience(res?.data?.workExperience || []);
-  //       setProjects(
-  //         (res?.data?.projects || []).map((p: any) => ({
-  //           title: p.projectName,
-  //           summary: p.summary,
-  //         })),
-  //       );
-  //       setCertifications(
-  //         (res?.data?.certifications || []).map((c: any) => ({
-  //           name: c.certificationName,
-  //           issuedBy: c.issuer,
-  //           issueYear: c.issueDate,
-  //         })),
-  //       );
-  //       setEducation(res?.data?.education || []);
-  //       setSkills((res?.skills?.list || []).map((s: string) => ({ name: s })));
-
-  //       /* JOB DOMAIN */
-  //       setDomain(res?.jobdomain || "");
-
-  //       const educationList = res?.data?.education || [];
-  // setEducation(educationList);
-
-  // /* GET UNIVERSITY NAME */
-  // const userUniversity = educationList?.[0]?.schoolName;
-
-  // if (userUniversity) {
-  //   try {
-  //     const leaderboardRes = await API(
-  //       "GET",
-  //       `${URL_PATH.getStudentsBySchool}?schoolName=${encodeURIComponent(userUniversity)}`
-  //     );
-
-  //     const students = leaderboardRes?.data || [];
-
-  //     setUniversityLeaderboard(students);
-
-  //   } catch (error) {
-  //     console.error("University leaderboard fetch failed:", error);
-  //   }
-  // }
-  //     } catch (err: any) {
-  //       console.error("fetchDashboardData FAILED:", err);
-  //       console.error("message:", err?.message);
-  //       console.error("response:", err?.response?.data);
-
-  //       // fallback - avoid crash
-  //       setAvatar(DEFAULT_AVATAR);
-  //     }
-  //   }, []);
-
   const fetchDashboardData = useCallback(async () => {
+    console.log("\n========== 📊 FETCHING DASHBOARD DATA ==========");
     try {
       const res = await API("GET", URL_PATH.calculateExperienceIndex);
 
-      console.log("fetchDashboardData response:", res);
-      if (!res) return;
+      console.log("📥 Dashboard API Response:", res);
+      if (!res) {
+        console.log("⚠️ No response received");
+        return;
+      }
 
       /* DEMOGRAPHICS */
       const demo = res?.data?.demographics?.[0];
+      console.log("Demographics data:", demo);
+
       setUser({
         name: demo?.fullName || "",
         domain: "",
@@ -414,6 +413,8 @@ export default function Dashboard() {
         else if (profileFromServer.startsWith("/"))
           normalizedProfile = origin + profileFromServer;
         else normalizedProfile = origin + "/" + profileFromServer;
+
+        console.log("Profile image URL:", normalizedProfile);
       }
 
       setAvatar(normalizedProfile || DEFAULT_AVATAR);
@@ -424,11 +425,16 @@ export default function Dashboard() {
           const parsed = u ? JSON.parse(u) : {};
           parsed.profileUrl = normalizedProfile;
           localStorage.setItem("user", JSON.stringify(parsed));
+          console.log("✅ Avatar URL saved to localStorage");
         }
-      } catch {}
+      } catch (e) {
+        console.error("Failed to save avatar to localStorage:", e);
+      }
 
       /* RANK */
       const rank = res?.rank;
+      console.log("Rank data:", rank);
+
       setRankData({
         global: {
           rank: rank?.globalRank ?? "-",
@@ -454,6 +460,8 @@ export default function Dashboard() {
 
       /* HIREABILITY */
       const hireabilityIndex = res?.hireabilityIndex;
+      console.log("Hireability index:", hireabilityIndex);
+
       setHireability({
         totalScore: hireabilityIndex?.hireabilityIndex ?? 0,
         weeklyChange: 0,
@@ -497,9 +505,14 @@ export default function Dashboard() {
 
       /* GET UNIVERSITY NAME */
       const userUniversity = educationList?.[0]?.schoolName;
+      console.log("User university:", userUniversity);
 
       if (userUniversity) {
         try {
+          console.log(
+            "📡 Fetching university leaderboard for:",
+            userUniversity,
+          );
           const leaderboardRes = await API(
             "GET",
             `${URL_PATH.getStudentsBySchool}?schoolName=${encodeURIComponent(
@@ -508,42 +521,51 @@ export default function Dashboard() {
           );
 
           const students = leaderboardRes?.data || [];
+          console.log(`✅ Found ${students.length} students from university`);
           setUniversityLeaderboard(students);
         } catch (error) {
-          console.error("University leaderboard fetch failed:", error);
+          console.error("❌ University leaderboard fetch failed:", error);
         }
       }
 
       /* 🔥 FETCH CASE STUDY ATTEMPTS THIS WEEK */
       if (demo?.id) {
         try {
+          console.log(
+            "📡 Fetching weekly case study attempts for user:",
+            demo.id,
+          );
           const caseStudyRes = await API(
             "GET",
-            `/api/user-case-attempts/${demo.id}/weekly`, // your API path
+            `/api/user-case-attempts/${demo.id}/weekly`,
           );
 
           const weeklyAttempts = caseStudyRes?.totalAttempts ?? 0;
-          const totalCaseStudies = 5; // replace with dynamic if available
+          const totalCaseStudies = 5;
           const pct = Math.round((weeklyAttempts / totalCaseStudies) * 100);
 
-          // Save in state for your card
+          console.log(
+            `Weekly case studies: ${weeklyAttempts}/${totalCaseStudies} (${pct}%)`,
+          );
+
           setWeeklyActivity({
             caseStudies: {
               val: `${weeklyAttempts}/${totalCaseStudies}`,
               pct: `${pct}%`,
             },
-            // Add hackathons later if you have API
             hackathons: {
               val: `1/2`,
               pct: `50%`,
             },
           });
         } catch (error) {
-          console.error("Weekly case study fetch failed:", error);
+          console.error("❌ Weekly case study fetch failed:", error);
         }
       }
+
+      console.log("✅ Dashboard data fetch complete");
     } catch (err: any) {
-      console.error("fetchDashboardData FAILED:", err);
+      console.error("❌ fetchDashboardData FAILED:", err);
       console.error("message:", err?.message);
       console.error("response:", err?.response?.data);
 
@@ -556,11 +578,16 @@ export default function Dashboard() {
   useEffect(() => {
     const completed = localStorage.getItem("assessmentCompleted") === "true";
     setIsAssessmentCompleted(completed);
+    console.log("Assessment completed status:", completed);
   }, []);
 
   useEffect(() => {
-    fetchDashboardData(); // 👈 ONLY ONE CALL
+    fetchDashboardData();
   }, [fetchDashboardData]);
+
+  useEffect(() => {
+    fetchRecentRecruiterMessages();
+  }, [fetchRecentRecruiterMessages]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -577,17 +604,9 @@ export default function Dashboard() {
   }, []);
 
   /* ==================== HANDLERS ==================== */
-  const openMyChat = () => {
-    const studentId = localStorage.getItem("userId");
-    if (!studentId) {
-      toast.error("User ID not found. Please login again.");
-      return;
-    }
-    navigate(`/chat/${studentId}`);
-  };
 
-  // const handleNavigate = (path: string) => navigate(path);
   const handleNavigate = (path: string) => {
+    console.log(`Navigating to: ${path} with source: dashboard`);
     navigate(path, {
       state: { source: "dashboard" },
     });
@@ -595,10 +614,12 @@ export default function Dashboard() {
 
   const handleAssessmentClick = () => {
     if (isAssessmentCompleted) {
+      console.log("Assessment already completed");
       toast.success("Assessment already completed");
       return;
     }
 
+    console.log("Starting assessment");
     navigate("/assessment-intro", {
       state: { source: "dashboard" },
     });
@@ -608,91 +629,29 @@ export default function Dashboard() {
   const handleSaveProfile = async () => {
     if (!selectedAvatarFile) return;
 
+    console.log("Saving profile image:", selectedAvatarFile.name);
     const formData = new FormData();
     formData.append("avatar", selectedAvatarFile);
 
     try {
       setIsSavingAvatar(true);
+      console.log("📡 Uploading profile image...");
 
-      await API(
-        "POST", // or "PUT" based on backend
-        URL_PATH.uploadProfile, // "user/profile"
-        formData,
-        // ❌ DO NOT pass headers here
-      );
+      await API("POST", URL_PATH.uploadProfile, formData);
 
-      // Refresh profile image from server (dashboard includes documents.profileUrl)
+      console.log("✅ Profile image uploaded successfully");
       await fetchDashboardData();
-
-      // Cleanup
       setSelectedAvatarFile(null);
     } catch (error) {
-      console.error("Failed to save profile image", error);
+      console.error("❌ Failed to save profile image:", error);
       toast.error("Failed to save profile image");
     } finally {
       setIsSavingAvatar(false);
     }
   };
 
-  // const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   console.log("", e);
-  //   const file = e.target.files?.[0];
-  //   if (!file) return;
-
-  //   // Validate file size (e.g., max 5MB)
-  //   if (file.size > 5 * 1024 * 1024) {
-  //     toast.error("File size should be less than 5MB");
-  //     return;
-  //   }
-
-  //   // Validate file type
-  //   const validTypes = ["image/jpeg", "image/png", "image/webp"];
-  //   if (!validTypes.includes(file.type)) {
-  //     toast.error("Please select a valid image (JPEG, PNG, or WebP)");
-  //     return;
-  //   }
-
-  //   // Cleanup old preview
-  //   if (avatar && avatar.startsWith("blob:")) {
-  //     URL.revokeObjectURL(avatar);
-  //   }
-
-  //   // Create preview
-  //   const previewUrl = URL.createObjectURL(file);
-  //   setAvatar(previewUrl);
-
-  //   try {
-  //     setIsSavingAvatar(true);
-
-  //     // Upload to server
-  //     const formData = new FormData();
-  //     formData.append("avatar", file);
-
-  //     await API("POST", URL_PATH.uploadProfile, formData);
-
-  //     // Refresh from server (dashboard includes documents.profileUrl)
-  //     await fetchDashboardData();
-
-  //     // Revoke preview after successful upload
-  //     setTimeout(() => {
-  //       if (previewUrl.startsWith("blob:")) {
-  //         URL.revokeObjectURL(previewUrl);
-  //       }
-  //     }, 1000);
-  //   } catch (error) {
-  //     console.error("Upload failed:", error);
-  //     toast.error("Failed to upload profile picture");
-  //     // Revert to old avatar if available
-  //     // if (user?.avatarUrl) {
-  //     //   setAvatar(user.avatarUrl);
-  //     // }
-  //   } finally {
-  //     setIsSavingAvatar(false);
-  //   }
-  // };
-
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("", e);
+    console.log("Avatar file selected:", e.target.files?.[0]);
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -717,6 +676,7 @@ export default function Dashboard() {
     // Create preview
     const previewUrl = URL.createObjectURL(file);
     setAvatar(previewUrl);
+    console.log("Avatar preview created");
 
     try {
       setIsSavingAvatar(true);
@@ -725,13 +685,15 @@ export default function Dashboard() {
       const formData = new FormData();
       formData.append("avatar", file);
 
+      console.log("📡 Uploading avatar...");
       await API("POST", URL_PATH.uploadProfile, formData);
 
-      // Refresh from server (dashboard includes documents.profileUrl)
+      console.log("✅ Avatar uploaded successfully");
       await fetchDashboardData();
 
       // Dispatch custom event to notify Navbar about avatar update
       window.dispatchEvent(new Event("avatar-updated"));
+      console.log("Avatar updated event dispatched");
 
       // Revoke preview after successful upload
       setTimeout(() => {
@@ -740,7 +702,7 @@ export default function Dashboard() {
         }
       }, 1000);
     } catch (error) {
-      console.error("Upload failed:", error);
+      console.error("❌ Upload failed:", error);
       toast.error("Failed to upload profile picture");
     } finally {
       setIsSavingAvatar(false);
@@ -748,6 +710,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = () => {
+    console.log("Logging out...");
     clearUserData();
     navigate("/login");
   };
@@ -775,7 +738,6 @@ export default function Dashboard() {
 
   /* ==================== UI ==================== */
   return (
-    // <DefaultPageLayout>
     <>
       <ToastContainer position="top-center" autoClose={3000} />
       <div
@@ -872,14 +834,8 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Resume Content - Scrollable Area */}
-                  <div
-                    className="space-y-6 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide mb-6"
-                    style={{
-                      scrollbarWidth: "none" /* Firefox */,
-                      msOverflowStyle: "none" /* IE and Edge */,
-                    }}
-                  >
+                  {/* Resume Content - REMOVED SCROLL EFFECT */}
+                  <div className="space-y-6 mb-6">
                     {/* Experience */}
                     <div className="space-y-4">
                       <p
@@ -1088,7 +1044,8 @@ export default function Dashboard() {
 
             {/* --- CENTER DASHBOARD --- */}
             <div className="flex w-full flex-col gap-8 lg:max-w-[800px]">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Global Rank */}
                 {[
                   {
                     label: "Global Rank",
@@ -1111,54 +1068,70 @@ export default function Dashboard() {
                     icon: "/city.png",
                     theme: colors.primary,
                   },
-                ].map((rank, i) => (
-                  <Card
-                    key={i}
-                    className="rounded-3xl shadow-sm border"
-                    style={{
-                      backgroundColor: colors.white,
-                      border: `1.5px solid ${colors.primaryGlow}`,
-                    }}
-                  >
-                    <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
-                      <div className="h-10 w-10 flex items-center justify-center rounded-full">
-                        {typeof rank.icon === "string" ? (
-                          <img
-                            src={rank.icon}
-                            alt={rank.label}
-                            className="h-7 w-7 object-contain"
-                          />
-                        ) : (
-                          rank.icon
-                        )}
-                      </div>
+                  {
+                    label: "University",
+                    val: rankData.university,
+                    pct: rankData.university.percentile,
+                    icon: "/university.jpg",
+                    theme: colors.primary,
+                  },
+                ].map((rank, i) => {
+                  console.log(`Rendering ${rank.label} card:`, rank.val);
+                  return (
+                    <Card
+                      key={i}
+                      className="rounded-3xl shadow-sm border"
+                      style={{
+                        backgroundColor: colors.white,
+                        border: `1.5px solid ${colors.primaryGlow}`,
+                      }}
+                    >
+                      <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
+                        <div className="h-10 w-10 flex items-center justify-center rounded-full">
+                          {typeof rank.icon === "string" ? (
+                            <img
+                              src={rank.icon}
+                              alt={rank.label}
+                              className="h-7 w-7 object-contain"
+                              onError={(e) => {
+                                console.log(
+                                  `Failed to load icon for ${rank.label}`,
+                                );
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            rank.icon
+                          )}
+                        </div>
+                        <Badge
+                          className="border-none text-[15px] font-black"
+                          style={{
+                            backgroundColor: colors.background,
+                            color: rank.theme, // This was originally on the span
+                          }}
+                        >
+                          Top {rank.pct}%
+                        </Badge>
 
-                      <span
-                        style={{ color: "black" }}
-                        className="text-[10px] uppercase tracking-widest"
-                      >
-                        {rank.label}
-                      </span>
+                        <span
+                          style={{ color: "black" }}
+                          className="text-[10px] uppercase tracking-widest"
+                        >
+                          {rank.label}
+                        </span>
 
-                      <span
-                        className="text-3xl font-black"
-                        style={{ color: rank.theme }}
-                      >
-                        {rank.val.rank}
-                      </span>
-
-                      <Badge
-                        className="border-none text-[10px]"
-                        style={{
-                          backgroundColor: colors.background,
-                          color: colors.accent,
-                        }}
-                      >
-                        Top {rank.pct}%
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                ))}
+                        {/* REVERSED: Rank now gets the badge styling (text-[10px], colors.accent) */}
+                        <span
+                          className="text-[30px]"
+                          style={{ color: colors.accent }} // This was originally on the badge
+                        >
+                          {rank.val.rank}
+                        </span>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               <Card
@@ -1300,18 +1273,36 @@ export default function Dashboard() {
                 {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-start">
                   {/* Assessment */}
+                  {/* Assessment */}
                   <Card
                     style={{ border: `1.5px solid ${colors.primaryGlow}` }}
                     className="border p-3 border-neutral-200 rounded-3xl sm:rounded-[2rem] shadow-sm bg-white transition-all"
                   >
                     <CardContent className="pt-2 pb-0 px-4 sm:pt-3 sm:pb-3 sm:px-3">
-                      <h4 className="text-base sm:text-lg mb-2">
-                        Complete Assessment
-                      </h4>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-base sm:text-lg">
+                          Complete Assessment
+                        </h4>
+                        {isAssessmentCompleted && (
+                          <Badge
+                            className="border-none text-[10px] px-2 py-1"
+                            style={{
+                              backgroundColor: "#10b981",
+                              color: "white",
+                            }}
+                          >
+                            <div className="flex items-center gap-1">
+                              <FeatherCheckCircle className="w-3 h-3" />
+                              Completed
+                            </div>
+                          </Badge>
+                        )}
+                      </div>
 
                       <p className="text-sm text-neutral-500 mb-4 sm:mb-6 leading-relaxed">
-                        Begin evaluation and boost your credibility with
-                        role-specific eval.
+                        {isAssessmentCompleted
+                          ? "You've successfully completed the assessment. Your results have been added to your profile."
+                          : "Begin evaluation and boost your credibility with role-specific assessment."}
                       </p>
 
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1319,14 +1310,7 @@ export default function Dashboard() {
                           <FeatherClock className="w-3 h-3" /> 20 min
                         </span>
 
-                        {isAssessmentCompleted ? (
-                          <Button
-                            disabled
-                            className="w-full sm:w-auto rounded-2xl bg-neutral-200 text-neutral-500 cursor-not-allowed border-none px-5 sm:px-6"
-                          >
-                            Completed
-                          </Button>
-                        ) : (
+                        {!isAssessmentCompleted && (
                           <Button
                             className="w-full sm:w-auto rounded-2xl px-5 sm:px-6"
                             style={{
@@ -1470,67 +1454,6 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* <Card
-                style={{ border: `1.5px solid ${colors.primaryGlow}` }}
-                className="bg-white rounded-[2rem] border shadow-sm"
-              >
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle
-                    className="text-sm font-bold"
-                    style={{ color: colors.accent }}
-                  >
-                    Profile Views
-                  </CardTitle>
-
-                  <Badge
-                    className="border-none text-[10px]"
-                    style={{
-                      backgroundColor: colors.primary,
-                      color: colors.white,
-                    }}
-                  >
-                    15
-                  </Badge>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  {[
-                    {
-                      name: "Sarah Kim",
-                      role: "Google",
-                      img: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=64",
-                    },
-                    {
-                      name: "Michael J.",
-                      role: "Meta",
-                      img: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=64",
-                    },
-                  ].map((viewer, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <Avatar
-                        size="small"
-                        image={viewer.img}
-                        style={{ boxShadow: `0 0 0 2px ${colors.cream}` }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className="text-xs truncate"
-                          style={{ color: colors.accent }}
-                        >
-                          {viewer.name}
-                        </p>
-                        <p
-                          className="text-[10px] truncate opacity-60"
-                          style={{ color: colors.accent }}
-                        >
-                          {viewer.role}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card> */}
-
               <Card
                 style={{ border: `1.5px solid ${colors.primaryGlow}` }}
                 className="bg-white rounded-[2rem] border shadow-sm"
@@ -1622,56 +1545,184 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Talk to Recruiters Card */}
               <Card
                 style={{ border: `1.5px solid ${colors.primaryGlow}` }}
                 className="bg-white rounded-[2rem] border shadow-sm overflow-hidden"
               >
                 <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    {/* Chat Icon */}
-                    {/* <div
-                      className="w-16 h-16 rounded-full flex items-center justify-center"
-                      style={{
-                        backgroundColor: colors.background2,
-                      }}
-                    >
-                      <FeatherUser2
-                        className="w-8 h-8"
-                        style={{ color: colors.primary }}
-                      />
-                    </div> */}
+                  <div className="flex flex-col gap-4">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center"
+                          style={{
+                            backgroundColor: colors.background2,
+                          }}
+                        >
+                          <FeatherUser2
+                            className="w-5 h-5"
+                            style={{ color: colors.primary }}
+                          />
+                        </div>
+                        <div>
+                          <h3
+                            className="text-base font-semibold"
+                            style={{ color: colors.accent }}
+                          >
+                            Recruiter Messages
+                          </h3>
+                          <p
+                            className="text-xs"
+                            style={{ color: colors.secondary }}
+                          >
+                            {
+                              recentRecruiterMessages.filter((m) => m.unread)
+                                .length
+                            }{" "}
+                            unread conversations
+                          </p>
+                        </div>
+                      </div>
 
-                    {/* Text Content */}
-                    <div className="space-y-2">
-                      <h3
-                        className="text-lg font-semibold"
-                        style={{ color: colors.accent }}
+                      {/* View All Button */}
+                      <Button
+                        onClick={openMyChat}
+                        className="!p-2 !h-8 !w-8 rounded-full"
+                        style={{
+                          backgroundColor: colors.primary,
+                          color: "white",
+                        }}
                       >
-                        Talk to Recruiters
-                      </h3>
-                      <p
-                        className="text-sm"
-                        style={{ color: colors.secondary }}
-                      >
-                        Directly message recruiters and explore new
-                        opportunities.
-                      </p>
+                        <FeatherArrowRight className="w-4 h-4" />
+                      </Button>
                     </div>
 
-                    {/* Message Button */}
-                    <Button
-                      onClick={() => navigate("/chat")}
-                      className="w-full rounded-2xl h-12 transition-transform hover:scale-105 mt-2"
-                      style={{
-                        backgroundColor: colors.primary,
-                        color: "white",
-                      }}
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <span>Send a Message</span>
-                        <FeatherArrowRight className="w-4 h-4" />
-                      </div>
-                    </Button>
+                    {/* Recent Messages List */}
+                    <div className="space-y-3 mt-2">
+                      {loadingMessages ? (
+                        <div className="flex justify-center py-4">
+                          <div
+                            className="animate-spin rounded-full h-6 w-6 border-b-2"
+                            style={{ borderColor: colors.primary }}
+                          ></div>
+                        </div>
+                      ) : recentRecruiterMessages.length > 0 ? (
+                        recentRecruiterMessages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            onClick={() => openChatWithRecruiter(msg.senderId)}
+                            className="flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all hover:shadow-md"
+                            style={{
+                              backgroundColor: msg.unread
+                                ? `${colors.primary}08`
+                                : colors.background,
+                              border: `1px solid ${msg.unread ? colors.primary : colors.neutral[200]}`,
+                            }}
+                          >
+                            {/* Avatar */}
+                            <Avatar
+                              size="small"
+                              image={msg.avatar}
+                              className="w-8 h-8 rounded-full"
+                            />
+
+                            {/* Message Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span
+                                  className="text-sm font-medium truncate"
+                                  style={{ color: colors.accent }}
+                                >
+                                  {msg.senderName}
+                                </span>
+                                <span
+                                  className="text-[10px] whitespace-nowrap"
+                                  style={{ color: colors.neutral[400] }}
+                                >
+                                  {msg.time}
+                                </span>
+                              </div>
+
+                              <p
+                                className="text-xs truncate mt-0.5"
+                                style={{ color: colors.secondary }}
+                              >
+                                {msg.company}
+                              </p>
+
+                              <p
+                                className="text-xs truncate mt-1"
+                                style={{
+                                  color: msg.unread
+                                    ? colors.primary
+                                    : colors.neutral[500],
+                                  fontWeight: msg.unread ? 500 : 400,
+                                }}
+                              >
+                                {msg.message}
+                              </p>
+                            </div>
+
+                            {/* Unread Indicator */}
+                            {msg.unread && (
+                              <div
+                                className="w-2 h-2 rounded-full mt-1"
+                                style={{ backgroundColor: colors.primary }}
+                              />
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        // Empty State
+                        <div className="text-center py-6">
+                          <div
+                            className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
+                            style={{ backgroundColor: colors.background2 }}
+                          >
+                            <FeatherUser2
+                              className="w-6 h-6"
+                              style={{ color: colors.primary }}
+                            />
+                          </div>
+                          <p
+                            className="text-sm"
+                            style={{ color: colors.accent }}
+                          >
+                            No messages yet
+                          </p>
+                          <p
+                            className="text-xs mt-1"
+                            style={{ color: colors.secondary }}
+                          >
+                            Start connecting with recruiters
+                          </p>
+                          <Button
+                            onClick={openMyChat}
+                            className="mt-4 !px-4 !py-2 !h-8 rounded-full text-xs"
+                            style={{
+                              backgroundColor: colors.primary,
+                              color: "white",
+                            }}
+                          >
+                            Browse Recruiters
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View All Link */}
+                    {recentRecruiterMessages.length > 0 && (
+                      <button
+                        onClick={openMyChat}
+                        className="text-xs text-center mt-2 py-2 transition-opacity hover:opacity-70"
+                        style={{ color: colors.primary }}
+                      >
+                        View all conversations →
+                      </button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1683,6 +1734,5 @@ export default function Dashboard() {
         <Footer />
       </div>
     </>
-    // </DefaultPageLayout>
   );
 }

@@ -37,9 +37,7 @@
   }
 } */
 
-
 @keyframes softBlink {
-
   0%,
   100% {
     opacity: 1;
@@ -55,14 +53,12 @@
 }
 
 * {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Poppins", sans-serif;
 }
-
 
 /* .inter-font-family {
   font-family: 'Inter', sans-serif;
 } */
-
 
 /* Add to your global CSS file */
 @keyframes textShimmer {
@@ -146,8 +142,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, #FFD85F22 1px, transparent 1px),
-    linear-gradient(#FFD85F22 1px, transparent 1px);
+    linear-gradient(90deg, #ffd85f22 1px, transparent 1px),
+    linear-gradient(#ffd85f22 1px, transparent 1px);
   background-size: 50px 50px;
   opacity: 0.8;
 }
@@ -157,5 +153,3 @@
   opacity: 1;
   transition: opacity 0.3s ease;
 }
-
-

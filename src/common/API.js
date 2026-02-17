@@ -8,11 +8,11 @@ import axios from "axios";
 ========================================= */
 // export const BASE_URL = "http://localhost:5000/dev-api";
 // export const BASE_URL = "http://localhost:5000/api";
-export const BASE_URL = "https://unitalent.cloud/api";
+// export const BASE_URL = "https://unitalent.cloud/api";
 // export const BASE_URL = "http://localhost:5000/api";
 // export const BASE_URL = "http://192.168.0.105:5001/api";
 // export const BASE_URL = "http://192.168.0.104:5002/api";
-// export const BASE_URL = "https://unitalent.cloud/dev-api";
+export const BASE_URL = "https://unitalent.cloud/dev-api";
 
 
 const isDev = process.env.NODE_ENV === "development";
@@ -45,8 +45,11 @@ export const URL_PATH = {
   verifyRoute: "/auth/verify-route",
 
   /* ---------- EMAIL VERIFICATION ---------- */
-  verifyEmail: "/auth/verify",
-  resendVerification: "/auth/resend-verification",
+  // verifyEmail: '/auth/verify', // This will be used as base, we'll append token
+  // resendVerification: '/auth/resend-verification',
+  verifyOTP: '/auth/verify-otp',
+  resendOTP: '/auth/resend-otp',
+
 
   /* ---------- PASSWORD RESET ---------- */
   forgotPassword: "/auth/forgot-password",
@@ -103,7 +106,7 @@ export const URL_PATH = {
   getUserDomainSkills: "/user/getUserDomainSkills",
 
   /*----------User MY Profile----------*/
-  getUserProfile: "/user/my-profile",
+  getUserProfile: `/user/my-profile`,
 
   /* ---------- SKILL ASSESSMENT ---------- */
   startAssessment: "/user/assessment/start",

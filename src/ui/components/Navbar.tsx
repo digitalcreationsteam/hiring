@@ -123,11 +123,13 @@ const Navbar = () => {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <img
-            src="/UNITALENT.png"
-            alt="Company Logo"
-            className="h-9 w-40 object-contain"
-          />
+          <Link to="/dashboard">
+            <img
+              src="/UNITALENT.png"
+              alt="Company Logo"
+              className="h-9 w-40 object-contain cursor-pointer"
+            />
+          </Link>
         </div>
 
         {/* Landing Page Menu */}
@@ -156,7 +158,10 @@ const Navbar = () => {
             <>
               <Link
                 to="/login"
-                style={{backgroundColor: uniTalentColors.lightGray, color: uniTalentColors.primary }}
+                style={{
+                  backgroundColor: uniTalentColors.lightGray,
+                  color: uniTalentColors.primary,
+                }}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:bg-primary hover:text-white`}
               >
                 Login
@@ -190,7 +195,7 @@ const Navbar = () => {
                 <div className="absolute right-0 mt-3 w-52 bg-white border rounded-xl shadow-lg overflow-hidden z-50">
                   <button
                     onClick={() => {
-                      navigate("/profile");
+                      navigate("/my-profile");
                       setProfileOpen(false);
                     }}
                     className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-100 text-sm"

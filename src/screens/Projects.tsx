@@ -1820,13 +1820,22 @@ export default function Projects() {
   const canContinue = hasRealProject;
 
   const handleContinue = () => {
+    console.log("\n========== 🚀 PROJECTS CONTINUE CLICKED ==========");
+    console.log("projects.length:", projects.length);
+    console.log("hasRealProject:", hasRealProject);
+    console.log("source:", source);
+
     if (!hasRealProject) {
+      console.log("❌ No real project found, showing error");
       toast.error("Please add at least one project to continue.");
       return;
     }
+
     if (source === "dashboard") {
+      console.log("➡️ Navigating to dashboard (source === 'dashboard')");
       navigate("/dashboard");
     } else {
+      console.log("➡️ Navigating to skill-index-intro page");
       navigate("/skill-index-intro", { state: { source } });
     }
   };

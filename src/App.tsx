@@ -18,7 +18,7 @@ import LandingPage from "./screens/LandingPage";
 import RecruiterChats from "./screens/RecruiterChats";
 import SignUp from "./screens/SignUp";
 import LogIn from "./screens/Login";
-import EmailVerification from "./screens/EmailVerification";
+import EmailVerificationOTP from "./screens/EmailVerificationOTP";
 import Paywall from "./screens/Paywall";
 import HowItWorks from "./screens/HowItWorks";
 import ExperienceIndex from "./screens/ExperienceIndex";
@@ -83,9 +83,9 @@ const router = createBrowserRouter([
   { path: "/verify-code", element: <ForgotPassword2 /> },
   { path: "/set-password", element: <ForgotPassword3 /> },
   { path: "/success-password", element: <ForgotPassword4 /> },
-  { path: "/verify-email", element: <EmailVerification /> },
-  { path: "/verify-email/:token", element: <EmailVerification /> },
-  { path: "/email-verified", element: <EmailVerifiedSuccess /> },
+  { path: "/verify-email", element: <EmailVerificationOTP /> },
+  // { path: "/verify-email/:token", element: <EmailVerificationOTP /> },
+  { path: "/email-verified-success", element: <EmailVerifiedSuccess /> },
 
   // ============================================
   // SECTION 1: RESUME UPLOAD

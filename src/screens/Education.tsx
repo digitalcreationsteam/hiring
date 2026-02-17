@@ -2920,6 +2920,7 @@ export default function Education() {
     if (source === "dashboard") {
       navigate("/dashboard");
     } else {
+      // Change this from "/demographics" to "/experience"
       navigate("/experience", { state: { source } });
     }
   };
@@ -2987,7 +2988,7 @@ export default function Education() {
               if (source === "dashboard") {
                 navigate("/dashboard");
               } else {
-                navigate("/demographics");
+                navigate("/experience"); // This is correct - goes BACK to demographics
               }
             }}
             className="text-neutral-600 hover:text-neutral-900"

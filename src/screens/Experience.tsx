@@ -1709,6 +1709,10 @@ export default function Experience() {
       return;
     }
 
+    console.log("\n========== 💼 ADDING EXPERIENCE ==========");
+    console.log("📡 Endpoint:", URL_PATH.experience);
+    console.log("👤 User ID:", userId);
+
     const isDuplicate = experiences.some(
       (e) =>
         e.roleTitle.toLowerCase() === roleTitle.toLowerCase().trim() &&
@@ -1722,9 +1726,12 @@ export default function Experience() {
 
     const [startMonthNum, startYearNum] = startDate.split("/").map(Number);
     const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
 
+    // Always send endMonth/endYear - even for current jobs
     const [endMonthNum, endYearNum] = currentlyWorking
-      ? [now.getMonth() + 1, now.getFullYear()]
+      ? [currentMonth, currentYear] // Send current date when currently working
       : endDate.split("/").map(Number);
 
     const duration = calculateDurationInMonths(
@@ -1741,8 +1748,8 @@ export default function Experience() {
           companyName: toTitleCase(company.trim()),
           startYear: startYearNum,
           startMonth: startMonthNum,
-          endYear: endYearNum,
-          endMonth: endMonthNum,
+          endYear: endYearNum, // Always send this
+          endMonth: endMonthNum, // Always send this
           currentlyWorking,
           duration,
           description: description.trim() || "",
@@ -1751,13 +1758,17 @@ export default function Experience() {
       ],
     };
 
+    console.log("📦 Payload:", JSON.stringify(payload, null, 2));
+
     try {
       setIsSubmitting(true);
       const res = await API("POST", URL_PATH.experience, payload, {
         "user-id": userId,
       });
 
+      console.log("✅ Response:", res);
       toast.success("Experience added successfully");
+
       if (res?.navigation) {
         dispatch(setNavigation(res.navigation));
       }
@@ -1771,6 +1782,7 @@ export default function Experience() {
           typeOfRole: created.typeOfRole || undefined,
           company: created.companyName,
           startDate: `${String(created.startMonth).padStart(2, "0")}/${created.startYear}`,
+          // For display, still show "Present" when currently working
           endDate: created.currentlyWorking
             ? undefined
             : `${String(created.endMonth).padStart(2, "0")}/${created.endYear}`,
@@ -1783,6 +1795,8 @@ export default function Experience() {
       await fetchExperienceIndex();
       resetForm();
     } catch (err: any) {
+      console.error("❌ Error:", err);
+      console.error("❌ Error response:", err.response?.data);
       toast.error(err?.message || "Failed to add experience");
     } finally {
       setIsSubmitting(false);

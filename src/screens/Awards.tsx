@@ -1244,14 +1244,22 @@ export default function Awards() {
   const canContinue = hasRealAward;
 
   const handleContinue = () => {
+    console.log("\n========== 🚀 CONTINUE BUTTON CLICKED ==========");
+    console.log("hasRealAward:", hasRealAward);
+    console.log("source:", source);
+    console.log("awards.length:", awards.length);
+
     if (!hasRealAward) {
+      console.log("❌ No real award found, showing error");
       toast.error("Please add at least one award to continue.");
       return;
     }
 
     if (source === "dashboard") {
+      console.log("➡️ Navigating to dashboard (source === 'dashboard')");
       navigate("/dashboard");
     } else {
+      console.log("➡️ Navigating to projects page");
       navigate("/projects", { state: { source } });
     }
   };

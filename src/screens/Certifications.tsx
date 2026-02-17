@@ -1737,27 +1737,30 @@ export default function Certifications() {
 
     setIsSubmitting(true);
 
-    const formData = new FormData();
-
-    formData.append("certificationName[0]", toTitleCase(normalizeSpaces(name)));
-    formData.append("issuer[0]", toTitleCase(normalizeSpaces(issuer)));
-
     const [mm, yyyy] = issueDate.split("/");
-    formData.append("issueDate[0]", `${yyyy}-${mm}-01`);
+    const formattedDate = `${yyyy}-${mm}-01`;
 
-    if (credentialLink) {
-      formData.append("credentialLink[0]", credentialLink.trim());
-    }
+    // Create the payload matching backend expectations
+    const payload = {
+      certifications: [
+        {
+          certificationName: toTitleCase(normalizeSpaces(name)),
+          issuer: toTitleCase(normalizeSpaces(issuer)),
+          issueDate: formattedDate,
+          credentialLink: credentialLink ? credentialLink.trim() : undefined,
+        },
+      ],
+    };
 
-    if (file) {
-      formData.append("certificateFiles", file);
-    }
+    console.log("📦 Payload being sent:", JSON.stringify(payload, null, 2));
 
     try {
-      const res = await API("POST", URL_PATH.certification, formData, {
+      const res = await API("POST", URL_PATH.certification, payload, {
         "user-id": userId,
+        "Content-Type": "application/json",
       });
 
+      console.log("✅ Response:", res);
       toast.success("Certification added successfully");
 
       if (res?.navigation) {
@@ -1766,9 +1769,10 @@ export default function Certifications() {
 
       await fetchCertifications();
       await fetchExperienceIndex();
-
       resetForm();
     } catch (err: any) {
+      console.error("❌ Error:", err);
+      console.error("❌ Error response:", err.response?.data);
       toast.error(
         err?.response?.data?.message || "Error creating certifications",
       );
