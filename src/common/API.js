@@ -8,8 +8,8 @@ import axios from "axios";
 ========================================= */
 // export const BASE_URL = "http://localhost:5000/dev-api";
 // export const BASE_URL = "http://localhost:5000/api";
-export const BASE_URL = "https://unitalent.cloud/api";
-// export const BASE_URL = "http://localhost:5000/api";
+// export const BASE_URL = "https://unitalent.cloud/api";
+export const BASE_URL = "http://localhost:5000/api";
 // export const BASE_URL = "https://unitalent.cloud/api";
 // export const BASE_URL = "http://localhost:5000/api";
 // export const BASE_URL = "http://192.168.0.105:5001/api";
@@ -53,7 +53,7 @@ export const URL_PATH = {
   verifyOTP: '/auth/verify-otp',
   resendOTP: '/auth/resend-otp',
 
-
+  calculateExperienceIndex: "/api/experience/index",
   /* ---------- PASSWORD RESET ---------- */
   forgotPassword: "/auth/forgot-password",
   verifyResetCode: "/auth/verify-reset-code",
@@ -67,7 +67,7 @@ export const URL_PATH = {
   uploadProfile: "/user/profile",
 
   /* ---------- EXPERIENCE INDEX ---------- */
-  calculateExperienceIndex: "/user/experience_index",
+  calculateExperience: "/user/complete-experience-index",
 
   /* ---------- DEMOGRAPHICS ---------- */
   demographics: "/user/demographics",
