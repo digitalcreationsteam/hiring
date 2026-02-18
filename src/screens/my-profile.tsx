@@ -2143,6 +2143,11 @@ import { uniTalentColors } from "src/common/Colors";
 import API from "src/common/API";
 import { URL_PATH } from "src/common/API";
 import Navbar from "src/ui/components/Navbar";
+import EditExperience from "src/ui/components/EditExperienceModal";
+import EditEducationModal from "src/ui/components/EditEducationModal";
+import EditCertificationModal from "src/ui/components/EditCertificationModal";
+import EditAwardModal from "src/ui/components/EditAwardModal";
+import EditProjectModal from "src/ui/components/EditProjectModal";
 import Footer from "../ui/components/Footer";
 import { useNavigate } from "react-router-dom";
 
@@ -2439,10 +2444,11 @@ const MyProfile: React.FC = () => {
   const handleSaveExperience = async (experience: WorkExperience) => {
     try {
       setSaveLoading(true);
+      
       if (experience._id) {
         await API(
           "PUT",
-          `${URL_PATH.experience}/${experience._id}`,
+          `${URL_PATH.updateExperience}/${experience._id}`,
           experience,
         );
       } else {
@@ -3410,6 +3416,49 @@ const MyProfile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <EditExperience
+        isOpen={showExperienceModal}
+        experience={editingExperience}
+        onClose={() => {
+        setShowExperienceModal(false);
+        setEditingExperience(null);
+        }}
+        onSave={handleSaveExperience}
+        saveLoading={saveLoading}
+      />
+
+       <EditEducationModal
+        isOpen={showEducationModal}
+        education={editingEducation}
+        onClose={() => { setShowEducationModal(false); setEditingEducation(null); }}
+        onSave={handleSaveEducation}
+        saveLoading={saveLoading}
+      />
+
+       <EditCertificationModal
+        isOpen={showCertificationModal}
+        certification={editingCertification}
+        onClose={() => { setShowCertificationModal(false); setEditingCertification(null); }}
+        onSave={handleSaveCertification}
+        saveLoading={saveLoading}
+      />
+
+      <EditAwardModal
+        isOpen={showAwardModal}
+        award={editingAward}
+        onClose={() => { setShowAwardModal(false); setEditingAward(null); }}
+        onSave={handleSaveAward}
+        saveLoading={saveLoading}
+      />
+
+      <EditProjectModal
+        isOpen={showProjectModal}
+        project={editingProject}
+        onClose={() => { setShowProjectModal(false); setEditingProject(null); }}
+        onSave={handleSaveProject}
+        saveLoading={saveLoading}
+      />
 
       <Footer />
     </div>

@@ -78,28 +78,33 @@ export const URL_PATH = {
   education: "/user/education",
   getEducation: "/user/education",
   deleteEducation: "/user/education",
+  updateEducation: "/user/education/:id",
 
   getunivercitylist: "/user/universities",
 
   /* ---------- WORK EXPERIENCE ---------- */
-  experience: "/user/work",
+  experience: "/user/experience",
   getExperience: "/user/work",
   deleteExperience: "/user/work",
+  updateExperience: "/user/work",
 
   /* ---------- CERTIFICATIONS ---------- */
   certification: "/user/certification",
   getCertification: "/user/certification",
   deleteCertification: "/user/certification",
+  updateCertification: "/user/certification/:id",
 
   /* ---------- AWARDS ---------- */
   awards: "/user/awards",
   getAwards: "/user/awards",
   deleteAward: "/user/awards",
+  updateAward: "/user/awards/:id",
 
   /* ---------- PROJECTS ---------- */
   projects: "/user/projects",
   getProjects: "/user/projects",
   deleteProject: "/user/projects",
+  updateProject: "/user/projects/:id",
 
   /* ---------- JOB DOMAIN & SKILLS ---------- */
   jobDomain: "/user/addUserDomainSubDomain",
