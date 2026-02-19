@@ -195,7 +195,8 @@ function TalentRankingPlatform() {
     Logger.debug("Navigation function called", {
       timestamp: new Date().toISOString(),
     });
-    navigate("/paywall");
+    // navigate("/paywall");
+    navigate("/upload-resume");
   };
 
   // Log each major section render
