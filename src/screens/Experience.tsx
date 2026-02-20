@@ -138,8 +138,8 @@ function MonthYearPicker({
         placeholder="MM/YYYY"
         onClick={() => !disabled && setOpen((o) => !o)}
         className={`w-full h-10 px-4 rounded-xl border ${
-          disabled 
-            ? "bg-white/30 border-white/20 text-gray-400 cursor-not-allowed" 
+          disabled
+            ? "bg-white/30 border-white/20 text-gray-400 cursor-not-allowed"
             : "bg-white/50 border-gray-200/50 hover:border-gray-300 cursor-pointer"
         } focus:outline-none transition-all duration-200 backdrop-blur-sm`}
       />
@@ -149,16 +149,16 @@ function MonthYearPicker({
         <div className="absolute z-50 mt-2 w-64 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl p-3">
           {/* HEADER */}
           <div className="flex items-center justify-between mb-3">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setYear((y) => y - 1)}
               className="px-2 text-lg text-gray-600 hover:text-gray-900 transition"
             >
               «
             </button>
             <span className="text-sm font-medium text-gray-700">{year}</span>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setYear((y) => y + 1)}
               className="px-2 text-lg text-gray-600 hover:text-gray-900 transition"
             >
@@ -196,7 +196,8 @@ function MonthYearPicker({
                   }}
                   onMouseEnter={(e) => {
                     if (!disabledMonth && value !== formatted) {
-                      e.currentTarget.style.backgroundColor = colors.primaryGlow;
+                      e.currentTarget.style.backgroundColor =
+                        colors.primaryGlow;
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -225,10 +226,11 @@ export default function Experience() {
   console.log("EXPERIENCE source:", source);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fromProfile = location.state?.fromProfile; // Check if came from profile
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
-const [editingId, setEditingId] = useState<string | null>(null);
-const isEditing = !!editingId;
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const isEditing = !!editingId;
 
   // form state
   const [roleTitle, setRoleTitle] = useState("");
@@ -351,7 +353,7 @@ const isEditing = !!editingId;
     setEndDate("");
     setCurrentlyWorking(false);
     setDescription("");
-     setEditingId(null);
+    setEditingId(null);
   };
 
   const calculateDurationInMonths = (
@@ -452,76 +454,73 @@ const isEditing = !!editingId;
   };
 
   // -------------------- EDIT EXPERIENCE --------------------
-const handleUpdateExperience = async () => {
-  if (!isAddable()) return;
-  if (!editingId || !userId) return;
+  const handleUpdateExperience = async () => {
+    if (!isAddable()) return;
+    if (!editingId || !userId) return;
 
-  const [startMonthNum, startYearNum] = startDate.split("/").map(Number);
-  const now = new Date();
+    const [startMonthNum, startYearNum] = startDate.split("/").map(Number);
+    const now = new Date();
 
-  const [endMonthNum, endYearNum] = currentlyWorking
-    ? [now.getMonth() + 1, now.getFullYear()]
-    : endDate.split("/").map(Number);
+    const [endMonthNum, endYearNum] = currentlyWorking
+      ? [now.getMonth() + 1, now.getFullYear()]
+      : endDate.split("/").map(Number);
 
-  const duration = calculateDurationInMonths(
-    startMonthNum,
-    startYearNum,
-    endMonthNum,
-    endYearNum
-  );
+    const duration = calculateDurationInMonths(
+      startMonthNum,
+      startYearNum,
+      endMonthNum,
+      endYearNum,
+    );
 
-  const payload = {
-    jobTitle: toTitleCase(roleTitle.trim()),
-    companyName: toTitleCase(company.trim()),
-    startYear: startYearNum,
-    startMonth: startMonthNum,
-    endYear: endYearNum,
-    endMonth: endMonthNum,
-    currentlyWorking,
-    duration,
-    description: description.trim() || "",
-    typeOfRole: typeOfRole ? toTitleCase(typeOfRole.trim()) : undefined,
+    const payload = {
+      jobTitle: toTitleCase(roleTitle.trim()),
+      companyName: toTitleCase(company.trim()),
+      startYear: startYearNum,
+      startMonth: startMonthNum,
+      endYear: endYearNum,
+      endMonth: endMonthNum,
+      currentlyWorking,
+      duration,
+      description: description.trim() || "",
+      typeOfRole: typeOfRole ? toTitleCase(typeOfRole.trim()) : undefined,
+    };
+
+    try {
+      setIsSubmitting(true);
+
+      await API("PUT", `${URL_PATH.experience}/${editingId}`, payload, {
+        "user-id": userId,
+      });
+
+      toast.success("Experience updated");
+
+      setExperiences((prev) =>
+        prev.map((e) =>
+          e.id !== editingId
+            ? e
+            : {
+                ...e,
+                roleTitle: payload.jobTitle,
+                company: payload.companyName,
+                typeOfRole: payload.typeOfRole,
+                startDate: `${String(payload.startMonth).padStart(2, "0")}/${payload.startYear}`,
+                endDate: currentlyWorking
+                  ? undefined
+                  : `${String(payload.endMonth).padStart(2, "0")}/${payload.endYear}`,
+                currentlyWorking: payload.currentlyWorking,
+                description: payload.description || undefined,
+              },
+        ),
+      );
+
+      await fetchExperienceIndex();
+      resetForm();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update experience");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  try {
-    setIsSubmitting(true);
-
-    await API(
-      "PUT",
-      `${URL_PATH.experience}/${editingId}`,
-      payload,
-      { "user-id": userId }
-    );
-
-    toast.success("Experience updated");
-
-    setExperiences((prev) =>
-      prev.map((e) =>
-        e.id !== editingId
-          ? e
-          : {
-              ...e,
-              roleTitle: payload.jobTitle,
-              company: payload.companyName,
-              typeOfRole: payload.typeOfRole,
-              startDate: `${String(payload.startMonth).padStart(2, "0")}/${payload.startYear}`,
-              endDate: currentlyWorking
-                ? undefined
-                : `${String(payload.endMonth).padStart(2, "0")}/${payload.endYear}`,
-              currentlyWorking: payload.currentlyWorking,
-              description: payload.description || undefined,
-            }
-      )
-    );
-
-    await fetchExperienceIndex();
-    resetForm();
-  } catch (err: any) {
-    toast.error(err?.message || "Failed to update experience");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
   // DELETE EXPERIENCE
   const handleRemove = async () => {
@@ -631,10 +630,23 @@ const handleUpdateExperience = async () => {
       toast.error("Please add at least one experience to continue.");
       return;
     }
-    if (source === "dashboard") {
+
+    // If came from profile, go to dashboard, otherwise continue to next section
+    if (fromProfile) {
       navigate("/dashboard");
     } else {
-      navigate("/certifications", { state: { source } });
+      navigate("/certifications", {
+        state: { source: location.state?.source },
+      });
+    }
+  };
+
+  // Also update the back button to handle profile navigation
+  const handleBack = () => {
+    if (fromProfile) {
+      navigate("/profile"); // Go back to profile if came from there
+    } else {
+      navigate("/education");
     }
   };
 
@@ -651,33 +663,34 @@ const handleUpdateExperience = async () => {
     }
   }, [currentlyWorking]);
 
-// edit your profile 
-const fillFormForEdit = (exp: ExperienceEntry) => {
-  setEditingId(exp.id);
+  // edit your profile
+  const fillFormForEdit = (exp: ExperienceEntry) => {
+    setEditingId(exp.id);
 
-  setRoleTitle(exp.roleTitle || "");
+    setRoleTitle(exp.roleTitle || "");
 
-  const found =
-    ROLE_TITLES.find((r) => r.value === exp.typeOfRole) ||
-    ROLE_TITLES.find(
-      (r) => r.label.toLowerCase() === String(exp.typeOfRole || "").toLowerCase()
-    );
+    const found =
+      ROLE_TITLES.find((r) => r.value === exp.typeOfRole) ||
+      ROLE_TITLES.find(
+        (r) =>
+          r.label.toLowerCase() === String(exp.typeOfRole || "").toLowerCase(),
+      );
 
-  setTypeOfRole((found?.value as any) || "");
+    setTypeOfRole((found?.value as any) || "");
 
-  setCompany(exp.company || "");
-  setStartDate(exp.startDate || "");
-  setEndDate(exp.currentlyWorking ? "" : exp.endDate || "");
-  setCurrentlyWorking(!!exp.currentlyWorking);
-  setDescription(exp.description || "");
+    setCompany(exp.company || "");
+    setStartDate(exp.startDate || "");
+    setEndDate(exp.currentlyWorking ? "" : exp.endDate || "");
+    setCurrentlyWorking(!!exp.currentlyWorking);
+    setDescription(exp.description || "");
 
-  setSelectedExperience(exp);
-};
+    setSelectedExperience(exp);
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* 🎨 Enhanced gradient background with soft blur - matching education */}
-      <div 
+      <div
         className="fixed inset-0 -z-10"
         style={{
           background: `radial-gradient(circle at 20% 20%, rgba(210, 215, 220, 0.4) 0%, rgba(150, 165, 180, 0.3) 50%, rgba(40, 64, 86, 0.4) 100%)`,
@@ -691,26 +704,22 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
       {/* Header and content with z-index to stay above background */}
       <div className="relative z-10">
         <Navbar />
-        <ToastContainer 
-          position="top-center" 
+        <ToastContainer
+          position="top-center"
           autoClose={3000}
           toastClassName="!bg-white/80 !backdrop-blur-md !text-gray-800 !shadow-lg !border !border-white/20"
         />
-        
+
         <div className="flex justify-center px-4 sm:px-6 py-6">
           <div className="w-full max-w-[1200px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
-            
             {/* Left card - Glass effect */}
             <main className="w-full lg:flex-1 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-2xl px-6 sm:px-8 py-8">
-              
               {/* Top: back + progress */}
               <div className="flex items-center gap-4 mb-8">
                 <IconButton
                   size="small"
                   icon={<FeatherArrowLeft className="w-4 h-4" />}
-                  onClick={() => {
-                    navigate("/education");
-                  }}
+                  onClick={handleBack}
                   className="bg-white/50 hover:bg-white/80 backdrop-blur-sm border border-white/30"
                 />
 
@@ -720,25 +729,30 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                       <div
                         key={i}
                         className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-                          i <= 2 
-                            ? "bg-gradient-to-r from-gray-600 to-gray-800" 
+                          i <= 2
+                            ? "bg-gradient-to-r from-gray-600 to-gray-800"
                             : "bg-white/30"
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 font-medium">Step 3 of 6</p>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">
+                    Step 3 of 6
+                  </p>
                 </div>
               </div>
 
               {/* Header with refined typography */}
               <header className="mb-8">
                 <h2 className="text-2xl text-gray-800 font-light tracking-tight">
-                  Add your 
-                  <span className="block font-semibold text-gray-900 mt-1">Experience</span>
+                  Add your
+                  <span className="block font-semibold text-gray-900 mt-1">
+                    Experience
+                  </span>
                 </h2>
                 <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-                  Internships, roles, and other work count toward your Experience Index
+                  Internships, roles, and other work count toward your
+                  Experience Index
                 </p>
               </header>
 
@@ -752,7 +766,9 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                       key={exp.id}
                       role="button"
                       tabIndex={0}
-                      onClick={() => setSelectedExperience(isSelected ? null : exp)}
+                      onClick={() =>
+                        setSelectedExperience(isSelected ? null : exp)
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
@@ -832,7 +848,11 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
 
                           <span className="text-xs text-gray-500">
                             {exp.startDate || "—"}
-                            {exp.currentlyWorking ? " - Present" : exp.endDate ? ` - ${exp.endDate}` : ""}
+                            {exp.currentlyWorking
+                              ? " - Present"
+                              : exp.endDate
+                                ? ` - ${exp.endDate}`
+                                : ""}
                           </span>
                         </div>
                       </div>
@@ -844,22 +864,30 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
 
                           <div className="flex flex-col gap-2 text-sm text-gray-700 px-1">
                             <div>
-                              <span className="font-medium text-gray-600">Role:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Role:
+                              </span>{" "}
                               {exp.roleTitle}
                             </div>
 
                             <div>
-                              <span className="font-medium text-gray-600">Type of Role:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Type of Role:
+                              </span>{" "}
                               {exp.typeOfRole}
                             </div>
 
                             <div>
-                              <span className="font-medium text-gray-600">Company:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Company:
+                              </span>{" "}
                               {exp.company}
                             </div>
 
                             <div>
-                              <span className="font-medium text-gray-600">Duration:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Duration:
+                              </span>{" "}
                               {exp.startDate || "—"}
                               {exp.currentlyWorking
                                 ? " - Present"
@@ -870,7 +898,9 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
 
                             {exp.description && (
                               <div>
-                                <span className="font-medium text-gray-600">Description:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  Description:
+                                </span>{" "}
                                 {exp.description}
                               </div>
                             )}
@@ -919,7 +949,9 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                       >
                         <span
                           className="text-sm"
-                          style={{ color: typeOfRole ? colors.accent : "#9CA3AF" }}
+                          style={{
+                            color: typeOfRole ? colors.accent : "#9CA3AF",
+                          }}
                         >
                           {typeOfRole ? typeOfRoleLabel : "Select type of role"}
                         </span>
@@ -1033,7 +1065,9 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                     icon={<FeatherPlus className="w-4 h-4" />}
                     className="w-full rounded-xl h-10 px-4 bg-white/50 backdrop-blur-sm border border-white/40 hover:bg-white/70 transition-all duration-200"
                     onClick={() =>
-                      isEditing ? handleUpdateExperience() : handleAddExperience()
+                      isEditing
+                        ? handleUpdateExperience()
+                        : handleAddExperience()
                     }
                   >
                     {isSubmitting
@@ -1061,7 +1095,7 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
 
               {/* Divider */}
               <div className="w-full h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-6" />
-              
+
               {/* Footer with Continue button */}
               <footer>
                 <Button
@@ -1069,14 +1103,17 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                   disabled={!canContinue || isSubmitting}
                   className="w-full h-11 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
                   style={{
-                    background: !canContinue || isSubmitting
-                      ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
-                      : "linear-gradient(135deg, #2c3e50, #1e2a36)",
+                    background:
+                      !canContinue || isSubmitting
+                        ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
+                        : "linear-gradient(135deg, #2c3e50, #1e2a36)",
                     color: "#ffffff",
-                    cursor: !canContinue || isSubmitting ? "not-allowed" : "pointer",
-                    boxShadow: !canContinue || isSubmitting
-                      ? "none"
-                      : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
+                    cursor:
+                      !canContinue || isSubmitting ? "not-allowed" : "pointer",
+                    boxShadow:
+                      !canContinue || isSubmitting
+                        ? "none"
+                        : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
                     opacity: !canContinue || isSubmitting ? 0.6 : 1,
                   }}
                 >
@@ -1088,7 +1125,6 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
             {/* Right panel - Enhanced glass effect */}
             <aside className="w-full lg:w-80 shrink-0">
               <div className="lg:sticky lg:top-6 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-xl p-6">
-                
                 {/* Experience Index Score */}
                 <div className="text-center mb-6">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
@@ -1105,8 +1141,10 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                 <div className="h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-4" />
 
                 {/* Progress Steps with refined styling */}
-                <h4 className="text-sm font-medium text-gray-600 mb-4">Progress steps</h4>
-                
+                <h4 className="text-sm font-medium text-gray-600 mb-4">
+                  Progress steps
+                </h4>
+
                 <div className="space-y-2">
                   {/* Completed - Demographics */}
                   <button
@@ -1140,7 +1178,8 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                   <div
                     className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200"
                     style={{
-                      background: "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
+                      background:
+                        "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
                       border: "1px solid rgba(255,255,255,0.3)",
                       backdropFilter: "blur(4px)",
                     }}
@@ -1166,9 +1205,7 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
                       className="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 transition-all duration-200"
                     >
                       <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-white/60">
-                        <div className="text-gray-500">
-                          {step.icon}
-                        </div>
+                        <div className="text-gray-500">{step.icon}</div>
                       </div>
                       <span className="flex-1 text-sm text-gray-500">
                         {step.label}
@@ -1188,9 +1225,7 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
       {/* Delete Confirmation Modal */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div
-            className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40"
-          >
+          <div className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40">
             <div className="flex justify-between items-center mb-4">
               <h3
                 className="text-lg font-semibold"
@@ -1207,9 +1242,7 @@ const fillFormForEdit = (exp: ExperienceEntry) => {
               </button>
             </div>
 
-            <p
-              className="text-sm mb-6 text-gray-600"
-            >
+            <p className="text-sm mb-6 text-gray-600">
               Do you really want to delete this experience?
             </p>
 

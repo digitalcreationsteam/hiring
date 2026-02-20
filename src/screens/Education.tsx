@@ -24,7 +24,7 @@ import {
   FeatherEdit2,
   FeatherChevronDown,
 } from "@subframe/core";
-import API, { URL_PATH } from "src/common/API";
+import API, { BASE_URL, URL_PATH } from "src/common/API";
 import * as SubframeCore from "@subframe/core";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -35,9 +35,9 @@ import Footer from "../ui/components/Footer";
 const DEGREE_OPTIONS = [
   { label: "Diploma", value: "diploma" },
   { label: "Bachelor's Degree", value: "bachelor" },
-  { label: "B.Tech", value: "b.tech" },
+  // { label: "B.Tech", value: "b.tech" },
   { label: "Master's Degree", value: "master" },
-  { label: "M.Tech", value: "m.tech" },
+  // { label: "M.Tech", value: "m.tech" },
   { label: "Doctorate (PhD)", value: "phd" },
   { label: "Professional Degree", value: "professional_degree" },
   { label: "Other", value: "other" },
@@ -143,8 +143,8 @@ function YearPicker({
         placeholder="YYYY"
         onClick={() => !disabled && setOpen((v) => !v)}
         className={`w-full h-9 px-3 text-sm rounded-xl border ${
-          disabled 
-            ? "bg-white/30 border-white/20 text-gray-400 cursor-not-allowed" 
+          disabled
+            ? "bg-white/30 border-white/20 text-gray-400 cursor-not-allowed"
             : "bg-white/50 border-gray-200/50 hover:border-gray-300 cursor-pointer"
         } focus:outline-none transition-all duration-200 backdrop-blur-sm`}
       />
@@ -192,18 +192,21 @@ function YearPicker({
                   }}
                   className="py-2 px-3 rounded-lg transition-all duration-200 text-sm"
                   style={{
-                    backgroundColor: value === String(year) ? colors.primary : "transparent",
-                    color: value === String(year)
-                      ? colors.white
-                      : isDisabled
-                        ? colors.neutral[400]
-                        : colors.neutral[800],
+                    backgroundColor:
+                      value === String(year) ? colors.primary : "transparent",
+                    color:
+                      value === String(year)
+                        ? colors.white
+                        : isDisabled
+                          ? colors.neutral[400]
+                          : colors.neutral[800],
                     cursor: isDisabled ? "not-allowed" : "pointer",
                     opacity: isDisabled ? 0.5 : 1,
                   }}
                   onMouseEnter={(e) => {
                     if (!isDisabled && value !== String(year)) {
-                      e.currentTarget.style.backgroundColor = colors.primaryGlow;
+                      e.currentTarget.style.backgroundColor =
+                        colors.primaryGlow;
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -223,7 +226,7 @@ function YearPicker({
   );
 }
 
-// SchoolNameDropdown
+// SchoolNameDropdown - Updated to use your backend API
 function SchoolNameDropdown({
   value,
   onChange,
@@ -243,30 +246,28 @@ function SchoolNameDropdown({
 
   const wrapRef = React.useRef<HTMLDivElement>(null);
 
-  // ✅ Fetch universities function
-  const OPENALEX_BASE = "https://api.openalex.org";
-
+  // ✅ Updated: Fetch universities from your backend API
   const fetchUniversities = React.useCallback(async (q: string) => {
-    const url =
-      `${OPENALEX_BASE}/institutions` +
-      `?search=${encodeURIComponent(q)}` +
-      `&per-page=25`;
+    try {
+      // Call your backend API endpoint
+      const response = await API(
+        "GET",
+        `/api/university/search?query=${encodeURIComponent(q)}`,
+      );
 
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`OpenAlex error ${r.status}`);
+      // Map the response to UniversityEntry format
+      const mapped: UniversityEntry[] = (response?.suggestions || []).map(
+        (uni: any) => ({
+          id: uni.name, // Use name as id since we don't have external IDs
+          name: uni.name,
+        }),
+      );
 
-    const json = await r.json();
-
-    // OpenAlex returns { results: [...] }
-    const mapped: UniversityEntry[] = (json?.results ?? [])
-      .map((inst: any) => ({
-        // inst.id looks like "https://openalex.org/I123456789"
-        id: String(inst?.id || ""),
-        name: String(inst?.display_name || ""),
-      }))
-      .filter((x: UniversityEntry) => x.id && x.name);
-
-    return mapped;
+      return mapped;
+    } catch (error) {
+      console.error("Error fetching universities:", error);
+      throw error;
+    }
   }, []);
 
   // close on outside click
@@ -320,7 +321,7 @@ function SchoolNameDropdown({
       <input
         disabled={disabled}
         value={query}
-        placeholder="Search your university (India / US)"
+        placeholder="Search your university"
         onFocus={() => !disabled && setOpen(true)}
         onClick={() => !disabled && setOpen(true)}
         onChange={(e) => {
@@ -330,8 +331,8 @@ function SchoolNameDropdown({
           if (!open) setOpen(true);
         }}
         className={`w-full h-10 px-4 rounded-xl border bg-white/50 backdrop-blur-sm text-sm transition-all duration-200 ${
-          disabled 
-            ? "border-white/20 text-gray-400 cursor-not-allowed" 
+          disabled
+            ? "border-white/20 text-gray-400 cursor-not-allowed"
             : "border-gray-200/50 hover:border-gray-300 focus:border-gray-400 focus:outline-none"
         }`}
         style={{ color: colors.accent }}
@@ -341,7 +342,7 @@ function SchoolNameDropdown({
         <div className="absolute z-50 mt-2 w-full rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl overflow-hidden">
           <div className="px-4 py-2 text-xs border-b border-white/30 flex items-center justify-between">
             <span className="text-gray-500">
-              {loading ? "Searching..." : "Type 2+ characters to search"}
+              {loading ? "Searching..." : `Found ${items.length} universities`}
             </span>
             <button
               type="button"
@@ -354,16 +355,17 @@ function SchoolNameDropdown({
 
           <div className="max-h-[240px] overflow-y-auto">
             {error && (
-              <div className="px-4 py-2 text-sm text-gray-500">
-                {error}
-              </div>
+              <div className="px-4 py-2 text-sm text-red-500">{error}</div>
             )}
 
-            {!error && !loading && items.length === 0 && debouncedQuery.trim().length >= 2 && (
-              <div className="px-4 py-2 text-sm text-gray-500">
-                No matches. You can keep typing to enter custom name.
-              </div>
-            )}
+            {!error &&
+              !loading &&
+              items.length === 0 &&
+              debouncedQuery.trim().length >= 2 && (
+                <div className="px-4 py-2 text-sm text-gray-500">
+                  No matches found. You can keep typing to enter custom name.
+                </div>
+              )}
 
             {items.map((u) => (
               <button
@@ -410,7 +412,8 @@ export default function Education() {
   const [currentlyStudying, setStudying] = useState(false);
   const [gradeType, setGradeType] = useState<"gpa" | "cgpa">("gpa");
   const [gradeValue, setGradeValue] = useState("");
-
+  const fromProfile = location.state?.fromProfile; // Check if came from profile
+  console.log("EDUCATION source:", source, "fromProfile:", fromProfile);
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
   const [experiencePoints, setExperiencePoints] =
     useState<ExperiencePoints | null>(null);
@@ -643,12 +646,9 @@ export default function Education() {
     try {
       setIsSubmitting(true);
 
-      await API(
-        "PUT",
-        `${URL_PATH.education}/${editingId}`,
-        payload,
-        { "user-id": userId },
-      );
+      await API("PUT", `${URL_PATH.education}/${editingId}`, payload, {
+        "user-id": userId,
+      });
 
       toast.success("Education updated");
 
@@ -774,17 +774,27 @@ export default function Education() {
   }, [userId, fetchExperienceIndex, fetchEducations]);
 
   /* -------------------- BUILD PAYLOAD -------------------- */
-
   const handleContinue = () => {
     if (!educations.length) {
       toast.error("Please add at least one education to continue.");
       return;
     }
 
-    if (source === "dashboard") {
+    // If came from profile, go to dashboard, otherwise continue to next section
+    if (fromProfile) {
+      navigate("/dashboard");
+    } else if (source === "dashboard") {
       navigate("/dashboard");
     } else {
       navigate("/experience", { state: { source } });
+    }
+  };
+
+  const handleBack = () => {
+    if (fromProfile) {
+      navigate("/profile"); // Go back to profile if came from there
+    } else {
+      navigate("/demographics");
     }
   };
 
@@ -832,7 +842,7 @@ export default function Education() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* 🎨 Enhanced gradient background with soft blur - matching demographics */}
-      <div 
+      <div
         className="fixed inset-0 -z-10"
         style={{
           background: `radial-gradient(circle at 20% 20%, rgba(210, 215, 220, 0.4) 0%, rgba(150, 165, 180, 0.3) 50%, rgba(40, 64, 86, 0.4) 100%)`,
@@ -846,26 +856,22 @@ export default function Education() {
       {/* Header and content with z-index to stay above background */}
       <div className="relative z-10">
         <Navbar />
-        <ToastContainer 
-          position="top-center" 
+        <ToastContainer
+          position="top-center"
           autoClose={3000}
           toastClassName="!bg-white/80 !backdrop-blur-md !text-gray-800 !shadow-lg !border !border-white/20"
         />
-        
+
         <div className="flex justify-center px-4 sm:px-6 py-6">
           <div className="w-full max-w-[1200px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
-            
             {/* Left card - Glass effect */}
             <main className="w-full lg:flex-1 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-2xl px-6 sm:px-8 py-8">
-              
               {/* Top: back + progress */}
               <div className="flex items-center gap-4 mb-8">
                 <IconButton
                   size="small"
                   icon={<FeatherArrowLeft className="w-4 h-4" />}
-                  onClick={() => {
-                   navigate("/demographics");
-                  }}
+                  onClick={handleBack}
                   className="bg-white/50 hover:bg-white/80 backdrop-blur-sm border border-white/30"
                 />
 
@@ -875,22 +881,26 @@ export default function Education() {
                       <div
                         key={i}
                         className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-                          i <= 1 
-                            ? "bg-gradient-to-r from-gray-600 to-gray-800" 
+                          i <= 1
+                            ? "bg-gradient-to-r from-gray-600 to-gray-800"
                             : "bg-white/30"
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 font-medium">Step 2 of 6</p>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">
+                    Step 2 of 6
+                  </p>
                 </div>
               </div>
 
               {/* Header with refined typography */}
               <header className="mb-8">
                 <h2 className="text-2xl text-gray-800 font-light tracking-tight">
-                  Add your 
-                  <span className="block font-semibold text-gray-900 mt-1">Education</span>
+                  Add your
+                  <span className="block font-semibold text-gray-900 mt-1">
+                    Education
+                  </span>
                 </h2>
                 <p className="text-sm text-gray-500 mt-3 leading-relaxed">
                   Your academic background helps shape your Experience Index
@@ -907,7 +917,9 @@ export default function Education() {
                       key={ed.id}
                       role="button"
                       tabIndex={0}
-                      onClick={() => setSelectedEducation(isSelected ? null : ed)}
+                      onClick={() =>
+                        setSelectedEducation(isSelected ? null : ed)
+                      }
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
@@ -1001,22 +1013,30 @@ export default function Education() {
 
                           <div className="flex flex-col gap-2 text-sm text-gray-700 px-1">
                             <div>
-                              <span className="font-medium text-gray-600">Degree:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Degree:
+                              </span>{" "}
                               {getDegreeLabel(ed.degree)}
                             </div>
 
                             <div>
-                              <span className="font-medium text-gray-600">Field of study:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Field of study:
+                              </span>{" "}
                               {ed.fieldOfStudy}
                             </div>
 
                             <div>
-                              <span className="font-medium text-gray-600">Institution:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Institution:
+                              </span>{" "}
                               {ed.schoolName}
                             </div>
 
                             <div>
-                              <span className="font-medium text-gray-600">Duration:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Duration:
+                              </span>{" "}
                               {ed.startYear}
                               {ed.currentlyStudying
                                 ? " - Present"
@@ -1027,14 +1047,18 @@ export default function Education() {
 
                             {ed.gpa && (
                               <div>
-                                <span className="font-medium text-gray-600">GPA:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  GPA:
+                                </span>{" "}
                                 {ed.gpa}
                               </div>
                             )}
 
                             {ed.cgpa && (
                               <div>
-                                <span className="font-medium text-gray-600">CGPA:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  CGPA:
+                                </span>{" "}
                                 {ed.cgpa}
                               </div>
                             )}
@@ -1112,7 +1136,9 @@ export default function Education() {
                     value={fieldOfStudy}
                     onChange={(ev) => setFieldOfStudy(ev.target.value)}
                   />
-                  <p className="text-xs text-gray-400 mt-1">Your major or concentration</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Your major or concentration
+                  </p>
                 </div>
 
                 {/* School Name */}
@@ -1240,11 +1266,14 @@ export default function Education() {
                   {/* Single Grade Input Field */}
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {gradeType === "gpa" ? "GPA" : "CGPA"} <span className="text-red-500">*</span>
+                      {gradeType === "gpa" ? "GPA" : "CGPA"}{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       className="w-full h-10 px-4 rounded-xl border bg-white/50 backdrop-blur-sm text-sm transition-all duration-200 border-white/40 hover:border-gray-300 focus:border-gray-400 focus:outline-none"
-                      placeholder={gradeType === "gpa" ? "e.g., 3.8" : "e.g., 7.8"}
+                      placeholder={
+                        gradeType === "gpa" ? "e.g., 3.8" : "e.g., 7.8"
+                      }
                       value={gradeValue}
                       onChange={(ev) => {
                         const value = ev.target.value.replace(/[^0-9.]/g, "");
@@ -1256,7 +1285,7 @@ export default function Education() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row gap-3 items-center mt-2">
                   <Button
                     type="button"
@@ -1293,7 +1322,7 @@ export default function Education() {
 
               {/* Divider */}
               <div className="w-full h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-6" />
-              
+
               {/* Footer with Continue button */}
               <footer>
                 <Button
@@ -1301,14 +1330,17 @@ export default function Education() {
                   disabled={!canContinue || isSubmitting}
                   className="w-full h-11 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
                   style={{
-                    background: !canContinue || isSubmitting
-                      ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
-                      : "linear-gradient(135deg, #2c3e50, #1e2a36)",
+                    background:
+                      !canContinue || isSubmitting
+                        ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
+                        : "linear-gradient(135deg, #2c3e50, #1e2a36)",
                     color: "#ffffff",
-                    cursor: !canContinue || isSubmitting ? "not-allowed" : "pointer",
-                    boxShadow: !canContinue || isSubmitting
-                      ? "none"
-                      : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
+                    cursor:
+                      !canContinue || isSubmitting ? "not-allowed" : "pointer",
+                    boxShadow:
+                      !canContinue || isSubmitting
+                        ? "none"
+                        : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
                     opacity: !canContinue || isSubmitting ? 0.6 : 1,
                   }}
                 >
@@ -1320,7 +1352,6 @@ export default function Education() {
             {/* Right panel - Enhanced glass effect */}
             <aside className="w-full lg:w-80 shrink-0">
               <div className="lg:sticky lg:top-6 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-xl p-6">
-                
                 {/* Experience Index Score */}
                 <div className="text-center mb-6">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
@@ -1337,8 +1368,10 @@ export default function Education() {
                 <div className="h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-4" />
 
                 {/* Progress Steps with refined styling */}
-                <h4 className="text-sm font-medium text-gray-600 mb-4">Progress steps</h4>
-                
+                <h4 className="text-sm font-medium text-gray-600 mb-4">
+                  Progress steps
+                </h4>
+
                 <div className="space-y-2">
                   {/* Completed - Demographics */}
                   <button
@@ -1358,7 +1391,8 @@ export default function Education() {
                   <div
                     className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200"
                     style={{
-                      background: "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
+                      background:
+                        "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
                       border: "1px solid rgba(255,255,255,0.3)",
                       backdropFilter: "blur(4px)",
                     }}
@@ -1385,9 +1419,7 @@ export default function Education() {
                       className="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/20 hover:bg-white/30 transition-all duration-200"
                     >
                       <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-white/60">
-                        <div className="text-gray-500">
-                          {step.icon}
-                        </div>
+                        <div className="text-gray-500">{step.icon}</div>
                       </div>
                       <span className="flex-1 text-sm text-gray-500">
                         {step.label}
@@ -1407,9 +1439,7 @@ export default function Education() {
       {/* Delete Confirmation Modal */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div
-            className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40"
-          >
+          <div className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40">
             <div className="flex justify-between items-center mb-4">
               <h3
                 className="text-lg font-semibold"
@@ -1426,9 +1456,7 @@ export default function Education() {
               </button>
             </div>
 
-            <p
-              className="text-sm mb-6 text-gray-600"
-            >
+            <p className="text-sm mb-6 text-gray-600">
               Do you really want to delete this education?
             </p>
 

@@ -26,7 +26,8 @@ function ProfilePage() {
   const navigate = useNavigate();
 
   const handleNavigate = (path: string) => {
-    navigate(path);
+    // Pass a flag indicating this navigation came from profile page
+    navigate(path, { state: { fromProfile: true } });
   };
 
   const profileSections = [
@@ -84,17 +85,20 @@ function ProfilePage() {
       className="w-full relative"
     >
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-8 md:py-12">
         {/* Header Section */}
         <div className="text-center mb-8 md:mb-12">
-          <h1 
+          <h1
             className="text-2xl md:text-4xl font-bold mb-2 md:mb-4"
             style={{ color: colors.accent }}
           >
             Complete Your Profile
           </h1>
-          <p className="text-sm md:text-base max-w-2xl mx-auto px-4" style={{ color: colors.accent }}>
+          <p
+            className="text-sm md:text-base max-w-2xl mx-auto px-4"
+            style={{ color: colors.accent }}
+          >
             Build a compelling professional story that stands out to recruiters
           </p>
         </div>
@@ -123,17 +127,29 @@ function ProfilePage() {
 
                     {/* Content */}
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-sm md:text-base font-medium" style={{ color: colors.accent }}>
+                      <h3
+                        className="text-sm md:text-base font-medium"
+                        style={{ color: colors.accent }}
+                      >
                         {item.label}
                       </h3>
-                      <p className="mt-1 text-xs leading-4 md:text-sm" style={{ color: colors.secondary }}>
+                      <p
+                        className="mt-1 text-xs leading-4 md:text-sm"
+                        style={{ color: colors.secondary }}
+                      >
                         {item.sub}
                       </p>
-                      
+
                       {/* Status Badge - Using your colors */}
                       <div className="flex items-center gap-2 mt-3">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.secondary }} />
-                        <span className="text-xs" style={{ color: colors.accent }}>
+                        <div
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: colors.secondary }}
+                        />
+                        <span
+                          className="text-xs"
+                          style={{ color: colors.accent }}
+                        >
                           Not started
                         </span>
                       </div>

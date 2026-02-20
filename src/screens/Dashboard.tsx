@@ -761,10 +761,10 @@ export default function Dashboard() {
             {/* --- LEFT SIDEBAR --- */}
             <div className="flex w-full flex-col gap-6 lg:w-[340px] lg:flex-none">
               {/* Experience Badge - New */}
-              <ExperienceBadge
+              {/* <ExperienceBadge
                 years={experienceInfo.years}
                 cohort={experienceInfo.cohort}
-              />
+              /> */}
 
               <Card
                 className="w-full rounded-[2rem] shadow-sm"

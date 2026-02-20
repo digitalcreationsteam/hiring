@@ -81,8 +81,8 @@ function EndYearPicker({
         placeholder="Year"
         onClick={() => !disabled && setOpen((v) => !v)}
         className={`w-full h-10 px-4 rounded-xl border ${
-          disabled 
-            ? "bg-white/30 border-white/20 text-gray-400 cursor-not-allowed" 
+          disabled
+            ? "bg-white/30 border-white/20 text-gray-400 cursor-not-allowed"
             : "bg-white/50 border-gray-200/50 hover:border-gray-300 cursor-pointer"
         } focus:outline-none transition-all duration-200 backdrop-blur-sm`}
       />
@@ -103,9 +103,7 @@ function EndYearPicker({
                   backgroundColor:
                     value === String(year) ? colors.primary : "transparent",
                   color:
-                    value === String(year)
-                      ? colors.white
-                      : colors.neutral[800],
+                    value === String(year) ? colors.white : colors.neutral[800],
                   cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
@@ -133,7 +131,8 @@ export default function Awards() {
   const navigate = useNavigate();
   const location = useLocation();
   const source = location.state?.source;
-
+  const fromProfile = location.state?.fromProfile; // Check if came from profile
+  console.log("AWARDS source:", source, "fromProfile:", fromProfile);
   console.log("AWARDS source:", source);
   const userId = localStorage.getItem("userId");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -348,10 +347,21 @@ export default function Awards() {
       return;
     }
 
-    if (source === "dashboard") {
+    // If came from profile, go to dashboard, otherwise continue to next section
+    if (fromProfile) {
+      navigate("/dashboard");
+    } else if (source === "dashboard") {
       navigate("/dashboard");
     } else {
       navigate("/projects", { state: { source } });
+    }
+  };
+
+  const handleBack = () => {
+    if (fromProfile) {
+      navigate("/profile"); // Go back to profile if came from there
+    } else {
+      navigate("/certifications");
     }
   };
 
@@ -368,7 +378,7 @@ export default function Awards() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* 🎨 Enhanced gradient background with soft blur - matching education */}
-      <div 
+      <div
         className="fixed inset-0 -z-10"
         style={{
           background: `radial-gradient(circle at 20% 20%, rgba(210, 215, 220, 0.4) 0%, rgba(150, 165, 180, 0.3) 50%, rgba(40, 64, 86, 0.4) 100%)`,
@@ -382,26 +392,22 @@ export default function Awards() {
       {/* Header and content with z-index to stay above background */}
       <div className="relative z-10">
         <Navbar />
-        <ToastContainer 
-          position="top-center" 
+        <ToastContainer
+          position="top-center"
           autoClose={3000}
           toastClassName="!bg-white/80 !backdrop-blur-md !text-gray-800 !shadow-lg !border !border-white/20"
         />
 
         <div className="flex justify-center px-4 sm:px-6 py-6">
           <div className="w-full max-w-[1200px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
-            
             {/* Left card - Glass effect */}
             <main className="w-full lg:flex-1 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-2xl px-6 sm:px-8 py-8">
-              
               {/* Top: back + progress */}
               <div className="flex items-center gap-4 mb-8">
                 <IconButton
                   size="small"
                   icon={<FeatherArrowLeft className="w-4 h-4" />}
-                  onClick={async () => {
-                    navigate("/certifications");
-                  }}
+                  onClick={handleBack}
                   className="bg-white/50 hover:bg-white/80 backdrop-blur-sm border border-white/30"
                 />
 
@@ -411,25 +417,30 @@ export default function Awards() {
                       <div
                         key={i}
                         className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-                          i <= 4 
-                            ? "bg-gradient-to-r from-gray-600 to-gray-800" 
+                          i <= 4
+                            ? "bg-gradient-to-r from-gray-600 to-gray-800"
                             : "bg-white/30"
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 font-medium">Step 5 of 6</p>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">
+                    Step 5 of 6
+                  </p>
                 </div>
               </div>
 
               {/* Header with refined typography */}
               <header className="mb-8">
                 <h2 className="text-2xl text-gray-800 font-light tracking-tight">
-                  Add awards and 
-                  <span className="block font-semibold text-gray-900 mt-1">Extracurriculars</span>
+                  Add awards and
+                  <span className="block font-semibold text-gray-900 mt-1">
+                    Extracurriculars
+                  </span>
                 </h2>
                 <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-                  These help recruiters understand your interests and achievements
+                  These help recruiters understand your interests and
+                  achievements
                 </p>
               </header>
 
@@ -533,20 +544,26 @@ export default function Awards() {
 
                           <div className="flex flex-col gap-2 text-sm text-gray-700 px-1">
                             <div>
-                              <span className="font-medium text-gray-600">Award name:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Award name:
+                              </span>{" "}
                               {a.name}
                             </div>
 
                             {a.description && (
                               <div>
-                                <span className="font-medium text-gray-600">Description:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  Description:
+                                </span>{" "}
                                 {a.description}
                               </div>
                             )}
 
                             {a.year && (
                               <div>
-                                <span className="font-medium text-gray-600">Year:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  Year:
+                                </span>{" "}
                                 {a.year}
                               </div>
                             )}
@@ -569,7 +586,8 @@ export default function Awards() {
                 {/* Award Name */}
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Award or Activity Name <span className="text-red-500">*</span>
+                    Award or Activity Name{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     className="w-full h-10 px-4 rounded-xl border bg-white/50 backdrop-blur-sm text-sm transition-all duration-200 border-white/40 hover:border-gray-300 focus:border-gray-400 focus:outline-none"
@@ -640,7 +658,7 @@ export default function Awards() {
 
               {/* Divider */}
               <div className="w-full h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-6" />
-              
+
               {/* Footer with Continue button */}
               <footer>
                 <Button
@@ -648,14 +666,17 @@ export default function Awards() {
                   disabled={!canContinue || isSubmitting}
                   className="w-full h-11 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
                   style={{
-                    background: !canContinue || isSubmitting
-                      ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
-                      : "linear-gradient(135deg, #2c3e50, #1e2a36)",
+                    background:
+                      !canContinue || isSubmitting
+                        ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
+                        : "linear-gradient(135deg, #2c3e50, #1e2a36)",
                     color: "#ffffff",
-                    cursor: !canContinue || isSubmitting ? "not-allowed" : "pointer",
-                    boxShadow: !canContinue || isSubmitting
-                      ? "none"
-                      : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
+                    cursor:
+                      !canContinue || isSubmitting ? "not-allowed" : "pointer",
+                    boxShadow:
+                      !canContinue || isSubmitting
+                        ? "none"
+                        : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
                     opacity: !canContinue || isSubmitting ? 0.6 : 1,
                   }}
                 >
@@ -667,7 +688,6 @@ export default function Awards() {
             {/* Right panel - Enhanced glass effect */}
             <aside className="w-full lg:w-80 shrink-0">
               <div className="lg:sticky lg:top-6 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-xl p-6">
-                
                 {/* Experience Index Score */}
                 <div className="text-center mb-6">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
@@ -684,8 +704,10 @@ export default function Awards() {
                 <div className="h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-4" />
 
                 {/* Progress Steps with refined styling */}
-                <h4 className="text-sm font-medium text-gray-600 mb-4">Progress steps</h4>
-                
+                <h4 className="text-sm font-medium text-gray-600 mb-4">
+                  Progress steps
+                </h4>
+
                 <div className="space-y-2">
                   {/* Completed - Demographics */}
                   <button
@@ -747,7 +769,8 @@ export default function Awards() {
                   <div
                     className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200"
                     style={{
-                      background: "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
+                      background:
+                        "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
                       border: "1px solid rgba(255,255,255,0.3)",
                       backdropFilter: "blur(4px)",
                     }}
@@ -784,9 +807,7 @@ export default function Awards() {
       {/* Delete Confirmation Modal */}
       {deleteAwardId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div
-            className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40"
-          >
+          <div className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40">
             <div className="flex justify-between items-center mb-4">
               <h3
                 className="text-lg font-semibold"

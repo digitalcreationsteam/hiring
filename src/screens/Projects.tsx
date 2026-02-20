@@ -1,4 +1,3 @@
-// src/components/Projects.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -54,8 +53,9 @@ export default function Projects() {
   const navigate = useNavigate();
   const location = useLocation();
   const source = location.state?.source; // "dashboard" | undefined
+  const fromProfile = location.state?.fromProfile; // Check if came from profile
 
-  console.log("PROJECT source:", source);
+  console.log("PROJECT source:", source, "fromProfile:", fromProfile);
 
   const userId = localStorage.getItem("userId");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +75,7 @@ export default function Projects() {
   const [isExpIndexLoading, setIsExpIndexLoading] = useState(true);
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-const isEditing = !!editingId;
+  const isEditing = !!editingId;
 
   type ExperiencePoints = {
     demographics?: number;
@@ -250,47 +250,52 @@ const isEditing = !!editingId;
 
   // -------------------- EDIT PROJECT --------------------
   const handleUpdateProject = async () => {
-  if (!editingId || isSubmitting) return;
+    if (!editingId || isSubmitting) return;
 
-  if (!name.trim()) return toast.error("Project name is required.");
-  if (!role.trim()) return toast.error("Role is required.");
-  if (!link.trim()) return toast.error("Project link is required.");
-  if (!isValidUrl(link)) return toast.error("Project link must be a valid URL (https://...)");
+    if (!name.trim()) return toast.error("Project name is required.");
+    if (!role.trim()) return toast.error("Role is required.");
+    if (!link.trim()) return toast.error("Project link is required.");
+    if (!isValidUrl(link))
+      return toast.error("Project link must be a valid URL (https://...)");
 
-  if (!userId) {
-    toast.error("Session expired. Please login again.");
-    navigate("/login");
-    return;
-  }
+    if (!userId) {
+      toast.error("Session expired. Please login again.");
+      navigate("/login");
+      return;
+    }
 
-  try {
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    await API(
-      "PUT",
-      `${URL_PATH.projects}/${editingId}`,
-      {
-        projectName: toTitleCase(normalizeSpaces(name)),
-        role: role ? toTitleCase(normalizeSpaces(role)) : null,
-        summary: summary ? toSentenceCase(normalizeSpaces(summary.trim())) : null,
-        outcome: outcome ? toSentenceCase(normalizeSpaces(outcome.trim())) : null,
-        link: link ? normalizeSpaces(link) : null,
-      },
-      { "user-id": userId }
-    );
+      await API(
+        "PUT",
+        `${URL_PATH.projects}/${editingId}`,
+        {
+          projectName: toTitleCase(normalizeSpaces(name)),
+          role: role ? toTitleCase(normalizeSpaces(role)) : null,
+          summary: summary
+            ? toSentenceCase(normalizeSpaces(summary.trim()))
+            : null,
+          outcome: outcome
+            ? toSentenceCase(normalizeSpaces(outcome.trim()))
+            : null,
+          link: link ? normalizeSpaces(link) : null,
+        },
+        { "user-id": userId },
+      );
 
-    toast.success("Project updated successfully");
+      toast.success("Project updated successfully");
 
-    await fetchProjects();
-    await fetchExperienceIndex();
-    resetForm();
-    setSelectedProject(null);
-  } catch (err: any) {
-    toast.error(err?.response?.data?.message || "Failed to update project");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      await fetchProjects();
+      await fetchExperienceIndex();
+      resetForm();
+      setSelectedProject(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to update project");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // -------------------- DELETE PROJECT --------------------
   const handleRemove = async () => {
@@ -342,29 +347,41 @@ const isEditing = !!editingId;
       toast.error("Please add at least one project to continue.");
       return;
     }
-    if (source === "dashboard") {
+
+    // If came from profile, go to dashboard, otherwise continue to next section
+    if (fromProfile) {
+      navigate("/dashboard");
+    } else if (source === "dashboard") {
       navigate("/dashboard");
     } else {
       navigate("/skill-index-intro", { state: { source } });
     }
   };
 
-const fillFormForEdit = (p: ProjectEntry) => {
-  setEditingId(p.id);
+  const handleBack = () => {
+    if (fromProfile) {
+      navigate("/profile"); // Go back to profile if came from there
+    } else {
+      navigate("/awards");
+    }
+  };
 
-  setName(p.name || "");
-  setRole(p.role || "");
-  setSummary(p.summary || "");
-  setOutcome(p.outcome || "");
-  setLink(p.link || "");
+  const fillFormForEdit = (p: ProjectEntry) => {
+    setEditingId(p.id);
 
-  setSelectedProject(p);
-};
+    setName(p.name || "");
+    setRole(p.role || "");
+    setSummary(p.summary || "");
+    setOutcome(p.outcome || "");
+    setLink(p.link || "");
+
+    setSelectedProject(p);
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* 🎨 Enhanced gradient background with soft blur - matching awards */}
-      <div 
+      <div
         className="fixed inset-0 -z-10"
         style={{
           background: `radial-gradient(circle at 20% 20%, rgba(210, 215, 220, 0.4) 0%, rgba(150, 165, 180, 0.3) 50%, rgba(40, 64, 86, 0.4) 100%)`,
@@ -377,26 +394,22 @@ const fillFormForEdit = (p: ProjectEntry) => {
 
       <div className="relative z-10">
         <Navbar />
-        <ToastContainer 
-          position="top-center" 
+        <ToastContainer
+          position="top-center"
           autoClose={3000}
           toastClassName="!bg-white/80 !backdrop-blur-md !text-gray-800 !shadow-lg !border !border-white/20"
         />
 
         <div className="flex justify-center px-4 sm:px-6 py-6">
           <div className="w-full max-w-[1200px] mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
-            
             {/* Left card - Glass effect */}
             <main className="w-full lg:flex-1 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-2xl px-6 sm:px-8 py-8">
-              
               {/* Top: back + progress */}
               <div className="flex items-center gap-4 mb-8">
                 <IconButton
                   size="small"
                   icon={<FeatherArrowLeft className="w-4 h-4" />}
-                  onClick={() => {
-                    navigate("/awards")
-                  }}
+                  onClick={handleBack}
                   className="bg-white/50 hover:bg-white/80 backdrop-blur-sm border border-white/30"
                 />
 
@@ -406,22 +419,26 @@ const fillFormForEdit = (p: ProjectEntry) => {
                       <div
                         key={i}
                         className={`flex-1 h-1.5 rounded-full transition-all duration-300 ${
-                          i <= 5 
-                            ? "bg-gradient-to-r from-gray-600 to-gray-800" 
+                          i <= 5
+                            ? "bg-gradient-to-r from-gray-600 to-gray-800"
                             : "bg-white/30"
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 font-medium">Step 6 of 6</p>
+                  <p className="text-xs text-gray-500 mt-2 font-medium">
+                    Step 6 of 6
+                  </p>
                 </div>
               </div>
 
               {/* Header with refined typography */}
               <header className="mb-8">
                 <h2 className="text-2xl text-gray-800 font-light tracking-tight">
-                  Add your 
-                  <span className="block font-semibold text-gray-900 mt-1">Projects</span>
+                  Add your
+                  <span className="block font-semibold text-gray-900 mt-1">
+                    Projects
+                  </span>
                 </h2>
                 <p className="text-sm text-gray-500 mt-3 leading-relaxed">
                   Share your best work
@@ -528,30 +545,40 @@ const fillFormForEdit = (p: ProjectEntry) => {
 
                           <div className="flex flex-col gap-2 text-sm text-gray-700 px-1">
                             <div>
-                              <span className="font-medium text-gray-600">Project name:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Project name:
+                              </span>{" "}
                               {p.name}
                             </div>
                             <div>
-                              <span className="font-medium text-gray-600">Your Role:</span>{" "}
+                              <span className="font-medium text-gray-600">
+                                Your Role:
+                              </span>{" "}
                               {p.role}
                             </div>
                             {p.summary && (
                               <div>
-                                <span className="font-medium text-gray-600">Summary:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  Summary:
+                                </span>{" "}
                                 {p.summary}
                               </div>
                             )}
 
                             {p.outcome && (
                               <div>
-                                <span className="font-medium text-gray-600">Outcome:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  Outcome:
+                                </span>{" "}
                                 {p.outcome}
                               </div>
                             )}
 
                             {p.link && (
                               <div>
-                                <span className="font-medium text-gray-600">Project link:</span>{" "}
+                                <span className="font-medium text-gray-600">
+                                  Project link:
+                                </span>{" "}
                                 <a
                                   href={p.link}
                                   target="_blank"
@@ -648,7 +675,9 @@ const fillFormForEdit = (p: ProjectEntry) => {
                     className="w-full h-20 px-4 py-3 rounded-xl border bg-white/50 backdrop-blur-sm text-sm transition-all duration-200 border-white/40 hover:border-gray-300 focus:border-gray-400 focus:outline-none resize-none"
                     placeholder="What was the result or impact?"
                     value={outcome}
-                    onChange={(ev) => setOutcome(toSentenceCase(ev.target.value))}
+                    onChange={(ev) =>
+                      setOutcome(toSentenceCase(ev.target.value))
+                    }
                   />
                 </div>
 
@@ -659,15 +688,17 @@ const fillFormForEdit = (p: ProjectEntry) => {
                     variant="neutral-secondary"
                     icon={<FeatherPlus className="w-4 h-4" />}
                     className="w-full rounded-xl h-10 px-4 bg-white/50 backdrop-blur-sm border border-white/40 hover:bg-white/70 transition-all duration-200"
-                    onClick={() => (isEditing ? handleUpdateProject() : handleAddProject())}
+                    onClick={() =>
+                      isEditing ? handleUpdateProject() : handleAddProject()
+                    }
                   >
                     {isSubmitting
                       ? isEditing
                         ? "Updating..."
                         : "Adding..."
                       : isEditing
-                      ? "Update project"
-                      : "Add another project"}
+                        ? "Update project"
+                        : "Add another project"}
                   </Button>
 
                   {/* ✅ Cancel edit */}
@@ -686,7 +717,7 @@ const fillFormForEdit = (p: ProjectEntry) => {
 
               {/* Divider */}
               <div className="w-full h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-6" />
-              
+
               {/* Footer with Continue button */}
               <footer>
                 <Button
@@ -694,14 +725,17 @@ const fillFormForEdit = (p: ProjectEntry) => {
                   disabled={!canContinue || isSubmitting}
                   className="w-full h-11 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100"
                   style={{
-                    background: !canContinue || isSubmitting
-                      ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
-                      : "linear-gradient(135deg, #2c3e50, #1e2a36)",
+                    background:
+                      !canContinue || isSubmitting
+                        ? "linear-gradient(135deg, #e0e0e0, #f0f0f0)"
+                        : "linear-gradient(135deg, #2c3e50, #1e2a36)",
                     color: "#ffffff",
-                    cursor: !canContinue || isSubmitting ? "not-allowed" : "pointer",
-                    boxShadow: !canContinue || isSubmitting
-                      ? "none"
-                      : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
+                    cursor:
+                      !canContinue || isSubmitting ? "not-allowed" : "pointer",
+                    boxShadow:
+                      !canContinue || isSubmitting
+                        ? "none"
+                        : "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.02)",
                     opacity: !canContinue || isSubmitting ? 0.6 : 1,
                   }}
                 >
@@ -713,7 +747,6 @@ const fillFormForEdit = (p: ProjectEntry) => {
             {/* Right panel - Enhanced glass effect */}
             <aside className="w-full lg:w-80 shrink-0">
               <div className="lg:sticky lg:top-6 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-xl p-6">
-                
                 {/* Experience Index Score */}
                 <div className="text-center mb-6">
                   <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">
@@ -730,8 +763,10 @@ const fillFormForEdit = (p: ProjectEntry) => {
                 <div className="h-px bg-gradient-to-r from-transparent via-white/50 to-transparent my-4" />
 
                 {/* Progress Steps with refined styling */}
-                <h4 className="text-sm font-medium text-gray-600 mb-4">Progress steps</h4>
-                
+                <h4 className="text-sm font-medium text-gray-600 mb-4">
+                  Progress steps
+                </h4>
+
                 <div className="space-y-2">
                   {/* Completed - Demographics */}
                   <button
@@ -797,9 +832,7 @@ const fillFormForEdit = (p: ProjectEntry) => {
                     <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-green-100">
                       <FeatherCheck className="w-4 h-4 text-green-700" />
                     </div>
-                    <span className="flex-1 text-sm text-gray-600">
-                      Awards
-                    </span>
+                    <span className="flex-1 text-sm text-gray-600">Awards</span>
                     <span className="text-xs text-gray-400">5/6</span>
                   </button>
 
@@ -807,7 +840,8 @@ const fillFormForEdit = (p: ProjectEntry) => {
                   <div
                     className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200"
                     style={{
-                      background: "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
+                      background:
+                        "linear-gradient(135deg, rgba(44,62,80,0.1), rgba(30,42,54,0.05))",
                       border: "1px solid rgba(255,255,255,0.3)",
                       backdropFilter: "blur(4px)",
                     }}
@@ -830,9 +864,7 @@ const fillFormForEdit = (p: ProjectEntry) => {
       {/* Delete Confirmation Modal */}
       {deleteProjectId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div
-            className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40"
-          >
+          <div className="w-[360px] rounded-2xl p-6 shadow-xl bg-white/80 backdrop-blur-xl border border-white/40">
             <div className="flex justify-between items-center mb-4">
               <h3
                 className="text-lg font-semibold"

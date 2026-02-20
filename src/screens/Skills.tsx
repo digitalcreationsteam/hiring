@@ -16,121 +16,345 @@ import Footer from "../ui/components/Footer";
 
 // SVG Illustration Component for Skills
 const SkillsIllustration = () => (
-  <svg width="500" height="400" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="500"
+    height="400"
+    viewBox="0 0 500 400"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     {/* Background decorative elements */}
     <circle cx="150" cy="100" r="80" fill="url(#skillsGrad1)" opacity="0.2" />
     <circle cx="350" cy="300" r="100" fill="url(#skillsGrad2)" opacity="0.15" />
-    
+
     {/* Main illustration - Skills theme */}
     <g filter="url(#skillsShadow)">
       {/* Central hexagon - representing skill clusters */}
-      <path d="M250 120 L320 160 L320 240 L250 280 L180 240 L180 160 L250 120" fill="white" stroke="#E5E7EB" strokeWidth="2" />
-      
+      <path
+        d="M250 120 L320 160 L320 240 L250 280 L180 240 L180 160 L250 120"
+        fill="white"
+        stroke="#E5E7EB"
+        strokeWidth="2"
+      />
+
       {/* Floating skill bubbles with animations */}
       {/* Skill 1 - Purple */}
       <g transform="translate(200, 150)">
-        <circle cx="0" cy="0" r="25" fill="url(#skillBubble1)" filter="url(#glow)">
-          <animate attributeName="r" values="25;28;25" dur="3s" repeatCount="indefinite" />
+        <circle
+          cx="0"
+          cy="0"
+          r="25"
+          fill="url(#skillBubble1)"
+          filter="url(#glow)"
+        >
+          <animate
+            attributeName="r"
+            values="25;28;25"
+            dur="3s"
+            repeatCount="indefinite"
+          />
         </circle>
-        <text x="0" y="5" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" fontFamily="sans-serif">React</text>
+        <text
+          x="0"
+          y="5"
+          textAnchor="middle"
+          fill="white"
+          fontSize="12"
+          fontWeight="bold"
+          fontFamily="sans-serif"
+        >
+          React
+        </text>
       </g>
-      
+
       {/* Skill 2 - Green */}
       <g transform="translate(300, 180)">
-        <circle cx="0" cy="0" r="22" fill="url(#skillBubble2)" filter="url(#glow)">
-          <animate attributeName="r" values="22;25;22" dur="3.2s" repeatCount="indefinite" />
+        <circle
+          cx="0"
+          cy="0"
+          r="22"
+          fill="url(#skillBubble2)"
+          filter="url(#glow)"
+        >
+          <animate
+            attributeName="r"
+            values="22;25;22"
+            dur="3.2s"
+            repeatCount="indefinite"
+          />
         </circle>
-        <text x="0" y="5" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold" fontFamily="sans-serif">Python</text>
+        <text
+          x="0"
+          y="5"
+          textAnchor="middle"
+          fill="white"
+          fontSize="11"
+          fontWeight="bold"
+          fontFamily="sans-serif"
+        >
+          Python
+        </text>
       </g>
-      
+
       {/* Skill 3 - Blue */}
       <g transform="translate(250, 250)">
-        <circle cx="0" cy="0" r="28" fill="url(#skillBubble3)" filter="url(#glow)">
-          <animate attributeName="r" values="28;32;28" dur="3.5s" repeatCount="indefinite" />
+        <circle
+          cx="0"
+          cy="0"
+          r="28"
+          fill="url(#skillBubble3)"
+          filter="url(#glow)"
+        >
+          <animate
+            attributeName="r"
+            values="28;32;28"
+            dur="3.5s"
+            repeatCount="indefinite"
+          />
         </circle>
-        <text x="0" y="5" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold" fontFamily="sans-serif">SQL</text>
+        <text
+          x="0"
+          y="5"
+          textAnchor="middle"
+          fill="white"
+          fontSize="13"
+          fontWeight="bold"
+          fontFamily="sans-serif"
+        >
+          SQL
+        </text>
       </g>
-      
+
       {/* Skill 4 - Orange */}
       <g transform="translate(180, 230)">
-        <circle cx="0" cy="0" r="20" fill="url(#skillBubble4)" filter="url(#glow)">
-          <animate attributeName="r" values="20;23;20" dur="2.8s" repeatCount="indefinite" />
+        <circle
+          cx="0"
+          cy="0"
+          r="20"
+          fill="url(#skillBubble4)"
+          filter="url(#glow)"
+        >
+          <animate
+            attributeName="r"
+            values="20;23;20"
+            dur="2.8s"
+            repeatCount="indefinite"
+          />
         </circle>
-        <text x="0" y="5" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="sans-serif">UX</text>
+        <text
+          x="0"
+          y="5"
+          textAnchor="middle"
+          fill="white"
+          fontSize="10"
+          fontWeight="bold"
+          fontFamily="sans-serif"
+        >
+          UX
+        </text>
       </g>
-      
+
       {/* Skill 5 - Pink */}
       <g transform="translate(320, 240)">
-        <circle cx="0" cy="0" r="23" fill="url(#skillBubble5)" filter="url(#glow)">
-          <animate attributeName="r" values="23;26;23" dur="3.3s" repeatCount="indefinite" />
+        <circle
+          cx="0"
+          cy="0"
+          r="23"
+          fill="url(#skillBubble5)"
+          filter="url(#glow)"
+        >
+          <animate
+            attributeName="r"
+            values="23;26;23"
+            dur="3.3s"
+            repeatCount="indefinite"
+          />
         </circle>
-        <text x="0" y="5" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold" fontFamily="sans-serif">Agile</text>
+        <text
+          x="0"
+          y="5"
+          textAnchor="middle"
+          fill="white"
+          fontSize="11"
+          fontWeight="bold"
+          fontFamily="sans-serif"
+        >
+          Agile
+        </text>
       </g>
-      
+
       {/* Connecting lines - skill network */}
-      <path d="M200 150 L250 120" stroke="#E5E7EB" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-      <path d="M300 180 L320 160" stroke="#E5E7EB" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-      <path d="M250 250 L250 280" stroke="#E5E7EB" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-      <path d="M180 230 L180 200" stroke="#E5E7EB" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-      <path d="M320 240 L320 200" stroke="#E5E7EB" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-      
+      <path
+        d="M200 150 L250 120"
+        stroke="#E5E7EB"
+        strokeWidth="1.5"
+        strokeDasharray="4 4"
+        opacity="0.6"
+      />
+      <path
+        d="M300 180 L320 160"
+        stroke="#E5E7EB"
+        strokeWidth="1.5"
+        strokeDasharray="4 4"
+        opacity="0.6"
+      />
+      <path
+        d="M250 250 L250 280"
+        stroke="#E5E7EB"
+        strokeWidth="1.5"
+        strokeDasharray="4 4"
+        opacity="0.6"
+      />
+      <path
+        d="M180 230 L180 200"
+        stroke="#E5E7EB"
+        strokeWidth="1.5"
+        strokeDasharray="4 4"
+        opacity="0.6"
+      />
+      <path
+        d="M320 240 L320 200"
+        stroke="#E5E7EB"
+        strokeWidth="1.5"
+        strokeDasharray="4 4"
+        opacity="0.6"
+      />
+
       {/* Floating particles */}
       <circle cx="120" cy="120" r="4" fill="#4F46E5" opacity="0.4">
-        <animate attributeName="r" values="4;7;4" dur="4s" repeatCount="indefinite" />
+        <animate
+          attributeName="r"
+          values="4;7;4"
+          dur="4s"
+          repeatCount="indefinite"
+        />
       </circle>
       <circle cx="400" cy="150" r="5" fill="#059669" opacity="0.3">
-        <animate attributeName="r" values="5;8;5" dur="3.5s" repeatCount="indefinite" />
+        <animate
+          attributeName="r"
+          values="5;8;5"
+          dur="3.5s"
+          repeatCount="indefinite"
+        />
       </circle>
       <circle cx="380" cy="320" r="3" fill="#DC2626" opacity="0.3">
-        <animate attributeName="r" values="3;6;3" dur="4.2s" repeatCount="indefinite" />
+        <animate
+          attributeName="r"
+          values="3;6;3"
+          dur="4.2s"
+          repeatCount="indefinite"
+        />
       </circle>
       <circle cx="100" cy="280" r="4" fill="#F59E0B" opacity="0.3">
-        <animate attributeName="r" values="4;7;4" dur="3.8s" repeatCount="indefinite" />
+        <animate
+          attributeName="r"
+          values="4;7;4"
+          dur="3.8s"
+          repeatCount="indefinite"
+        />
       </circle>
     </g>
-    
+
     {/* Gradients */}
     <defs>
-      <linearGradient id="skillsGrad1" x1="70" y1="20" x2="230" y2="180" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="skillsGrad1"
+        x1="70"
+        y1="20"
+        x2="230"
+        y2="180"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#4F46E5" />
         <stop offset="1" stopColor="#7C3AED" />
       </linearGradient>
-      
-      <linearGradient id="skillsGrad2" x1="250" y1="200" x2="450" y2="400" gradientUnits="userSpaceOnUse">
+
+      <linearGradient
+        id="skillsGrad2"
+        x1="250"
+        y1="200"
+        x2="450"
+        y2="400"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#059669" />
         <stop offset="1" stopColor="#0284C7" />
       </linearGradient>
-      
-      <radialGradient id="skillBubble1" cx="0" cy="0" r="25" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="skillBubble1"
+        cx="0"
+        cy="0"
+        r="25"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#4F46E5" />
         <stop offset="1" stopColor="#7C3AED" />
       </radialGradient>
-      
-      <radialGradient id="skillBubble2" cx="0" cy="0" r="22" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="skillBubble2"
+        cx="0"
+        cy="0"
+        r="22"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#059669" />
         <stop offset="1" stopColor="#10B981" />
       </radialGradient>
-      
-      <radialGradient id="skillBubble3" cx="0" cy="0" r="28" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="skillBubble3"
+        cx="0"
+        cy="0"
+        r="28"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#3B82F6" />
         <stop offset="1" stopColor="#60A5FA" />
       </radialGradient>
-      
-      <radialGradient id="skillBubble4" cx="0" cy="0" r="20" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="skillBubble4"
+        cx="0"
+        cy="0"
+        r="20"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#F59E0B" />
         <stop offset="1" stopColor="#FBBF24" />
       </radialGradient>
-      
-      <radialGradient id="skillBubble5" cx="0" cy="0" r="23" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="skillBubble5"
+        cx="0"
+        cy="0"
+        r="23"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#EC4899" />
         <stop offset="1" stopColor="#F472B6" />
       </radialGradient>
-      
-      <filter id="skillsShadow" x="-50" y="-50" width="600" height="500" filterUnits="userSpaceOnUse">
+
+      <filter
+        id="skillsShadow"
+        x="-50"
+        y="-50"
+        width="600"
+        height="500"
+        filterUnits="userSpaceOnUse"
+      >
         <feDropShadow dx="0" dy="10" stdDeviation="10" floodOpacity="0.1" />
       </filter>
-      
-      <filter id="glow" x="-50" y="-50" width="200" height="200" filterUnits="userSpaceOnUse">
+
+      <filter
+        id="glow"
+        x="-50"
+        y="-50"
+        width="200"
+        height="200"
+        filterUnits="userSpaceOnUse"
+      >
         <feGaussianBlur stdDeviation="3" result="blur" />
         <feMerge>
           <feMergeNode in="blur" />
@@ -145,6 +369,7 @@ export default function Skills() {
   const navigate = useNavigate();
   const location = useLocation();
   const source = location.state?.source; // "dashboard" | undefined
+  const fromProfile = location.state?.fromProfile; // Check if came from profile
 
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -210,18 +435,35 @@ export default function Skills() {
         "POST",
         URL_PATH.updateUserDomainSkills,
         { userId, domainId, skills },
-        { Authorization: `Bearer ${token}` }
+        { Authorization: `Bearer ${token}` },
       );
 
-      navigate(source === "dashboard" ? "/dashboard" : "/assessment-intro");
+      // If came from profile, go to dashboard, otherwise continue to next section
+      if (fromProfile) {
+        navigate("/dashboard");
+      } else if (source === "dashboard") {
+        navigate("/dashboard");
+      } else {
+        navigate("/assessment-intro");
+      }
     } catch (error: any) {
       console.error("Skill save failed:", error);
       alert(
         error?.response?.data?.message ||
-          "Failed to save skills. Please try again."
+          "Failed to save skills. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (fromProfile) {
+      navigate("/profile"); // Go back to profile if came from there
+    } else if (source === "dashboard") {
+      navigate("/dashboard");
+    } else {
+      navigate(-1);
     }
   };
 
@@ -251,7 +493,7 @@ export default function Skills() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* 🎨 Enhanced gradient background with soft blur - matching jobdomain page */}
-      <div 
+      <div
         className="fixed inset-0 -z-10"
         style={{
           background: `radial-gradient(circle at 20% 20%, rgba(210, 215, 220, 0.4) 0%, rgba(150, 165, 180, 0.3) 50%, rgba(40, 64, 86, 0.4) 100%)`,
@@ -267,14 +509,13 @@ export default function Skills() {
 
         <div className="min-h-screen px-4 sm:px-6 md:px-8 py-6 sm:py-8 flex items-center justify-center">
           <div className="w-full max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-            
             {/* Left side - SVG Illustration Component with animations */}
             <div className="w-full lg:w-1/2 flex justify-center lg:justify-end">
               <div className="relative w-full max-w-[400px] lg:max-w-[500px]">
                 {/* Decorative blur elements behind illustration */}
                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-200/30 rounded-full blur-3xl"></div>
                 <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-200/30 rounded-full blur-3xl"></div>
-                
+
                 {/* SVG Illustration Component with animations */}
                 <div className="relative z-10 drop-shadow-2xl">
                   <SkillsIllustration />
@@ -296,10 +537,7 @@ export default function Skills() {
                     <IconButton
                       size="small"
                       icon={<FeatherArrowLeft className="w-4 h-4" />}
-                      onClick={() => {
-                        if (source === "dashboard") navigate("/dashboard");
-                        else navigate(-1);
-                      }}
+                      onClick={handleBack}
                       className="bg-white/50 hover:bg-white/80 backdrop-blur-sm border border-white/30"
                     />
 
@@ -318,20 +556,24 @@ export default function Skills() {
                           />
                         ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-2 font-medium">Step 4 of 5 • Skills</p>
+                      <p className="text-xs text-gray-500 mt-2 font-medium">
+                        Step 4 of 5 • Skills
+                      </p>
                     </div>
                   </div>
 
                   {/* Header with refined typography */}
                   <div className="flex flex-col gap-2">
                     <h2 className="text-2xl sm:text-2xl md:text-3xl font-light tracking-tight text-gray-800">
-                      Add your 
-                      <span className="block font-semibold text-gray-900 mt-1">Skills</span>
+                      Add your
+                      <span className="block font-semibold text-gray-900 mt-1">
+                        Skills
+                      </span>
                     </h2>
 
                     <p className="text-sm text-gray-500 leading-relaxed mt-2">
-                      Add your key skills to help recruiters discover your profile and
-                      match you with relevant opportunities
+                      Add your key skills to help recruiters discover your
+                      profile and match you with relevant opportunities
                     </p>
                   </div>
 
@@ -361,9 +603,7 @@ export default function Skills() {
                           key={s}
                           className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 bg-white/50 backdrop-blur-sm border border-white/40"
                         >
-                          <span className="text-sm text-gray-700">
-                            {s}
-                          </span>
+                          <span className="text-sm text-gray-700">{s}</span>
 
                           <button
                             onClick={() => removeSkill(s)}
@@ -387,7 +627,7 @@ export default function Skills() {
                       <div className="flex flex-wrap gap-2">
                         {suggested.map((s) => {
                           const isAdded = skills.some(
-                            (k) => k.toLowerCase() === s.toLowerCase()
+                            (k) => k.toLowerCase() === s.toLowerCase(),
                           );
 
                           return (
@@ -398,9 +638,13 @@ export default function Skills() {
                               onClick={() => addSkill(s)}
                               className="px-3 py-1.5 rounded-xl text-xs transition-all duration-200 border"
                               style={{
-                                backgroundColor: isAdded ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.5)",
+                                backgroundColor: isAdded
+                                  ? "rgba(255,255,255,0.3)"
+                                  : "rgba(255,255,255,0.5)",
                                 borderColor: "rgba(255,255,255,0.4)",
-                                color: isAdded ? colors.neutral[400] : colors.neutral[600],
+                                color: isAdded
+                                  ? colors.neutral[400]
+                                  : colors.neutral[600],
                                 cursor: isAdded ? "default" : "pointer",
                               }}
                             >
