@@ -576,7 +576,7 @@ export default function Dashboard() {
         try {
           const caseStudyRes = await API(
             "GET",
-            `/api/user-case-attempts/${demoId}/weekly`,
+            `/cases/${demoId}/weekly`,
           );
 
           const weeklyAttempts = caseStudyRes?.totalAttempts ?? 0;
